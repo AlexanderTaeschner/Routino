@@ -1,5 +1,5 @@
 /***************************************
- $Header: /home/amb/CVS/routino/src/optimiser.c,v 1.7 2009-01-05 18:43:31 amb Exp $
+ $Header: /home/amb/CVS/routino/src/optimiser.c,v 1.7.1.1 2009-01-06 18:21:54 amb Exp $
 
  Routing optimiser.
  ******************/ /******************
@@ -44,21 +44,20 @@ typedef struct _Result
 /*+ A list of results. +*/
 typedef struct _Results
 {
- uint32_t alloced;              /*+ The amount of space allocated for results in the array +*/
- uint32_t number[NBINS];        /*+ The number of occupied results in the array +*/
- Result **results[NBINS];       /*+ An array of pointers to arrays of results +*/
+ uint32_t   alloced;            /*+ The amount of space allocated for results in the array. +*/
+ uint32_t   number[NBINS];      /*+ The number of occupied results in the array. +*/
+ Result   **results[NBINS];     /*+ An array of pointers to arrays of results. +*/
 }
  Results;
 
-
-/*+ A queue results. +*/
+/*+ A queue of results. +*/
 typedef struct _Queue
 {
- uint32_t alloced;              /*+ The amount of space allocated for results in the array +*/
- uint32_t number;               /*+ The number of occupied results in the array +*/
- Result *queue[1024];           /*+ An array of results whose size is not
-                                    necessarily limited to 1024 (i.e. may
-                                    overflow the end of this structure). +*/
+ int        firstbin;           /*+ The distance associated to the first bin. +*/
+ distance_t minimum;            /*+ The distance associated to the first bin. +*/
+ uint32_t   alloced;            /*+ The amount of space allocated for results in the array. +*/
+ uint32_t   number[NBINS];      /*+ The number of occupied results in the array. +*/
+ Result   **results[NBINS];     /*+ An array of pointers to arrays of results. +*/
 }
  Queue;
 
@@ -71,7 +70,10 @@ Results *OSMResults=NULL;
 
 /* Functions */
 
+static void remove_from_queue(Result *result);
 static void insert_in_queue(Result *result);
+static Result *pop_from_queue(void);
+
 static Result *insert_result(node_t node);
 static Result *find_result(node_t node);
 
@@ -128,9 +130,8 @@ void FindRoute(node_t start,node_t finish)
 
  /* Loop across all nodes in the queue */
 
- while(OSMQueue->number>0)
+ while((result1=pop_from_queue()))
    {
-    result1=OSMQueue->queue[--OSMQueue->number];
     Node1=result1->Node;
     shortest1.distance=result1->shortest.distance;
     shortest1.duration=result1->shortest.duration;
@@ -192,6 +193,8 @@ void FindRoute(node_t start,node_t finish)
              (shortest2.distance==result2->shortest.distance &&
               shortest2.duration<result2->shortest.duration)) /* New end node is shorter */
             {
+             remove_from_queue(result2);
+
              result2->shortest.Prev=Node1;
              result2->shortest.distance=shortest2.distance;
              result2->shortest.duration=shortest2.duration;
@@ -209,6 +212,8 @@ void FindRoute(node_t start,node_t finish)
              (quickest2.duration==result2->quickest.duration &&
               quickest2.distance<result2->quickest.distance)) /* New end node is quicker */
             {
+             remove_from_queue(result2);
+
              result2->quickest.Prev=Node1;
              result2->quickest.distance=quickest2.distance;
              result2->quickest.duration=quickest2.duration;
@@ -230,8 +235,13 @@ void FindRoute(node_t start,node_t finish)
 
     if(!(nresults%1000))
       {
-       printf("\rRouting: End Nodes=%d Queue=%d Journey=%.1fkm,%.0fmin  ",nresults,OSMQueue->number,
+       printf("\rRouting: End Nodes=%d Queue=%d Journey=%.1fkm,%.0fmin  ",nresults,0,
               distance_to_km(shortest2.distance),duration_to_minutes(quickest2.duration));
+//       printf("%3d %d -> %d = %d\n",OSMQueue->number,
+//              (int)(10*distance_to_km(OSMQueue->queue[0]->shortest.distance)),
+//              (int)(10*distance_to_km(OSMQueue->queue[OSMQueue->number-1]->shortest.distance)),
+//              (int)(10*distance_to_km(OSMQueue->queue[0]->shortest.distance))-
+//              (int)(10*distance_to_km(OSMQueue->queue[OSMQueue->number-1]->shortest.distance)));
        fflush(stdout);
       }
    }
@@ -362,91 +372,117 @@ void PrintRoute(node_t start,node_t finish)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Insert an item into the queue in the right order.
+  Insert a result into the queue in the right order.
 
   Result *result The result to insert into the queue.
   ++++++++++++++++++++++++++++++++++++++*/
 
 static void insert_in_queue(Result *result)
 {
- int start;
- int end;
- int mid;
- int insert=-1;
+ static int biggest=0;
+ int bin;
 
  /* Check that the whole thing is allocated. */
 
  if(!OSMQueue)
    {
-    OSMQueue=(Queue*)malloc(sizeof(Queue)-sizeof(OSMQueue->queue)+INCREMENT*sizeof(Result*));
+    int i;
 
-    OSMQueue->alloced=INCREMENT;
-    OSMQueue->number=0;
+    OSMQueue=(Queue*)calloc(1,sizeof(Queue));
+    OSMQueue->alloced=(INCREMENT/8);
+
+    for(i=0;i<NBINS;i++)
+       OSMQueue->results[i]=(Result**)malloc(OSMQueue->alloced*sizeof(Result*));
    }
+
+ /* Choose the bin */
+
+ bin=(int)(result->shortest.distance>>5)-OSMQueue->minimum;
+
+ if(bin<0)
+    bin=0;
+
+ if(bin>=NBINS)
+    bin=NBINS-1;
+
+ if(bin>biggest)
+   {printf("bin=%d\n",bin);biggest=bin;}
+
+ bin=(bin+OSMQueue->firstbin)%NBINS;
 
  /* Check that the arrays have enough space. */
 
- if(OSMQueue->number==OSMQueue->alloced)
+ if(OSMQueue->number[bin]==OSMQueue->alloced)
    {
-    OSMQueue->alloced+=INCREMENT;
-    OSMQueue=(Queue*)realloc((void*)OSMQueue,sizeof(Queue)-sizeof(OSMQueue->queue)+OSMQueue->alloced*sizeof(Result*));
+    int i;
+
+    OSMQueue->alloced+=(INCREMENT/8);
+
+    for(i=0;i<NBINS;i++)
+       OSMQueue->results[i]=(Result**)realloc((void*)OSMQueue->results[i],OSMQueue->alloced*sizeof(Result*));
    }
 
- /* Binary search - search key may not match, new insertion point required
-  *
-  *  # <- start  |  Check mid and move start or end if it doesn't match
-  *  #           |
-  *  #           |  Since there may not be an exact match we must set end=mid
-  *  # <- mid    |  or start=mid because we know that mid doesn't match.
-  *  #           |
-  *  #           |  Eventually end=start+1 and the insertion point is before
-  *  # <- end    |  end (since it cannot be before the initial start or end).
-  */
+ /* No search - just add result to appropriate bin */
 
- start=0;
- end=OSMQueue->number-1;
+ OSMQueue->results[bin][OSMQueue->number[bin]]=result;
+ OSMQueue->number[bin]++;
+}
 
- if(OSMQueue->number==0)                                                      /* There is nothing in the queue */
-    insert=start;
- else if(result->shortest.distance>OSMQueue->queue[start]->shortest.distance) /* Check key is not before start */
-    insert=start;
- else if(result->shortest.distance<OSMQueue->queue[end]->shortest.distance)   /* Check key is not after end */
-    insert=end+1;
- else
+
+/*++++++++++++++++++++++++++++++++++++++
+  Remove a result from the queue.
+
+  Result *result The result to remove from the queue.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+static void remove_from_queue(Result *result)
+{
+ int i;
+ int bin=(result->shortest.distance>>5)-OSMQueue->minimum;
+
+ if(bin<0)
+    return;
+
+ if(bin>=NBINS)
+    bin=NBINS-1;
+
+ bin=(bin+OSMQueue->firstbin)%NBINS;
+
+ /* Linear search in correct bin */
+
+ for(i=0;i<OSMQueue->number[bin];i++)
+    if(OSMQueue->results[bin][i]==result)
+       OSMQueue->results[bin][i]=NULL;
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Pop a result from the queue.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+static Result *pop_from_queue(void)
+{
+ int i,j;
+
+ /* No search - just take first result in first non-empty bin */
+
+ for(j=0;j<NBINS;j++)
    {
-    do
-      {
-       mid=(start+end)/2;                                                         /* Choose mid point */
+    int bin=OSMQueue->firstbin;
 
-       if(OSMQueue->queue[mid]->shortest.distance>result->shortest.distance)      /* Mid point is too low */
-          start=mid;
-       else if(OSMQueue->queue[mid]->shortest.distance<result->shortest.distance) /* Mid point is too high */
-          end=mid;
-       else                                                                       /* Mid point is correct */
+    for(i=OSMQueue->number[bin]-1;i>=0;i--)
+       if(OSMQueue->results[bin][i])
          {
-          if(OSMQueue->queue[mid]==result)
-             return;
-
-          insert=mid;
-          break;
+          OSMQueue->number[bin]=i;
+          return(OSMQueue->results[bin][i]);
          }
-      }
-    while((end-start)>1);
 
-    if(insert==-1)
-       insert=end;
+    OSMQueue->firstbin++;
+    OSMQueue->firstbin%=NBINS;
+    OSMQueue->minimum++;
    }
 
- /* Shuffle the array up */
-
- if(insert!=OSMQueue->number)
-    memmove(&OSMQueue->queue[insert+1],&OSMQueue->queue[insert],(OSMQueue->number-insert)*sizeof(Result*));
-
- /* Insert the new entry */
-
- OSMQueue->queue[insert]=result;
-
- OSMQueue->number++;
+ return(NULL);
 }
 
 
