@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/sorting.c,v 1.11 2010-09-25 13:54:18 amb Exp $
+
  Merge sort functions.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2009-2011 Andrew M. Bishop
+ This file Copyright 2009-2010 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -25,13 +27,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include "types.h"
-
 #include "files.h"
-#include "sorting.h"
+#include "functions.h"
 
 
-/* Global variables */
+/* Variables */
 
 /*+ The command line '--tmpdir' option or its default value. +*/
 extern char *option_tmpdirname;
@@ -102,13 +102,6 @@ void filesort_fixed(int fd_in,int fd_out,size_t itemsize,int (*compare)(const vo
       }
 
     n=i;
-
-    /* Shortcut if there is no data and no previous files (i.e. no data at all) */
-
-    if(nfiles==0 && n==0)
-       goto tidy_and_exit;
-
-    /* No new data read in this time round */
 
     if(n==0)
        break;
@@ -376,8 +369,6 @@ void filesort_vary(int fd_in,int fd_out,int (*compare)(const void*,const void*),
           break;
          }
       }
-
-    /* No new data read in this time round */
 
     if(n==0)
        break;

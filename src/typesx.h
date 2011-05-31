@@ -1,5 +1,5 @@
 /***************************************
- $Header: /home/amb/CVS/routino/src/typesx.h,v 1.6 2010-12-12 16:35:55 amb Exp $
+ $Header: /home/amb/CVS/routino/src/typesx.h,v 1.4 2010-09-17 17:42:21 amb Exp $
 
  Type definitions for eXtended types.
 
@@ -41,23 +41,6 @@ typedef uint32_t way_t;
 typedef uint32_t relation_t;
 
 
-/* Enumerated types */
-
-/*+ Turn restrictions. +*/
-typedef enum _TurnRestriction
- {
-  TurnRestrict_None              =0,
-  TurnRestrict_no_right_turn,
-  TurnRestrict_no_left_turn,
-  TurnRestrict_no_u_turn,
-  TurnRestrict_no_straight_on,
-  TurnRestrict_only_right_turn,
-  TurnRestrict_only_left_turn,
-  TurnRestrict_only_straight_on
- }
- TurnRestriction;
-
-
 /* Data structures */
 
 typedef struct _NodeX NodeX;
@@ -73,8 +56,6 @@ typedef struct _WayX WayX;
 typedef struct _WaysX WaysX;
 
 typedef struct _RouteRelX RouteRelX;
-
-typedef struct _TurnRestrictRelX TurnRestrictRelX;
 
 typedef struct _RelationsX RelationsX;
 

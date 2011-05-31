@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!-- ============================================================
+     $Header: /home/amb/CVS/routino/xml/routino-profiles.xml,v 1.5 2010-10-09 18:20:45 amb Exp $
+
      An XML format file containing Routino routing profiles
 
      Part of the Routino routing software.
      ============================================================
-     This file Copyright 2010-2011 Andrew M. Bishop
+     This file Copyright 2010 Andrew M. Bishop
 
      This program is free software: you can redistribute it and/or modify
      it under the terms of the GNU Affero General Public License as published by
@@ -57,7 +59,6 @@
     </properties>
     <restrictions>
       <oneway obey="0" /> 
-      <turns  obey="0" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -106,7 +107,6 @@
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -155,7 +155,6 @@
     </properties>
     <restrictions>
       <oneway obey="0" /> 
-      <turns  obey="0" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -204,7 +203,6 @@
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -253,7 +251,6 @@
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -302,7 +299,6 @@
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -351,7 +347,6 @@
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -400,7 +395,6 @@
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="5.0" />
       <height limit="2.5" />
       <width  limit="2.0" />
@@ -449,7 +443,6 @@
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="10.0" />
       <height limit="3.0" />
       <width  limit="2.5" />
@@ -498,7 +491,6 @@
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="15.0" />
       <height limit="3.0" />
       <width  limit="2.5" />

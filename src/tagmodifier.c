@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/tagmodifier.c,v 1.7 2010-09-05 18:26:01 amb Exp $
+
  Test application for OSM XML file parser / tagging rule testing.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2010-2011 Andrew M. Bishop
+ This file Copyright 2010 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +29,6 @@
 #include <errno.h>
 
 #include "files.h"
-#include "logging.h"
 #include "xmlparse.h"
 #include "tagging.h"
 
@@ -257,7 +258,7 @@ static int nodeType_function(const char *_tag_,int _type_,const char *id,const c
     nnodes++;
 
     if(!(nnodes%1000))
-       fprintf_middle(stderr,"Reading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
+       fprintf(stderr,"\rReading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
 
     current_tags=NewTagList();
    }
@@ -373,7 +374,7 @@ static int wayType_function(const char *_tag_,int _type_,const char *id,const ch
     nways++;
 
     if(!(nways%1000))
-       fprintf_middle(stderr,"Reading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
+       fprintf(stderr,"\rReading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
 
     current_tags=NewTagList();
    }
@@ -439,7 +440,7 @@ static int relationType_function(const char *_tag_,int _type_,const char *id,con
     nrelations++;
 
     if(!(nrelations%1000))
-       fprintf_middle(stderr,"Reading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
+       fprintf(stderr,"\rReading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
 
     current_tags=NewTagList();
    }
@@ -523,7 +524,7 @@ static int xmlDeclaration_function(const char *_tag_,int _type_,const char *vers
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  The main program for the tagmodifier.
+  The main program for the planetsplitter.
   ++++++++++++++++++++++++++++++++++++++*/
 
 int main(int argc,char **argv)
@@ -538,8 +539,6 @@ int main(int argc,char **argv)
    {
     if(!strcmp(argv[arg],"--help"))
        print_usage(1);
-    else if(!strcmp(argv[arg],"--loggable"))
-       option_loggable=1;
     else if(!strncmp(argv[arg],"--tagging=",10))
        tagging=&argv[arg][10];
     else if(argv[arg][0]=='-' && argv[arg][1]=='-')
@@ -594,11 +593,11 @@ int main(int argc,char **argv)
 
  /* Parse the file */
 
- fprintf_first(stderr,"Reading: Lines=0 Nodes=0 Ways=0 Relations=0");
+ fprintf(stderr,"\rReading: Lines=0 Nodes=0 Ways=0 Relations=0");
 
  retval=ParseXML(file,xml_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_IGNORE);
 
- fprintf_last(stderr,"Read: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
+ fprintf(stderr,"\rRead: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld   \n",ParseXML_LineNumber(),nnodes,nways,nrelations);
 
  /* Tidy up */
 
@@ -619,7 +618,6 @@ static void print_usage(int detail)
 {
  fprintf(stderr,
          "Usage: tagmodifier [--help]\n"
-         "                   [--loggable]\n"
          "                   [--tagging=<filename>]\n"
          "                   [<filename.osm>]\n");
 
@@ -627,8 +625,6 @@ static void print_usage(int detail)
     fprintf(stderr,
             "\n"
             "--help                    Prints this information.\n"
-            "\n"
-            "--loggable                Print progress messages suitable for logging to file.\n"
             "\n"
             "--tagging=<filename>      The name of the XML file containing the tagging rules\n"
             "                          (defaults to 'tagging.xml' in current directory).\n"

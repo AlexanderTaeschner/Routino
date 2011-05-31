@@ -1,8 +1,10 @@
+# $Header: /home/amb/CVS/routino/src/Makefile,v 1.42 2010-09-17 17:42:20 amb Exp $
+#
 # Source code Makefile
 #
 # Part of the Routino routing software.
 #
-# This file Copyright 2008-2011 Andrew M. Bishop
+# This file Copyright 2008-2010 Andrew M. Bishop
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -67,15 +69,14 @@ all : $(EXE)
 	        cp -f $$file $(WEBDIR) ;\
 	     fi ;\
 	  done
-	@cd xml  && $(MAKE) CC="$(CC)" LD="$(LD)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
-	@cd test && $(MAKE) CC="$(CC)" LD="$(LD)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
+	@cd xml && $(MAKE) CC="$(CC)" LD="$(LD)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
 
 ########
 
 PLANETSPLITTER_OBJ=planetsplitter.o \
 	           nodesx.o segmentsx.o waysx.o relationsx.o superx.o \
 	           ways.o types.o \
-	           files.o logging.o \
+	           files.o \
 	           results.o queue.o sorting.o \
 	           xmlparse.o tagging.o osmparser.o
 
@@ -87,7 +88,7 @@ planetsplitter : $(PLANETSPLITTER_OBJ)
 PLANETSPLITTER_SLIM_OBJ=planetsplitter-slim.o \
 	                nodesx-slim.o segmentsx-slim.o waysx-slim.o relationsx-slim.o superx-slim.o \
 	                ways.o types.o \
-	                files.o logging.o \
+	                files.o \
 	                results.o queue.o sorting.o \
 	                xmlparse.o tagging.o osmparser.o
 
@@ -97,9 +98,9 @@ planetsplitter-slim : $(PLANETSPLITTER_SLIM_OBJ)
 ########
 
 ROUTER_OBJ=router.o \
-	   nodes.o segments.o ways.o relations.o types.o fakes.o \
+	   nodes.o segments.o ways.o types.o fakes.o \
 	   optimiser.o output.o \
-	   files.o logging.o profiles.o xmlparse.o \
+	   files.o profiles.o xmlparse.o \
 	   results.o queue.o translations.o
 
 router : $(ROUTER_OBJ)
@@ -108,9 +109,9 @@ router : $(ROUTER_OBJ)
 ########
 
 ROUTER_SLIM_OBJ=router-slim.o \
-	        nodes-slim.o segments-slim.o ways-slim.o relations-slim.o types.o fakes-slim.o \
+	        nodes-slim.o segments-slim.o ways-slim.o types.o fakes.o \
 	        optimiser-slim.o output-slim.o \
-	        files.o logging.o profiles.o xmlparse.o \
+	        files.o profiles.o xmlparse.o \
 	        results.o queue.o translations.o
 
 router-slim : $(ROUTER_SLIM_OBJ)
@@ -119,9 +120,9 @@ router-slim : $(ROUTER_SLIM_OBJ)
 ########
 
 FILEDUMPER_OBJ=filedumper.o \
-	       nodes.o segments.o ways.o relations.o types.o fakes.o \
+	       nodes.o segments.o ways.o types.o \
                visualiser.o \
-	       files.o logging.o xmlparse.o
+	       files.o xmlparse.o
 
 filedumper : $(FILEDUMPER_OBJ)
 	$(LD) $(FILEDUMPER_OBJ) -o $@ $(LDFLAGS)
@@ -129,9 +130,9 @@ filedumper : $(FILEDUMPER_OBJ)
 ########
 
 FILEDUMPER_SLIM_OBJ=filedumper-slim.o \
-	       nodes-slim.o segments-slim.o ways-slim.o relations-slim.o types.o fakes-slim.o \
+	       nodes-slim.o segments-slim.o ways-slim.o types.o \
                visualiser-slim.o \
-	       files.o logging.o xmlparse.o
+	       files.o xmlparse.o
 
 filedumper-slim : $(FILEDUMPER_SLIM_OBJ)
 	$(LD) $(FILEDUMPER_SLIM_OBJ) -o $@ $(LDFLAGS)
@@ -139,7 +140,7 @@ filedumper-slim : $(FILEDUMPER_SLIM_OBJ)
 ########
 
 TAGMODIFIER_OBJ=tagmodifier.o \
-	        files.o logging.o \
+	        files.o \
                 xmlparse.o tagging.o
 
 tagmodifier : $(TAGMODIFIER_OBJ)
@@ -155,10 +156,10 @@ xmlparse.c : xmlparse.l
 ########
 
 %.o : %.c
-	$(CC) -c $(CFLAGS) $(FLAGS64) -DSLIM=0 -DDATADIR=\"$(datadir)\" $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
+	$(CC) -c $(CFLAGS) $(FLAGS64) -DSLIM=0 -DDATADIR=\"$(datadir)\" $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $<)))
 
 %-slim.o : %.c
-	$(CC) -c $(CFLAGS) $(FLAGS64) -DSLIM=1 -DDATADIR=\"$(datadir)\" $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
+	$(CC) -c $(CFLAGS) $(FLAGS64) -DSLIM=1 -DDATADIR=\"$(datadir)\" $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $<)))
 
 ########
 
@@ -172,18 +173,11 @@ install: all
 
 ########
 
-test: .FORCE
-	cd xml  && $(MAKE) test
-	cd test && $(MAKE) test
-
-########
-
 clean:
 	rm -f *.o
 	rm -f *~
 	rm -f xmlparse.c
-	cd xml  && $(MAKE) clean
-	cd test && $(MAKE) clean
+	cd xml && $(MAKE) clean
 
 ########
 
@@ -192,8 +186,7 @@ distclean: clean
 	-rm -f $(EXE)
 	-rm -f $(D)
 	-rm -fr .deps
-	cd xml  && $(MAKE) distclean
-	cd test && $(MAKE) distclean
+	cd xml && $(MAKE) distclean
 
 ########
 

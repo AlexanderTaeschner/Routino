@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/osmparser.c,v 1.72 2010-09-25 18:47:32 amb Exp $
+
  OSM XML file parser (either JOSM or planet)
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008-2010 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -36,12 +38,9 @@
 #include "xmlparse.h"
 #include "tagging.h"
 
-#include "logging.h"
-
 
 /* Macros */
 
-/*+ Checks if a value in the XML is one of the allowed values for true. +*/
 #define ISTRUE(xx) (!strcmp(xx,"true") || !strcmp(xx,"yes") || !strcmp(xx,"1"))
 
 
@@ -59,9 +58,6 @@ static way_t      *relation_ways=NULL;
 static int         relation_nways=0;
 static relation_t *relation_relations=NULL;
 static int         relation_nrelations=0;
-static way_t       relation_from=NO_WAY;
-static way_t       relation_to=NO_WAY;
-static node_t      relation_via=NO_NODE;
 
 static NodesX     *nodes;
 static SegmentsX  *segments;
@@ -256,7 +252,10 @@ static int nodeType_function(const char *_tag_,int _type_,const char *id,const c
     nnodes++;
 
     if(!(nnodes%1000))
-       printf_middle("Reading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
+      {
+       printf("\rReading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
+       fflush(stdout);
+      }
 
     current_tags=NewTagList();
 
@@ -342,12 +341,6 @@ static int memberType_function(const char *_tag_,int _type_,const char *type,con
           relation_nodes=(node_t*)realloc((void*)relation_nodes,(relation_nnodes+256)*sizeof(node_t));
 
        relation_nodes[relation_nnodes++]=node_id;
-
-       if(role)
-         {
-          if(!strcmp(role,"via"))
-             relation_via=node_id;
-         }
       }
     else if(!strcmp(type,"way"))
       {
@@ -357,14 +350,6 @@ static int memberType_function(const char *_tag_,int _type_,const char *type,con
           relation_ways=(way_t*)realloc((void*)relation_ways,(relation_nways+256)*sizeof(way_t));
 
        relation_ways[relation_nways++]=way_id;
-
-       if(role)
-         {
-          if(!strcmp(role,"from"))
-             relation_from=way_id;
-          if(!strcmp(role,"to"))
-             relation_to=way_id;
-         }
       }
     else if(!strcmp(type,"relation"))
       {
@@ -402,7 +387,10 @@ static int wayType_function(const char *_tag_,int _type_,const char *id)
     nways++;
 
     if(!(nways%1000))
-       printf_middle("Reading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
+      {
+       printf("\rReading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
+       fflush(stdout);
+      }
 
     current_tags=NewTagList();
 
@@ -448,15 +436,14 @@ static int relationType_function(const char *_tag_,int _type_,const char *id)
     nrelations++;
 
     if(!(nrelations%1000))
-       printf_middle("Reading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
+      {
+       printf("\rReading: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
+       fflush(stdout);
+      }
 
     current_tags=NewTagList();
 
     relation_nnodes=relation_nways=relation_nrelations=0;
-
-    relation_from=NO_WAY;
-    relation_to=NO_WAY;
-    relation_via=NO_NODE;
 
     /* Handle the relation information */
 
@@ -550,11 +537,13 @@ int ParseOSM(FILE *file,NodesX *OSMNodes,SegmentsX *OSMSegments,WaysX *OSMWays,R
 
  nnodes=0,nways=0,nrelations=0;
 
- printf_first("Reading: Lines=0 Nodes=0 Ways=0 Relations=0");
+ printf("\rReading: Lines=0 Nodes=0 Ways=0 Relations=0");
+ fflush(stdout);
 
  retval=ParseXML(file,xml_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_IGNORE);
 
- printf_last("Read: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld",ParseXML_LineNumber(),nnodes,nways,nrelations);
+ printf("\rRead: Lines=%ld Nodes=%ld Ways=%ld Relations=%ld   \n",ParseXML_LineNumber(),nnodes,nways,nrelations);
+ fflush(stdout);
 
  return(retval);
 }
@@ -574,8 +563,8 @@ int ParseOSM(FILE *file,NodesX *OSMNodes,SegmentsX *OSMSegments,WaysX *OSMWays,R
 
 static void process_node_tags(TagList *tags,node_t id,double latitude,double longitude)
 {
- transports_t allow=Transports_ALL;
- uint16_t flags=0;
+ allow_t allow=Allow_ALL;
+
  int i;
 
  /* Parse the tags */
@@ -590,65 +579,61 @@ static void process_node_tags(TagList *tags,node_t id,double latitude,double lon
       case 'b':
        if(!strcmp(k,"bicycle"))
           if(!ISTRUE(v))
-             allow&=~Transports_Bicycle;
+             allow&=~Allow_Bicycle;
 
        break;
 
       case 'f':
        if(!strcmp(k,"foot"))
           if(!ISTRUE(v))
-             allow&=~Transports_Foot;
+             allow&=~Allow_Foot;
 
        break;
 
       case 'g':
        if(!strcmp(k,"goods"))
           if(!ISTRUE(v))
-             allow&=~Transports_Goods;
+             allow&=~Allow_Goods;
 
        break;
 
       case 'h':
-       if(!strcmp(k,"highway"))
-          if(!strcmp(v,"mini_roundabout"))
-             flags|=NODE_MINIRNDBT;
-
        if(!strcmp(k,"horse"))
           if(!ISTRUE(v))
-             allow&=~Transports_Horse;
+             allow&=~Allow_Horse;
 
        if(!strcmp(k,"hgv"))
           if(!ISTRUE(v))
-             allow&=~Transports_HGV;
+             allow&=~Allow_HGV;
 
        break;
 
       case 'm':
        if(!strcmp(k,"moped"))
           if(!ISTRUE(v))
-             allow&=~Transports_Moped;
+             allow&=~Allow_Moped;
 
        if(!strcmp(k,"motorbike"))
           if(!ISTRUE(v))
-             allow&=~Transports_Motorbike;
+             allow&=~Allow_Motorbike;
 
        if(!strcmp(k,"motorcar"))
           if(!ISTRUE(v))
-             allow&=~Transports_Motorcar;
+             allow&=~Allow_Motorcar;
 
        break;
 
       case 'p':
        if(!strcmp(k,"psv"))
           if(!ISTRUE(v))
-             allow&=~Transports_PSV;
+             allow&=~Allow_PSV;
 
        break;
 
       case 'w':
        if(!strcmp(k,"wheelchair"))
           if(!ISTRUE(v))
-             allow&=~Transports_Wheelchair;
+             allow&=~Allow_Wheelchair;
 
        break;
 
@@ -659,7 +644,7 @@ static void process_node_tags(TagList *tags,node_t id,double latitude,double lon
 
  /* Create the node */
 
- AppendNode(nodes,id,degrees_to_radians(latitude),degrees_to_radians(longitude),allow,flags);
+ AppendNode(nodes,id,degrees_to_radians(latitude),degrees_to_radians(longitude),allow);
 }
 
 
@@ -674,8 +659,9 @@ static void process_node_tags(TagList *tags,node_t id,double latitude,double lon
 static void process_way_tags(TagList *tags,way_t id)
 {
  Way   way={0};
- int   oneway=0;
+ int   oneway=0,roundabout=0;
  char *name=NULL,*ref=NULL;
+
  int i;
 
  /* Parse the tags */
@@ -690,7 +676,7 @@ static void process_way_tags(TagList *tags,way_t id)
       case 'b':
        if(!strcmp(k,"bicycle"))
           if(ISTRUE(v))
-             way.allow|= Transports_Bicycle;
+             way.allow|= Allow_Bicycle;
 
        if(!strcmp(k,"bicycleroute"))
           if(ISTRUE(v))
@@ -705,7 +691,7 @@ static void process_way_tags(TagList *tags,way_t id)
       case 'f':
        if(!strcmp(k,"foot"))
           if(ISTRUE(v))
-             way.allow|= Transports_Foot;
+             way.allow|= Allow_Foot;
 
        if(!strcmp(k,"footroute"))
           if(ISTRUE(v))
@@ -716,7 +702,7 @@ static void process_way_tags(TagList *tags,way_t id)
       case 'g':
        if(!strcmp(k,"goods"))
           if(ISTRUE(v))
-             way.allow|=Transports_Goods;
+             way.allow|=Allow_Goods;
 
        break;
 
@@ -726,11 +712,17 @@ static void process_way_tags(TagList *tags,way_t id)
 
        if(!strcmp(k,"horse"))
           if(ISTRUE(v))
-             way.allow|=Transports_Horse;
+             way.allow|=Allow_Horse;
 
        if(!strcmp(k,"hgv"))
           if(ISTRUE(v))
-             way.allow|=Transports_HGV;
+             way.allow|=Allow_HGV;
+
+       break;
+
+      case 'j':
+       if(!strcmp(k,"junction") && !strcmp(v,"roundabout"))
+          roundabout=1;
 
        break;
 
@@ -804,15 +796,15 @@ static void process_way_tags(TagList *tags,way_t id)
 
        if(!strcmp(k,"moped"))
           if(ISTRUE(v))
-             way.allow|=Transports_Moped;
+             way.allow|=Allow_Moped;
 
        if(!strcmp(k,"motorbike"))
           if(ISTRUE(v))
-             way.allow|=Transports_Motorbike;
+             way.allow|=Allow_Motorbike;
 
        if(!strcmp(k,"motorcar"))
           if(ISTRUE(v))
-             way.allow|=Transports_Motorcar;
+             way.allow|=Allow_Motorcar;
 
        if(!strcmp(k,"multilane"))
           if(ISTRUE(v))
@@ -844,7 +836,7 @@ static void process_way_tags(TagList *tags,way_t id)
 
        if(!strcmp(k,"psv"))
           if(ISTRUE(v))
-             way.allow|=Transports_PSV;
+             way.allow|=Allow_PSV;
 
        break;
 
@@ -864,7 +856,7 @@ static void process_way_tags(TagList *tags,way_t id)
       case 'w':
        if(!strcmp(k,"wheelchair"))
           if(ISTRUE(v))
-             way.allow|=Transports_Wheelchair;
+             way.allow|=Allow_Wheelchair;
 
        break;
 
@@ -883,6 +875,9 @@ static void process_way_tags(TagList *tags,way_t id)
 
        if(oneway)
           way.type|=Way_OneWay;
+
+       if(roundabout)
+          way.type|=Way_Roundabout;
 
        if(ref && name)
          {
@@ -907,11 +902,20 @@ static void process_way_tags(TagList *tags,way_t id)
           node_t to  =way_nodes[i];
 
           if(oneway>0)
+            {
              AppendSegment(segments,id,from,to,ONEWAY_1TO2);
+             AppendSegment(segments,id,to,from,ONEWAY_2TO1);
+            }
           else if(oneway<0)
+            {
              AppendSegment(segments,id,from,to,ONEWAY_2TO1);
+             AppendSegment(segments,id,to,from,ONEWAY_1TO2);
+            }
           else
+            {
              AppendSegment(segments,id,from,to,0);
+             AppendSegment(segments,id,to,from,0);
+            }
          }
       }
    }
@@ -928,10 +932,7 @@ static void process_way_tags(TagList *tags,way_t id)
 
 static void process_relation_tags(TagList *tags,relation_t id)
 {
- transports_t routes=Transports_None;
- transports_t except=Transports_None;
- int relation_turn_restriction=0;
- TurnRestriction restriction=TurnRestrict_None;
+ allow_t routes=Allow_None;
  int i;
 
  /* Parse the tags */
@@ -946,43 +947,15 @@ static void process_relation_tags(TagList *tags,relation_t id)
       case 'b':
        if(!strcmp(k,"bicycleroute"))
           if(ISTRUE(v))
-             routes|=Transports_Bicycle;
-
-       break;
-
-      case 'e':
-       if(!strcmp(k,"except"))
-          for(i=1;i<Transport_Count;i++)
-             if(!strstr(v,TransportName(i)))
-                except|=TRANSPORTS(i);
+             routes|=Allow_Bicycle;
 
        break;
 
       case 'f':
        if(!strcmp(k,"footroute"))
           if(ISTRUE(v))
-             routes|=Transports_Foot;
+             routes|=Allow_Foot;
 
-       break;
-
-      case 'r':
-       if(!strcmp(k,"restriction"))
-         {
-          if(!strcmp(v,"no_right_turn"   )) restriction=TurnRestrict_no_right_turn;
-          if(!strcmp(v,"no_left_turn"    )) restriction=TurnRestrict_no_left_turn;
-          if(!strcmp(v,"no_u_turn"       )) restriction=TurnRestrict_no_u_turn;
-          if(!strcmp(v,"no_straight_on"  )) restriction=TurnRestrict_no_straight_on;
-          if(!strcmp(v,"only_right_turn" )) restriction=TurnRestrict_only_right_turn;
-          if(!strcmp(v,"only_left_turn"  )) restriction=TurnRestrict_only_left_turn;
-          if(!strcmp(v,"only_straight_on")) restriction=TurnRestrict_only_straight_on;
-         }
-
-       break;
-
-      case 't':
-       if(!strcmp(k,"type"))
-          if(!strcmp(v,"restriction"))
-             relation_turn_restriction=1;
        break;
 
       default:
@@ -994,16 +967,8 @@ static void process_relation_tags(TagList *tags,relation_t id)
     relations even if they are not routes because they might be referenced by
     other relations that are routes) */
 
- if((relation_nways || relation_nrelations) && !relation_turn_restriction)
+ if(relation_nways || relation_nrelations)
     AppendRouteRelation(relations,id,routes,
                         relation_ways,relation_nways,
                         relation_relations,relation_nrelations);
-
- /* Create the turn restriction relation. */
-
- if(relation_turn_restriction && restriction!=TurnRestrict_None &&
-    relation_from!=NO_WAY && relation_to!=NO_WAY && relation_via!=NO_NODE)
-    AppendTurnRestrictRelation(relations,id,
-                               relation_from,relation_to,relation_via,
-                               restriction,except);
 }
