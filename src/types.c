@@ -1,5 +1,5 @@
 /***************************************
- $Header: /home/amb/CVS/routino/src/types.c,v 1.10 2010-11-28 15:12:41 amb Exp $
+ $Header: /home/amb/CVS/routino/src/types.c,v 1.6 2010-09-17 17:43:41 amb Exp $
 
  Functions for handling the data types.
 
@@ -236,6 +236,7 @@ const char *HighwayName(Highway highway)
     ;
 
    case Way_OneWay:
+   case Way_Roundabout:
     ;
    }
 
@@ -329,158 +330,71 @@ const char *PropertyName(Property property)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  A string containing the names of highways.
-
-  const char *HighwaysNameList Returns the list of names.
-
-  highways_t highways The highways type.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-const char *HighwaysNameList(highways_t highways)
-{
- static char string[256];
-
- string[0]=0;
-
- if(highways & Highways_Motorway)
-    strcat(string,"motorway");
-
- if(highways & Highways_Trunk)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"trunk");
-   }
-
- if(highways & Highways_Primary)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"primary");
-   }
-
- if(highways & Highways_Tertiary)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"tertiary");
-   }
-
- if(highways & Highways_Unclassified)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"unclassified");
-   }
-
- if(highways & Highways_Residential)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"residential");
-   }
-
- if(highways & Highways_Service)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"service");
-   }
-
- if(highways & Highways_Track)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"track");
-   }
-
- if(highways & Highways_Cycleway)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"cycleway");
-   }
-
- if(highways & Highways_Path)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"path");
-   }
-
- if(highways & Highways_Steps)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"steps");
-   }
-
- if(highways & Highways_Ferry)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"ferry");
-   }
-
- return(string);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
   A string containing the names of allowed transports on a way.
 
   const char *AllowedNameList Returns the list of names.
 
-  transports_t allowed The allowed type.
+  allow_t allowed The allowed type.
   ++++++++++++++++++++++++++++++++++++++*/
 
-const char *AllowedNameList(transports_t allowed)
+const char *AllowedNameList(allow_t allowed)
 {
  static char string[256];
 
  string[0]=0;
 
- if(allowed & Transports_Foot)
+ if(allowed & Allow_Foot)
     strcat(string,"foot");
 
- if(allowed & Transports_Horse)
+ if(allowed & Allow_Horse)
    {
     if(*string) strcat(string,", ");
     strcat(string,"horse");
    }
 
- if(allowed & Transports_Wheelchair)
+ if(allowed & Allow_Wheelchair)
    {
     if(*string) strcat(string,", ");
     strcat(string,"wheelchair");
    }
 
- if(allowed & Transports_Bicycle)
+ if(allowed & Allow_Bicycle)
    {
     if(*string) strcat(string,", ");
     strcat(string,"bicycle");
    }
 
- if(allowed & Transports_Moped)
+ if(allowed & Allow_Moped)
    {
     if(*string) strcat(string,", ");
     strcat(string,"moped");
    }
 
- if(allowed & Transports_Motorbike)
+ if(allowed & Allow_Motorbike)
    {
     if(*string) strcat(string,", ");
     strcat(string,"motorbike");
    }
 
- if(allowed & Transports_Motorcar)
+ if(allowed & Allow_Motorcar)
    {
     if(*string) strcat(string,", ");
     strcat(string,"motorcar");
    }
 
- if(allowed & Transports_Goods)
+ if(allowed & Allow_Goods)
    {
     if(*string) strcat(string,", ");
     strcat(string,"goods");
    }
 
- if(allowed & Transports_HGV)
+ if(allowed & Allow_HGV)
    {
     if(*string) strcat(string,", ");
     strcat(string,"hgv");
    }
 
- if(allowed & Transports_PSV)
+ if(allowed & Allow_PSV)
    {
     if(*string) strcat(string,", ");
     strcat(string,"psv");
@@ -495,10 +409,10 @@ const char *AllowedNameList(transports_t allowed)
 
   const char *PropertiesNameList Returns the list of names.
 
-  properties_t properties The properties of the way.
+  wayprop_t properties The properties of the way.
   ++++++++++++++++++++++++++++++++++++++*/
 
-const char *PropertiesNameList(properties_t properties)
+const char *PropertiesNameList(wayprop_t properties)
 {
  static char string[256];
 

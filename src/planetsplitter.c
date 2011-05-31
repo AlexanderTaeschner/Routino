@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/planetsplitter.c,v 1.82 2010-11-13 14:22:28 amb Exp $
+
  OSM planet file splitter.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008-2010 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -229,6 +231,16 @@ int main(int argc,char** argv)
 
  SortRelationList(Relations);
 
+ /* Process the route relations (must be before compacting the ways) */
+
+ ProcessRouteRelations(Relations,Ways);
+
+ FreeRelationList(Relations,0);
+
+ /* Compact the ways (must be before measuring the segments) */
+
+ CompactWayList(Ways);
+
  /* Remove bad segments (must be after sorting the nodes and segments) */
 
  RemoveBadSegments(Nodes,Segments);
@@ -237,35 +249,15 @@ int main(int argc,char** argv)
 
  RemoveNonHighwayNodes(Nodes,Segments);
 
- /* Process the route relations and first part of turn relations (must be before compacting the ways) */
-
- ProcessRouteRelations(Relations,Ways);
-
- ProcessTurnRelations1(Relations,Nodes,Ways);
-
- /* Compact the ways (must be before measuring the segments) */
-
- CompactWayList(Ways);
-
  /* Measure the segments and replace node/way id with index (must be after removing non-highway nodes) */
 
- MeasureSegments(Segments,Nodes,Ways);
-
- /* Index the segments */
-
- IndexSegments(Segments,Nodes);
-
- /* Convert the turn relations from ways into nodes */
-
- ProcessTurnRelations2(Relations,Nodes,Segments,Ways);
+ UpdateSegments(Segments,Nodes,Ways);
 
 
  /* Repeated iteration on Super-Nodes and Super-Segments */
 
  do
    {
-    int nsuper;
-
     printf("\nProcess Super-Data (iteration %d)\n================================%s\n\n",iteration,iteration>9?"=":"");
     fflush(stdout);
 
@@ -277,9 +269,7 @@ int main(int argc,char** argv)
 
        /* Select the super-segments */
 
-       SuperSegments=CreateSuperSegments(Nodes,Segments,Ways);
-
-       nsuper=Segments->number;
+       SuperSegments=CreateSuperSegments(Nodes,Segments,Ways,iteration);
       }
     else
       {
@@ -291,9 +281,10 @@ int main(int argc,char** argv)
 
        /* Select the super-segments */
 
-       SuperSegments2=CreateSuperSegments(Nodes,SuperSegments,Ways);
+       SuperSegments2=CreateSuperSegments(Nodes,SuperSegments,Ways,iteration);
 
-       nsuper=SuperSegments->number;
+       if(SuperSegments->xnumber==SuperSegments2->xnumber)
+          quit=1;
 
        FreeSegmentList(SuperSegments,0);
 
@@ -307,15 +298,6 @@ int main(int argc,char** argv)
     /* Remove duplicated super-segments */
 
     DeduplicateSegments(SuperSegments,Nodes,Ways);
-
-    /* Index the segments */
-
-    IndexSegments(SuperSegments,Nodes);
-
-    /* Check for end condition */
-
-    if(SuperSegments->number==nsuper)
-       quit=1;
 
     iteration++;
 
@@ -339,38 +321,38 @@ int main(int argc,char** argv)
 
  Segments=MergedSegments;
 
- /* Sort and re-index the segments */
+ /* Rotate segments so that node1<node2 */
+
+ RotateSegments(Segments);
+
+ /* Sort the segments */
 
  SortSegmentList(Segments);
 
- IndexSegments(Segments,Nodes);
+ /* Remove duplicated segments */
+
+ DeduplicateSegments(Segments,Nodes,Ways);
 
  /* Cross reference the nodes and segments */
 
  printf("\nCross-Reference Nodes and Segments\n==================================\n\n");
  fflush(stdout);
 
- /* Sort the nodes geographically and update the segment indexes accordingly */
+ /* Sort the node list geographically */
 
  SortNodeListGeographically(Nodes);
 
- UpdateSegments(Segments,Nodes,Ways);
+ /* Create the real segments and nodes */
 
- /* Sort the segments geographically and re-index them */
+ CreateRealNodes(Nodes,iteration);
 
- SortSegmentList(Segments);
+ CreateRealSegments(Segments,Ways);
+
+ /* Fix the segment and node indexes */
+
+ IndexNodes(Nodes,Segments);
 
  IndexSegments(Segments,Nodes);
-
- /* Update the nodes */
-
- UpdateNodes(Nodes,Segments);
-
- /* Fix the turn relations after sorting nodes geographically */
-
- UpdateTurnRelations(Relations,Nodes,Segments);
-
- SortTurnRelationList(Relations);
 
  /* Output the results */
 
@@ -394,12 +376,6 @@ int main(int argc,char** argv)
  SaveWayList(Ways,FileName(dirname,prefix,"ways.mem"));
 
  FreeWayList(Ways,0);
-
- /* Write out the relations */
-
- SaveRelationList(Relations,FileName(dirname,prefix,"relations.mem"));
-
- FreeRelationList(Relations,0);
 
  return(0);
 }

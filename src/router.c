@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/router.c,v 1.90 2010-11-13 14:22:28 amb Exp $
+
  OSM router.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008-2010 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -29,12 +31,10 @@
 #include "nodes.h"
 #include "segments.h"
 #include "ways.h"
-#include "relations.h"
 
 #include "files.h"
 #include "logging.h"
 #include "functions.h"
-#include "fakes.h"
 #include "translations.h"
 #include "profiles.h"
 
@@ -43,7 +43,8 @@
 #define MAXSEARCH  1
 
 
-/* Global variables */
+/*+ A set of waypoint latitudes and longitudes. +*/
+static double point_lon[NWAYPOINTS+1],point_lat[NWAYPOINTS+1];
 
 /*+ The option not to print any progress information. +*/
 int option_quiet=0;
@@ -69,11 +70,8 @@ int main(int argc,char** argv)
  Nodes    *OSMNodes;
  Segments *OSMSegments;
  Ways     *OSMWays;
- Relations*OSMRelations;
  Results  *results[NWAYPOINTS+1]={NULL};
  int       point_used[NWAYPOINTS+1]={0};
- double    point_lon[NWAYPOINTS+1],point_lat[NWAYPOINTS+1];
- double    heading=-999;
  int       help_profile=0,help_profile_xml=0,help_profile_json=0,help_profile_pl=0;
  char     *dirname=NULL,*prefix=NULL;
  char     *profiles=NULL,*profilename=NULL;
@@ -81,8 +79,7 @@ int main(int argc,char** argv)
  int       exactnodes=0;
  Transport transport=Transport_None;
  Profile  *profile=NULL;
- index_t   start_node=NO_NODE,finish_node=NO_NODE;
- index_t   join_segment=NO_SEGMENT;
+ index_t   start=NO_NODE,finish=NO_NODE;
  int       arg,point;
 
  /* Parse the command line arguments */
@@ -179,8 +176,6 @@ int main(int argc,char** argv)
     return(1);
    }
 
- /* Choose the selected profile. */
-
  if(profilename)
    {
     profile=GetProfile(profilename);
@@ -257,17 +252,6 @@ int main(int argc,char** argv)
        point_lat[point]=degrees_to_radians(atof(p));
        point_used[point]+=2;
       }
-    else if(!strncmp(argv[arg],"--heading=",10))
-      {
-       double h=atof(&argv[arg][10]);
-
-       if(h>=-360 && h<=360)
-         {
-          heading=h;
-
-          if(heading<0) heading+=360;
-         }
-      }
     else if(!strncmp(argv[arg],"--transport=",12))
        ; /* Done this already */
     else if(!strncmp(argv[arg],"--highway-",10))
@@ -326,7 +310,7 @@ int main(int argc,char** argv)
 
        property=PropertyType(string);
 
-       if(property==Property_Count)
+       if(property==Way_Count)
           print_usage(0,argv[arg],NULL);
 
        profile->props_yes[property]=atof(equal+1);
@@ -335,8 +319,6 @@ int main(int argc,char** argv)
       }
     else if(!strncmp(argv[arg],"--oneway=",9))
        profile->oneway=!!atoi(&argv[arg][9]);
-    else if(!strncmp(argv[arg],"--turns=",8))
-       profile->turns=!!atoi(&argv[arg][8]);
     else if(!strncmp(argv[arg],"--weight=",9))
        profile->weight=tonnes_to_weight(atof(&argv[arg][9]));
     else if(!strncmp(argv[arg],"--height=",9))
@@ -352,8 +334,6 @@ int main(int argc,char** argv)
  for(point=1;point<=NWAYPOINTS;point++)
     if(point_used[point]==1 || point_used[point]==2)
        print_usage(0,NULL,"All waypoints must have latitude and longitude.");
-
- /* Print one of the profiles if requested */
 
  if(help_profile)
    {
@@ -423,8 +403,6 @@ int main(int argc,char** argv)
 
  OSMWays=LoadWayList(FileName(dirname,prefix,"ways.mem"));
 
- OSMRelations=LoadRelationList(FileName(dirname,prefix,"relations.mem"));
-
  if(UpdateProfile(profile,OSMWays))
    {
     fprintf(stderr,"Error: Profile is invalid or not compatible with database.\n");
@@ -436,23 +414,21 @@ int main(int argc,char** argv)
  for(point=1;point<=NWAYPOINTS;point++)
    {
     Results *begin,*end;
-    Result *finish_result;
     distance_t distmax=km_to_distance(MAXSEARCH);
     distance_t distmin;
     index_t segment=NO_SEGMENT;
     index_t node1,node2;
-    int     nsuper=0;
 
     if(point_used[point]!=3)
        continue;
 
     /* Find the closest point */
 
-    start_node=finish_node;
+    start=finish;
 
     if(exactnodes)
       {
-       finish_node=FindClosestNode(OSMNodes,OSMSegments,OSMWays,point_lat[point],point_lon[point],distmax,profile,&distmin);
+       finish=FindClosestNode(OSMNodes,OSMSegments,OSMWays,point_lat[point],point_lon[point],distmax,profile,&distmin);
       }
     else
       {
@@ -461,12 +437,12 @@ int main(int argc,char** argv)
        segment=FindClosestSegment(OSMNodes,OSMSegments,OSMWays,point_lat[point],point_lon[point],distmax,profile,&distmin,&node1,&node2,&dist1,&dist2);
 
        if(segment!=NO_SEGMENT)
-          finish_node=CreateFakes(OSMNodes,OSMSegments,point,LookupSegment(OSMSegments,segment,1),node1,node2,dist1,dist2);
+          finish=CreateFakes(OSMNodes,point,LookupSegment(OSMSegments,segment,1),node1,node2,dist1,dist2);
        else
-          finish_node=NO_NODE;
+          finish=NO_NODE;
       }
 
-    if(finish_node==NO_NODE)
+    if(finish==NO_NODE)
       {
        fprintf(stderr,"Error: Cannot find node close to specified point %d.\n",point);
        return(1);
@@ -476,116 +452,108 @@ int main(int argc,char** argv)
       {
        double lat,lon;
 
-       if(IsFakeNode(finish_node))
-          GetFakeLatLong(finish_node,&lat,&lon);
+       if(IsFakeNode(finish))
+          GetFakeLatLong(finish,&lat,&lon);
        else
-          GetLatLong(OSMNodes,finish_node,&lat,&lon);
+          GetLatLong(OSMNodes,finish,&lat,&lon);
 
-       if(IsFakeNode(finish_node))
+       if(IsFakeNode(finish))
           printf("Point %d is segment %d (node %d -> %d): %3.6f %4.6f = %2.3f km\n",point,segment,node1,node2,
                  radians_to_degrees(lon),radians_to_degrees(lat),distance_to_km(distmin));
        else
-          printf("Point %d is node %d: %3.6f %4.6f = %2.3f km\n",point,finish_node,
+          printf("Point %d is node %d: %3.6f %4.6f = %2.3f km\n",point,finish,
                  radians_to_degrees(lon),radians_to_degrees(lat),distance_to_km(distmin));
       }
 
-    if(start_node==NO_NODE)
+    if(start==NO_NODE)
        continue;
 
-    if(start_node==finish_node)
+    if(start==finish)
        continue;
-
-    if(heading!=-999 && join_segment==NO_SEGMENT)
-       join_segment=FindClosestSegmentHeading(OSMNodes,OSMSegments,OSMWays,start_node,heading,profile);
 
     /* Calculate the beginning of the route */
 
-    begin=FindStartRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,join_segment,finish_node,&nsuper);
-
-    if(!begin)
+    if(!IsFakeNode(start) && IsSuperNode(OSMNodes,start))
       {
-       /* Try again but allow a U-turn at the start waypoint -
-          this solves the problem of facing a dead-end that contains no super-nodes. */
+       Result *result;
 
-       begin=FindStartRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,NO_SEGMENT,finish_node,&nsuper);
+       begin=NewResultsList(1);
+
+       begin->start=start;
+
+       result=InsertResult(begin,start);
+
+       ZeroResult(result);
+      }
+    else
+      {
+       begin=FindStartRoutes(OSMNodes,OSMSegments,OSMWays,start,profile);
+
+       if(!begin)
+         {
+          fprintf(stderr,"Error: Cannot find initial section of route compatible with profile.\n");
+          return(1);
+         }
       }
 
-    if(!begin)
+    if(FindResult(begin,finish))
       {
-       fprintf(stderr,"Error: Cannot find initial section of route compatible with profile.\n");
-       return(1);
-      }
-
-    if(nsuper==0 && (finish_result=FindResult1(begin,finish_node)))
-      {
-       FixForwardRoute(begin,finish_result);
+       FixForwardRoute(begin,finish);
 
        results[point]=begin;
 
        if(!option_quiet)
          {
-          printf("Routed: Super-Nodes Checked = 0\n");
+          printf("Routed: Super-Nodes Checked = %d\n",begin->number);
           fflush(stdout);
          }
       }
     else
       {
-       Results *middle;
+       Results *superresults;
 
        /* Calculate the end of the route */
 
-       end=FindFinishRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,finish_node);
-
-       if(!end)
+       if(!IsFakeNode(finish) && IsSuperNode(OSMNodes,finish))
          {
-          fprintf(stderr,"Error: Cannot find final section of route compatible with profile.\n");
-          return(1);
+          Result *result;
+
+          end=NewResultsList(1);
+
+          end->finish=finish;
+
+          result=InsertResult(end,finish);
+
+          ZeroResult(result);
+         }
+       else
+         {
+          end=FindFinishRoutes(OSMNodes,OSMSegments,OSMWays,finish,profile);
+
+          if(!end)
+            {
+             fprintf(stderr,"Error: Cannot find final section of route compatible with profile.\n");
+             return(1);
+            }
          }
 
        /* Calculate the middle of the route */
 
-       middle=FindMiddleRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,begin,end);
-
-       if(!middle)
-         {
-          /* Try again but allow a U-turn at the start waypoint -
-             this solves the problem of facing a dead-end that contains some super-nodes. */
-
-          FreeResultsList(begin);
-
-          begin=FindStartRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,NO_SEGMENT,finish_node,&nsuper);
-
-          middle=FindMiddleRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,begin,end);
-         }
-
-       FreeResultsList(end);
-
-       if(!middle)
-         {
-          fprintf(stderr,"Error: Cannot find super-route compatible with profile.\n");
-          return(1);
-         }
-
-       results[point]=CombineRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,begin,middle);
+       superresults=FindMiddleRoute(OSMNodes,OSMSegments,OSMWays,begin,end,profile);
 
        FreeResultsList(begin);
+       FreeResultsList(end);
 
-       if(!results[point])
+       if(!superresults)
          {
           fprintf(stderr,"Error: Cannot find route compatible with profile.\n");
           return(1);
          }
 
-       FreeResultsList(middle);
+       results[point]=CombineRoutes(superresults,OSMNodes,OSMSegments,OSMWays,profile);
+
+       FreeResultsList(superresults);
       }
-
-    join_segment=results[point]->last_segment;
-   }
-
- if(!option_quiet)
-   {
-    printf("Routed OK\n");
-    fflush(stdout);
    }
 
  /* Print out the combined route */
@@ -630,7 +598,7 @@ static void print_usage(int detail,const char *argerr,const char *err)
          "              [--highway-<highway>=<preference> ...]\n"
          "              [--speed-<highway>=<speed> ...]\n"
          "              [--property-<property>=<preference> ...]\n"
-         "              [--oneway=(0|1)] [--turns=(0|1)]\n"
+         "              [--oneway=(0|1)]\n"
          "              [--weight=<weight>]\n"
          "              [--height=<height>] [--width=<width>] [--length=<length>]\n");
 
@@ -688,14 +656,11 @@ static void print_usage(int detail,const char *argerr,const char *err)
             "--lon<n>=<longitude>    Specify the longitude of the n'th waypoint.\n"
             "--lat<n>=<latitude>     Specify the latitude of the n'th waypoint.\n"
             "\n"
-            "--heading=<bearing>     Initial compass bearing at lowest numbered waypoint.\n"
-            "\n"
             "                                   Routing preference options\n"
             "--highway-<highway>=<preference>   * preference for highway type (%%).\n"
             "--speed-<highway>=<speed>          * speed for highway type (km/h).\n"
             "--property-<property>=<preference> * preference for proprty type (%%).\n"
-            "--oneway=(0|1)                     * oneway restrictions are to be obeyed.\n"
-            "--turns=(0|1)                      * turn restrictions are to be obeyed.\n"
+            "--oneway=(0|1)                     * oneway streets are to be obeyed.\n"
             "--weight=<weight>                  * maximum weight limit (tonnes).\n"
             "--height=<height>                  * maximum height limit (metres).\n"
             "--width=<width>                    * maximum width limit (metres).\n"

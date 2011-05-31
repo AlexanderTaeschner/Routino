@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/logging.h,v 1.2 2010-11-13 14:50:33 amb Exp $
+
  Header file for logging function prototypes
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008-2010 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +33,7 @@
 extern int option_loggable;
 
 
-/* Functions in logging.c */
+/* In logging.c */
 
 #ifdef __GNUC__
 

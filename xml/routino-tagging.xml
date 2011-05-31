@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!-- ============================================================
-     $Header: /home/amb/CVS/routino/xml/routino-tagging.xml,v 1.9 2010-12-29 09:29:36 amb Exp $
+     $Header: /home/amb/CVS/routino/xml/routino-tagging.xml,v 1.5 2010-09-17 17:44:25 amb Exp $
 
      An XML format file containing Routino tagging rules
 
@@ -135,13 +135,6 @@
     <if k="goods"     ><output/></if>
     <if k="hgv"       ><output/></if>
     <if k="psv"       ><output/></if>
-
-
-    <!-- Mini-roundabouts  -->
-
-    <if k="highway" v="mini_roundabout">
-      <output k="highway"/>
-    </if>
 
   </node>
 
@@ -386,6 +379,11 @@
       <output k="foot"       v="yes"/>
     </if>
 
+    <if k="junction" v="roundabout">
+      <output k="junction" v="roundabout"/>
+      <output k="oneway"   v="yes"/>
+    </if>
+
     <if k="route" v="ferry">
       <set k="highway" v="ferry"/>
     </if>
@@ -509,7 +507,7 @@
       <set k="paved" v="yes"/>
     </if>
 
-    <if k="surface" v="asphalt">
+    <if k="surface" v="ashphalt">
       <set k="paved" v="yes"/>
     </if>
 
@@ -551,13 +549,9 @@
 
   </way>
 
-  <!-- -------------------- Relation rules -------------------- -->
+  <!-- Relation rules are not currently used -->
 
   <relation>
-
-    <if k="type">
-      <output/>
-    </if>
 
     <!-- Copy route relations -->
 
@@ -585,12 +579,6 @@
 
     <if k="route" v="bicycle">
       <output k="bicycleroute" v="yes"/>
-    </if>
-
-    <!-- Pass through turn relations -->
-
-    <if k="restriction">
-      <output/>
     </if>
 
   </relation>
