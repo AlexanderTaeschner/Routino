@@ -1,9 +1,11 @@
 /***************************************
- Header file for miscellaneous function prototypes
+ $Header: /home/amb/CVS/routino/src/functions.h,v 1.34 2009-04-27 18:56:39 amb Exp $
+
+ Header file for function prototypes
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -23,30 +25,45 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H    /*+ To stop multiple inclusions. +*/
 
-#include "types.h"
+#include <stdio.h>
 
+#include "types.h"
 #include "profiles.h"
 #include "results.h"
 
 
-/* Functions in optimiser.c */
+/* In files.c */
 
-Results *FindNormalRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t start_node,index_t prev_segment,index_t finish_node);
+char *FileName(const char *dirname,const char *prefix, const char *name);
 
-Results *FindMiddleRoute(Nodes *supernodes,Segments *supersegments,Ways *superways,Relations *relations,Profile *profile,Results *begin,Results *end);
+void *MapFile(const char *filename);
 
-Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t start_node,index_t prev_segment,index_t finish_node,int *nsuper);
-
-Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t finish_node);
-
-Results *CombineRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,Results *begin,Results *middle);
-
-void FixForwardRoute(Results *results,Result *finish_result);
+int OpenFile(const char *filename);
+int WriteFile(int fd,void *address,size_t length);
+void CloseFile(int fd);
 
 
-/* Functions in output.c */
+/* In osmparser.c */
 
-void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile);
+int ParseXML(FILE *file,NodesX *OSMNodes,SegmentsX *OSMSegments,WaysX *OSMWays,Profile *profile);
+
+
+/* In optimiser.c */
+
+Results *FindRoute(Nodes *nodes,Segments *segments,Ways *ways,index_t start,index_t finish,Profile *profile,int all);
+Results *FindRoute3(Nodes *supernodes,Segments *supersegments,Ways *superways,Results *begin,Results *end,Profile *profile);
+
+Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,index_t start,Profile *profile);
+Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,index_t finish,Profile *profile);
+
+Results *CombineRoutes(Results *results,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile);
+
+
+/* In output.c */
+
+void PrintRouteHead(const char *copyright);
+void PrintRoute(Results *results,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile);
+void PrintRouteTail(void);
 
 
 #endif /* FUNCTIONS_H */

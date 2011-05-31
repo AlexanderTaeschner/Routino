@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/nodesx.h,v 1.2 2009-04-08 16:54:34 amb Exp $
+
  A header file for the extended nodes.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -28,10 +30,6 @@
 #include "types.h"
 #include "nodes.h"
 
-#include "typesx.h"
-
-#include "files.h"
-
 
 /* Data structures */
 
@@ -39,128 +37,50 @@
 /*+ An extended structure used for processing. +*/
 struct _NodeX
 {
- node_t       id;               /*+ The node identifier; initially the OSM value, later the Node index, finally the first segment. +*/
+ node_t   id;                   /*+ The node identifier. +*/
+ float    latitude;             /*+ The node latitude. +*/
+ float    longitude;            /*+ The node longitude. +*/
+ int      super;                /*+ A marker for super nodes. +*/
 
- latlong_t    latitude;         /*+ The node latitude. +*/
- latlong_t    longitude;        /*+ The node longitude. +*/
-
- transports_t allow;            /*+ The node allowed traffic. +*/
-
- uint16_t     flags;            /*+ The node flags. +*/
+ Node     node;                 /*+ The real node data. +*/
 };
 
 /*+ A structure containing a set of nodes (memory format). +*/
 struct _NodesX
 {
- char     *filename;            /*+ The name of the temporary file. +*/
- int       fd;                  /*+ The file descriptor of the temporary file. +*/
+ uint32_t sorted;               /*+ Is the data sorted and therefore searchable? +*/
+ uint32_t alloced;              /*+ How many entries are allocated? +*/
+ uint32_t xnumber;              /*+ How many entries are used from those allocated? +*/
+ uint32_t number;               /*+ How many entries are still useful? +*/
 
- index_t   number;              /*+ The number of extended nodes still being considered. +*/
+ float    lat_min;              /*+ The minimum latitude of the set of nodes. +*/
+ float    lat_max;              /*+ The maximum latitude of the set of nodes. +*/
+ float    lon_min;              /*+ The minimum longitude of the set of nodes. +*/
+ float    lon_max;              /*+ The maximum longitude of the set of nodes. +*/
 
-#if !SLIM
-
- NodeX    *data;                /*+ The extended node data (when mapped into memory). +*/
-
-#else
-
- NodeX     cached[2];           /*+ Two cached nodes read from the file in slim mode. +*/
-
-#endif
-
- node_t   *idata;               /*+ The extended node IDs (sorted by ID). +*/
-
- node_t   *gdata;               /*+ The final node indexes (sorted geographically). +*/
-
- uint8_t  *super;               /*+ A bit-mask marker for super nodes (same order as sorted nodes). +*/
-
- index_t   latbins;             /*+ The number of bins containing latitude. +*/
- index_t   lonbins;             /*+ The number of bins containing longitude. +*/
-
- ll_bin_t  latzero;             /*+ The bin number of the furthest south bin. +*/
- ll_bin_t  lonzero;             /*+ The bin number of the furthest west bin. +*/
+ NodeX   *xdata;                /*+ The extended node data (unsorted). +*/
+ NodeX  **gdata;                /*+ The extended node data (sorted geographically). +*/
+ NodeX  **idata;                /*+ The extended node data (sorted by ID). +*/
 };
 
 
-/* Functions in nodesx.c */
+/* Functions */
 
-NodesX *NewNodeList(int append);
-void FreeNodeList(NodesX *nodesx,int keep);
+NodesX *NewNodeList(void);
 
 void SaveNodeList(NodesX *nodesx,const char *filename);
 
-index_t IndexNodeX(NodesX *nodesx,node_t id);
+NodeX *FindNodeX(NodesX* nodesx,node_t id);
 
-void AppendNode(NodesX *nodesx,node_t id,double latitude,double longitude,transports_t allow,uint16_t flags);
+Node *AppendNode(NodesX* nodesx,node_t id,float latitude,float longitude);
 
 void SortNodeList(NodesX *nodesx);
 
-void SortNodeListGeographically(NodesX *nodesx);
-
 void RemoveNonHighwayNodes(NodesX *nodesx,SegmentsX *segmentsx);
 
-void UpdateNodes(NodesX *nodesx,SegmentsX *segmentsx);
+void MarkSuperNodes(NodesX *nodesx,int iteration);
 
-
-/* Macros and inline functions */
-
-#define ClearBit(xx,yy)    (xx)[(yy)/8]&=~(1<<((yy)%8))
-#define SetBit(xx,yy)      (xx)[(yy)/8]|= (1<<((yy)%8))
-#define IsBitSet(xx,yy)   ((xx)[(yy)/8]&  (1<<((yy)%8)))
-
-
-#if !SLIM
-
-#define LookupNodeX(nodesx,index,position)      &(nodesx)->data[index]
-  
-#define PutBackNodeX(nodesx,index,position)     /* nop */
-
-#else
-
-static NodeX *LookupNodeX(NodesX *nodesx,index_t index,int position);
-
-static void PutBackNodeX(NodesX *nodesx,index_t index,int position);
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Lookup a particular extended node with the specified id from the file on disk.
-
-  NodeX *LookupNodeX Returns a pointer to a cached copy of the extended node.
-
-  NodesX *nodesx The set of nodes to use.
-
-  index_t index The node index to look for.
-
-  int position The position in the cache to use.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static inline NodeX *LookupNodeX(NodesX *nodesx,index_t index,int position)
-{
- SeekFile(nodesx->fd,(off_t)index*sizeof(NodeX));
-
- ReadFile(nodesx->fd,&nodesx->cached[position-1],sizeof(NodeX));
-
- return(&nodesx->cached[position-1]);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Put back an extended node's data into the file on disk.
-
-  NodesX *nodesx The set of nodes to modify.
-
-  index_t index The node index to put back.
-
-  int position The position in the cache to use.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static inline void PutBackNodeX(NodesX *nodesx,index_t index,int position)
-{
- SeekFile(nodesx->fd,(off_t)index*sizeof(NodeX));
-
- WriteFile(nodesx->fd,&nodesx->cached[position-1],sizeof(NodeX));
-}
-
-#endif /* SLIM */
+void IndexNodes(NodesX *nodesx,SegmentsX* segmentsx);
 
 
 #endif /* NODESX_H */

@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/nodesx.c,v 1.12 2009-06-13 13:02:12 amb Exp $
+
  Extented Node data type functions.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -22,376 +24,161 @@
 
 #include <assert.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
-#include <sys/stat.h>
+#include <stdio.h>
+#include <math.h>
 
 #include "types.h"
-#include "nodes.h"
-#include "segments.h"
-
+#include "functions.h"
 #include "nodesx.h"
 #include "segmentsx.h"
-#include "waysx.h"
-
-#include "types.h"
-
-#include "files.h"
-#include "logging.h"
-#include "sorting.h"
 
 
-/* Variables */
+/* Constants */
 
-/*+ The command line '--tmpdir' option or its default value. +*/
-extern char *option_tmpdirname;
+/*+ The array size increment for nodes - expect ~8,000,000 nodes. +*/
+#define INCREMENT_NODES 1024*1024
 
-/*+ A temporary file-local variable for use by the sort functions. +*/
-static NodesX *sortnodesx;
 
 /* Functions */
 
-static int sort_by_id(NodeX *a,NodeX *b);
-static int deduplicate_and_index_by_id(NodeX *nodex,index_t index);
-
-static int sort_by_lat_long(NodeX *a,NodeX *b);
-static int index_by_lat_long(NodeX *nodex,index_t index);
+static int sort_by_id(NodeX **a,NodeX **b);
+static int sort_by_lat_long(NodeX **a,NodeX **b);
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Allocate a new node list (create a new file or open an existing one).
+  Allocate a new node list.
 
-  NodesX *NewNodeList Returns a pointer to the node list.
-
-  int append Set to 1 if the file is to be opened for appending (now or later).
+  NodesX *NewNodeList Returns the node list.
   ++++++++++++++++++++++++++++++++++++++*/
 
-NodesX *NewNodeList(int append)
+NodesX *NewNodeList(void)
 {
  NodesX *nodesx;
 
- nodesx=(NodesX*)calloc(1,sizeof(NodesX));
+ nodesx=(NodesX*)malloc(sizeof(NodesX));
 
- assert(nodesx); /* Check calloc() worked */
+ nodesx->alloced=INCREMENT_NODES;
+ nodesx->xnumber=0;
+ nodesx->sorted=0;
 
- nodesx->filename=(char*)malloc(strlen(option_tmpdirname)+32);
-
- if(append)
-    sprintf(nodesx->filename,"%s/nodesx.input.tmp",option_tmpdirname);
- else
-    sprintf(nodesx->filename,"%s/nodesx.%p.tmp",option_tmpdirname,nodesx);
-
- if(append)
-   {
-    off_t size;
-
-    nodesx->fd=OpenFileAppend(nodesx->filename);
-
-    size=SizeFile(nodesx->filename);
-
-    nodesx->number=size/sizeof(NodeX);
-   }
- else
-    nodesx->fd=OpenFileNew(nodesx->filename);
+ nodesx->xdata=(NodeX*)malloc(nodesx->alloced*sizeof(NodeX));
+ nodesx->gdata=NULL;
+ nodesx->idata=NULL;
 
  return(nodesx);
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Free a node list.
+  Save the node list to a file.
 
-  NodesX *nodesx The set of nodes to be freed.
+  NodesX* nodesx The set of nodes to save.
 
-  int keep Set to 1 if the file is to be kept (for appending later).
+  const char *filename The name of the file to save.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void FreeNodeList(NodesX *nodesx,int keep)
+void SaveNodeList(NodesX* nodesx,const char *filename)
 {
- if(!keep)
-    DeleteFile(nodesx->filename);
-
- free(nodesx->filename);
-
- if(nodesx->idata)
-    free(nodesx->idata);
-
- if(nodesx->gdata)
-    free(nodesx->gdata);
-
- if(nodesx->super)
-    free(nodesx->super);
-
- free(nodesx);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Append a single node to an unsorted node list.
-
-  NodesX *nodesx The set of nodes to modify.
-
-  node_t id The node identifier from the original OSM data.
-
-  double latitude The latitude of the node.
-
-  double longitude The longitude of the node.
-
-  transports_t allow The allowed traffic types through the node.
-
-  uint16_t flags The flags to set for this node.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-void AppendNode(NodesX *nodesx,node_t id,double latitude,double longitude,transports_t allow,uint16_t flags)
-{
- NodeX nodex;
-
- nodex.id=id;
- nodex.latitude =radians_to_latlong(latitude);
- nodex.longitude=radians_to_latlong(longitude);
- nodex.allow=allow;
- nodex.flags=flags;
-
- WriteFile(nodesx->fd,&nodex,sizeof(NodeX));
-
- nodesx->number++;
-
- assert(nodesx->number<NODE_FAKE); /* NODE_FAKE marks the high-water mark for real nodes. */
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Sort the node list.
-
-  NodesX *nodesx The set of nodes to modify.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-void SortNodeList(NodesX *nodesx)
-{
+ int i;
  int fd;
- index_t xnumber;
+ Nodes *nodes=calloc(1,sizeof(Nodes));
+ index_t *offsets;
+ int32_t lat_min,lat_max,lon_min,lon_max;
+ int latbins,lonbins,latlonbin;
 
- /* Print the start message */
+ assert(nodesx->sorted);        /* Must be sorted */
 
- printf_first("Sorting Nodes");
+ /* Work out the offsets */
 
- /* Close the file (finished appending) */
+ lat_min=lat_long_to_bin(nodesx->lat_min);
+ lon_min=lat_long_to_bin(nodesx->lon_min);
+ lat_max=lat_long_to_bin(nodesx->lat_max);
+ lon_max=lat_long_to_bin(nodesx->lon_max);
 
- nodesx->fd=CloseFile(nodesx->fd);
+ latbins=(lat_max-lat_min)+1;
+ lonbins=(lon_max-lon_min)+1;
 
- /* Re-open the file read-only and a new file writeable */
+ offsets=malloc((latbins*lonbins+1)*sizeof(index_t));
 
- nodesx->fd=ReOpenFile(nodesx->filename);
+ latlonbin=0;
 
- DeleteFile(nodesx->filename);
-
- fd=OpenFileNew(nodesx->filename);
-
- /* Allocate the array of indexes */
-
- nodesx->idata=(node_t*)malloc(nodesx->number*sizeof(node_t));
-
- assert(nodesx->idata); /* Check malloc() worked */
-
- /* Sort by node indexes */
-
- xnumber=nodesx->number;
- nodesx->number=0;
-
- sortnodesx=nodesx;
-
- filesort_fixed(nodesx->fd,fd,sizeof(NodeX),(int (*)(const void*,const void*))sort_by_id,(int (*)(void*,index_t))deduplicate_and_index_by_id);
-
- /* Close the files */
-
- nodesx->fd=CloseFile(nodesx->fd);
- CloseFile(fd);
-
- /* Print the final message */
-
- printf_last("Sorted Nodes: Nodes=%d Duplicates=%d",xnumber,xnumber-nodesx->number);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Sort the nodes into id order.
-
-  int sort_by_id Returns the comparison of the id fields.
-
-  NodeX *a The first extended node.
-
-  NodeX *b The second extended node.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static int sort_by_id(NodeX *a,NodeX *b)
-{
- node_t a_id=a->id;
- node_t b_id=b->id;
-
- if(a_id<b_id)
-    return(-1);
- else if(a_id>b_id)
-    return(1);
- else
-    return(0);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Create the index of identifiers and discard duplicate nodes.
-
-  int deduplicate_and_index_by_id Return 1 if the value is to be kept, otherwise 0.
-
-  NodeX *nodex The extended node.
-
-  index_t index The index of this node in the total.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static int deduplicate_and_index_by_id(NodeX *nodex,index_t index)
-{
- if(index==0 || sortnodesx->idata[index-1]!=nodex->id)
+ for(i=0;i<nodesx->number;i++)
    {
-    sortnodesx->idata[index]=nodex->id;
+    int32_t latbin=lat_long_to_bin(nodesx->gdata[i]->latitude )-lat_min;
+    int32_t lonbin=lat_long_to_bin(nodesx->gdata[i]->longitude)-lon_min;
+    int llbin=lonbin*latbins+latbin;
 
-    sortnodesx->number++;
-
-    return(1);
+    for(;latlonbin<=llbin;latlonbin++)
+       offsets[latlonbin]=i;
    }
 
- return(0);
-}
+ for(;latlonbin<=(latbins*lonbins);latlonbin++)
+    offsets[latlonbin]=nodesx->number;
 
+ /* Fill in a Nodes structure with the offset of the real data in the file after
+    the Node structure itself. */
 
-/*++++++++++++++++++++++++++++++++++++++
-  Sort the node list geographically.
+ nodes->number=nodesx->number;
 
-  NodesX *nodesx The set of nodes to modify.
-  ++++++++++++++++++++++++++++++++++++++*/
+ nodes->latbins=latbins;
+ nodes->lonbins=lonbins;
 
-void SortNodeListGeographically(NodesX *nodesx)
-{
- int fd;
+ nodes->latzero=lat_min;
+ nodes->lonzero=lon_min;
 
- /* Print the start message */
+ nodes->data=NULL;
+ nodes->offsets=(void*)sizeof(Nodes);
+ nodes->nodes=(void*)sizeof(Nodes)+(latbins*lonbins+1)*sizeof(index_t);
 
- printf_first("Sorting Nodes Geographically");
+ /* Write out the Nodes structure and then the real data. */
 
- /* Allocate the memory for the geographical index array */
+ fd=OpenFile(filename);
 
- nodesx->gdata=(index_t*)malloc(nodesx->number*sizeof(index_t));
+ WriteFile(fd,nodes,sizeof(Nodes));
 
- assert(nodesx->gdata); /* Check malloc() worked */
+ WriteFile(fd,offsets,(latbins*lonbins+1)*sizeof(index_t));
 
- /* Re-open the file read-only and a new file writeable */
-
- nodesx->fd=ReOpenFile(nodesx->filename);
-
- DeleteFile(nodesx->filename);
-
- fd=OpenFileNew(nodesx->filename);
-
- /* Sort geographically */
-
- sortnodesx=nodesx;
-
- filesort_fixed(nodesx->fd,fd,sizeof(NodeX),(int (*)(const void*,const void*))sort_by_lat_long,(int (*)(void*,index_t))index_by_lat_long);
-
- /* Close the files */
-
- nodesx->fd=CloseFile(nodesx->fd);
- CloseFile(fd);
-
- /* Print the final message */
-
- printf_last("Sorted Nodes Geographically");
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Sort the nodes into latitude and longitude order (first by longitude bin
-  number, then by latitude bin number and then by exact longitude and then by
-  exact latitude).
-
-  int sort_by_lat_long Returns the comparison of the latitude and longitude fields.
-
-  NodeX *a The first extended node.
-
-  NodeX *b The second extended node.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static int sort_by_lat_long(NodeX *a,NodeX *b)
-{
- ll_bin_t a_lon=latlong_to_bin(a->longitude);
- ll_bin_t b_lon=latlong_to_bin(b->longitude);
-
- if(a_lon<b_lon)
-    return(-1);
- else if(a_lon>b_lon)
-    return(1);
- else
+ for(i=0;i<nodesx->number;i++)
    {
-    ll_bin_t a_lat=latlong_to_bin(a->latitude);
-    ll_bin_t b_lat=latlong_to_bin(b->latitude);
+    WriteFile(fd,&nodesx->gdata[i]->node,sizeof(Node));
 
-    if(a_lat<b_lat)
-       return(-1);
-    else if(a_lat>b_lat)
-       return(1);
-    else
+    if(!((i+1)%10000))
       {
-       if(a->longitude<b->longitude)
-          return(-1);
-       else if(a->longitude>b->longitude)
-          return(1);
-       else
-         {
-          if(a->latitude<b->latitude)
-             return(-1);
-          else if(a->latitude>b->latitude)
-             return(1);
-         }
-
-       return(0);
+       printf("\rWriting Nodes: Nodes=%d",i+1);
+       fflush(stdout);
       }
    }
+
+ printf("\rWrote Nodes: Nodes=%d  \n",nodesx->number);
+ fflush(stdout);
+
+ CloseFile(fd);
+
+ /* Free the fake Nodes */
+
+ free(nodes);
+ free(offsets);
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Create the index between the sorted and unsorted nodes.
+  Find a particular node.
 
-  int index_by_lat_long Return 1 if the value is to be kept, otherwise 0.
+  NodeX *FindNodeX Returns the extended node with the specified id.
 
-  NodeX *nodex The extended node.
-
-  index_t index The index of this node in the total.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static int index_by_lat_long(NodeX *nodex,index_t index)
-{
- /* Create the index from the previous sort to the current one */
-
- sortnodesx->gdata[nodex->id]=index;
-
- return(1);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Find a particular node index.
-
-  index_t IndexNodeX Returns the index of the extended node with the specified id.
-
-  NodesX *nodesx The set of nodes to use.
+  NodesX* nodesx The set of nodes to process.
 
   node_t id The node id to look for.
   ++++++++++++++++++++++++++++++++++++++*/
 
-index_t IndexNodeX(NodesX *nodesx,node_t id)
+NodeX *FindNodeX(NodesX* nodesx,node_t id)
 {
  int start=0;
  int end=nodesx->number-1;
  int mid;
+
+ assert(nodesx->sorted);        /* Must be sorted */
 
  /* Binary search - search key exact match only is required.
   *
@@ -405,301 +192,398 @@ index_t IndexNodeX(NodesX *nodesx,node_t id)
   */
 
  if(end<start)                        /* There are no nodes */
-    return(NO_NODE);
- else if(id<nodesx->idata[start])     /* Check key is not before start */
-    return(NO_NODE);
- else if(id>nodesx->idata[end])       /* Check key is not after end */
-    return(NO_NODE);
+    return(NULL);
+ else if(id<nodesx->idata[start]->id) /* Check key is not before start */
+    return(NULL);
+ else if(id>nodesx->idata[end]->id)   /* Check key is not after end */
+    return(NULL);
  else
    {
     do
       {
-       mid=(start+end)/2;             /* Choose mid point */
+       mid=(start+end)/2;                 /* Choose mid point */
 
-       if(nodesx->idata[mid]<id)      /* Mid point is too low */
+       if(nodesx->idata[mid]->id<id)      /* Mid point is too low */
           start=mid+1;
-       else if(nodesx->idata[mid]>id) /* Mid point is too high */
+       else if(nodesx->idata[mid]->id>id) /* Mid point is too high */
           end=mid-1;
-       else                           /* Mid point is correct */
-          return(mid);
+       else                               /* Mid point is correct */
+          return(nodesx->idata[mid]);
       }
     while((end-start)>1);
 
-    if(nodesx->idata[start]==id)      /* Start is correct */
-       return(start);
+    if(nodesx->idata[start]->id==id)      /* Start is correct */
+       return(nodesx->idata[start]);
 
-    if(nodesx->idata[end]==id)        /* End is correct */
-       return(end);
+    if(nodesx->idata[end]->id==id)        /* End is correct */
+       return(nodesx->idata[end]);
    }
 
- return(NO_NODE);
+ return(NULL);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Append a node to a newly created node list (unsorted).
+
+  Node *AppendNode Return a pointer to the new node.
+
+  NodesX* nodesx The set of nodes to process.
+
+  node_t id The node identification.
+
+  float latitude The latitude of the node.
+
+  float longitude The longitude of the node.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+Node *AppendNode(NodesX* nodesx,node_t id,float latitude,float longitude)
+{
+ /* Check that the array has enough space. */
+
+ if(nodesx->xnumber==nodesx->alloced)
+   {
+    nodesx->alloced+=INCREMENT_NODES;
+
+    nodesx->xdata=(NodeX*)realloc((void*)nodesx->xdata,nodesx->alloced*sizeof(NodeX));
+   }
+
+ /* Insert the node */
+
+ nodesx->xdata[nodesx->xnumber].id=id;
+ nodesx->xdata[nodesx->xnumber].super=0;
+ nodesx->xdata[nodesx->xnumber].latitude =floorf(latitude *LAT_LONG_SCALE)/LAT_LONG_SCALE;
+ nodesx->xdata[nodesx->xnumber].longitude=floorf(longitude*LAT_LONG_SCALE)/LAT_LONG_SCALE;
+
+ memset(&nodesx->xdata[nodesx->xnumber].node,0,sizeof(Node));
+
+ nodesx->xnumber++;
+
+ nodesx->sorted=0;
+
+ return(&nodesx->xdata[nodesx->xnumber-1].node);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Sort the node list.
+
+  NodesX* nodesx The set of nodes to process.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+void SortNodeList(NodesX* nodesx)
+{
+ int i;
+ int duplicate;
+
+ printf("Sorting Nodes"); fflush(stdout);
+
+ /* Allocate the arrays of pointers */
+
+ if(nodesx->sorted)
+   {
+    nodesx->gdata=realloc(nodesx->gdata,nodesx->xnumber*sizeof(NodeX*));
+    nodesx->idata=realloc(nodesx->idata,nodesx->xnumber*sizeof(NodeX*));
+   }
+ else
+   {
+    nodesx->gdata=malloc(nodesx->xnumber*sizeof(NodeX*));
+    nodesx->idata=malloc(nodesx->xnumber*sizeof(NodeX*));
+   }
+
+ sort_again:
+
+ nodesx->number=0;
+
+ for(i=0;i<nodesx->xnumber;i++)
+    if(nodesx->xdata[i].id!=NO_NODE)
+      {
+       nodesx->gdata[nodesx->number]=&nodesx->xdata[i];
+       nodesx->idata[nodesx->number]=&nodesx->xdata[i];
+       nodesx->number++;
+      }
+
+ nodesx->sorted=1;
+
+ /* Sort by id */
+
+ qsort(nodesx->idata,nodesx->number,sizeof(NodeX*),(int (*)(const void*,const void*))sort_by_id);
+
+ duplicate=0;
+
+ for(i=1;i<nodesx->number;i++)
+   {
+    if(nodesx->idata[i]->id==nodesx->idata[i-1]->id &&
+       nodesx->idata[i]->id!=NO_NODE)
+      {
+       nodesx->idata[i-1]->id=NO_NODE;
+       duplicate++;
+      }
+   }
+
+ if(duplicate)
+   {
+    printf(" - %d duplicates found; trying again.\nSorting Nodes",duplicate); fflush(stdout);
+    goto sort_again;
+   }
+
+ /* Sort geographically */
+
+ qsort(nodesx->gdata,nodesx->number,sizeof(NodeX*),(int (*)(const void*,const void*))sort_by_lat_long);
+
+ nodesx->lat_min=2;
+ nodesx->lat_max=-2;
+ nodesx->lon_min=4;
+ nodesx->lon_max=-4;
+
+ for(i=0;i<nodesx->number;i++)
+   {
+    int32_t lat=(int32_t)(nodesx->gdata[i]->latitude *LAT_LONG_SCALE);
+    int32_t lon=(int32_t)(nodesx->gdata[i]->longitude*LAT_LONG_SCALE);
+
+    nodesx->gdata[i]->node.latoffset=lat%LAT_LONG_BIN;
+    nodesx->gdata[i]->node.lonoffset=lon%LAT_LONG_BIN;
+
+    if(nodesx->gdata[i]->latitude<nodesx->lat_min)
+       nodesx->lat_min=nodesx->gdata[i]->latitude;
+    if(nodesx->gdata[i]->latitude>nodesx->lat_max)
+       nodesx->lat_max=nodesx->gdata[i]->latitude;
+    if(nodesx->gdata[i]->longitude<nodesx->lon_min)
+       nodesx->lon_min=nodesx->gdata[i]->longitude;
+    if(nodesx->gdata[i]->longitude>nodesx->lon_max)
+       nodesx->lon_max=nodesx->gdata[i]->longitude;
+   }
+
+ printf("\rSorted Nodes \n"); fflush(stdout);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Sort the nodes into id order.
+
+  int sort_by_id Returns the comparison of the id fields.
+
+  NodeX **a The first Node.
+
+  NodeX **b The second Node.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+static int sort_by_id(NodeX **a,NodeX **b)
+{
+ node_t a_id=(*a)->id;
+ node_t b_id=(*b)->id;
+
+ if(a_id<b_id)
+    return(-1);
+ else if(a_id>b_id)
+    return(1);
+ else
+    return(0);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Sort the nodes into latitude and longitude order.
+
+  int sort_by_lat_long Returns the comparison of the latitude and longitude fields.
+
+  NodeX **a The first Node.
+
+  NodeX **b The second Node.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+static int sort_by_lat_long(NodeX **a,NodeX **b)
+{
+ int32_t a_lon=lat_long_to_bin((*a)->longitude);
+ int32_t b_lon=lat_long_to_bin((*b)->longitude);
+
+ if(a_lon<b_lon)
+    return(-1);
+ else if(a_lon>b_lon)
+    return(1);
+ else
+   {
+    int32_t a_lat=lat_long_to_bin((*a)->latitude);
+    int32_t b_lat=lat_long_to_bin((*b)->latitude);
+
+    if(a_lat<b_lat)
+       return(-1);
+    else if(a_lat>b_lat)
+       return(1);
+    else
+       return(0);
+   }
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
   Remove any nodes that are not part of a highway.
 
-  NodesX *nodesx The set of nodes to modify.
+  NodesX *nodesx The complete node list.
 
-  SegmentsX *segmentsx The set of segments to use.
+  SegmentsX *segmentsx The list of segments.
   ++++++++++++++++++++++++++++++++++++++*/
 
 void RemoveNonHighwayNodes(NodesX *nodesx,SegmentsX *segmentsx)
 {
- NodeX nodex;
- int total=0,highway=0,nothighway=0;
- ll_bin_t lat_min_bin,lat_max_bin,lon_min_bin,lon_max_bin;
- latlong_t lat_min,lat_max,lon_min,lon_max;
- int fd;
+ int i;
+ int highway=0,nothighway=0;
 
- /* Print the start message */
-
- printf_first("Checking Nodes: Nodes=0");
-
- /* While we are here we can work out the range of data */
-
- lat_min=radians_to_latlong( 2);
- lat_max=radians_to_latlong(-2);
- lon_min=radians_to_latlong( 4);
- lon_max=radians_to_latlong(-4);
-
- /* Re-open the file read-only and a new file writeable */
-
- nodesx->fd=ReOpenFile(nodesx->filename);
-
- DeleteFile(nodesx->filename);
-
- fd=OpenFileNew(nodesx->filename);
-
- /* Modify the on-disk image */
-
- while(!ReadFile(nodesx->fd,&nodex,sizeof(NodeX)))
+ for(i=0;i<nodesx->xnumber;i++)
    {
-    if(!IsBitSet(segmentsx->usednode,total))
-       nothighway++;
+    if(FindFirstSegmentX(segmentsx,nodesx->xdata[i].id))
+       highway++;
     else
       {
-       nodex.id=highway;
-
-       WriteFile(fd,&nodex,sizeof(NodeX));
-
-       nodesx->idata[highway]=nodesx->idata[total];
-       highway++;
-
-       if(nodex.latitude<lat_min)
-          lat_min=nodex.latitude;
-       if(nodex.latitude>lat_max)
-          lat_max=nodex.latitude;
-       if(nodex.longitude<lon_min)
-          lon_min=nodex.longitude;
-       if(nodex.longitude>lon_max)
-          lon_max=nodex.longitude;
+       nodesx->xdata[i].id=NO_NODE;
+       nothighway++;
       }
 
-    total++;
-
-    if(!(total%10000))
-       printf_middle("Checking Nodes: Nodes=%d Highway=%d not-Highway=%d",total,highway,nothighway);
+    if(!((i+1)%10000))
+      {
+       printf("\rChecking: Nodes=%d Highway=%d not-Highway=%d",i+1,highway,nothighway);
+       fflush(stdout);
+      }
    }
 
- nodesx->number=highway;
-
- /* Close the files */
-
- nodesx->fd=CloseFile(nodesx->fd);
- CloseFile(fd);
-
- /* Work out the number of bins */
-
- lat_min_bin=latlong_to_bin(lat_min);
- lon_min_bin=latlong_to_bin(lon_min);
- lat_max_bin=latlong_to_bin(lat_max);
- lon_max_bin=latlong_to_bin(lon_max);
-
- nodesx->latzero=lat_min_bin;
- nodesx->lonzero=lon_min_bin;
-
- nodesx->latbins=(lat_max_bin-lat_min_bin)+1;
- nodesx->lonbins=(lon_max_bin-lon_min_bin)+1;
-
- /* Free the now-unneeded index */
-
- free(segmentsx->usednode);
- segmentsx->usednode=NULL;
-
- /* Allocate and set the super-node markers */
-
- nodesx->super=(uint8_t*)malloc((1+nodesx->number/8)*sizeof(uint8_t));
-
- assert(nodesx->super); /* Check calloc() worked */
-
- memset(nodesx->super,~0,(1+nodesx->number/8));
-
- /* Print the final message */
-
- printf_last("Checked Nodes: Nodes=%d Highway=%d not-Highway=%d",total,highway,nothighway);
+ printf("\rChecked: Nodes=%d Highway=%d not-Highway=%d  \n",nodesx->xnumber,highway,nothighway);
+ fflush(stdout);
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Insert the super-node flag and the first segment indexes after geographical sorting.
+  Mark super nodes.
 
-  NodesX *nodesx The set of nodes to modify.
+  NodesX* nodesx The set of nodes to process.
 
-  SegmentsX *segmentsx The set of segments to use.
+  int iteration The final super-node / super-segment iteration number.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void UpdateNodes(NodesX *nodesx,SegmentsX *segmentsx)
+void MarkSuperNodes(NodesX *nodesx,int iteration)
 {
- index_t i;
- int fd;
+ int i,nnodes=0;;
 
- /* Print the start message */
-
- printf_first("Updating Super Nodes: Nodes=0");
-
- /* Re-open the file read-only and a new file writeable */
-
- nodesx->fd=ReOpenFile(nodesx->filename);
-
- DeleteFile(nodesx->filename);
-
- fd=OpenFileNew(nodesx->filename);
-
- /* Modify the on-disk image */
+ assert(nodesx->sorted);      /* Must be sorted */
 
  for(i=0;i<nodesx->number;i++)
    {
-    NodeX nodex;
-
-    ReadFile(nodesx->fd,&nodex,sizeof(NodeX));
-
-    if(IsBitSet(nodesx->super,nodex.id))
-       nodex.flags|=NODE_SUPER;
-
-    nodex.id=segmentsx->firstnode[nodesx->gdata[nodex.id]];
-
-    WriteFile(fd,&nodex,sizeof(NodeX));
+    if(nodesx->gdata[i]->super==iteration)
+      {
+       nodesx->gdata[i]->node.firstseg=SEGMENT(NO_SEGMENT)|SUPER_FLAG;
+       nnodes++;
+      }
+    else
+       nodesx->gdata[i]->node.firstseg=SEGMENT(NO_SEGMENT);
 
     if(!((i+1)%10000))
-       printf_middle("Updating Super Nodes: Nodes=%d",i+1);
+      {
+       printf("\rMarking Super-Nodes: Nodes=%d Super-Nodes=%d",i+1,nnodes);
+       fflush(stdout);
+      }
    }
 
- /* Close the files */
-
- nodesx->fd=CloseFile(nodesx->fd);
- CloseFile(fd);
-
- /* Print the final message */
-
- printf_last("Updated Super Nodes: Nodes=%d",nodesx->number);
+ printf("\rMarked Super-Nodes: Nodes=%d Super-Nodes=%d \n",nodesx->number,nnodes);
+ fflush(stdout);
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Save the final node list database to a file.
+  Assign the segment indexes to the nodes.
 
-  NodesX *nodesx The set of nodes to save.
+  NodesX *nodesx The list of nodes to process.
 
-  const char *filename The name of the file to save.
+  SegmentsX* segmentsx The set of segments to use.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void SaveNodeList(NodesX *nodesx,const char *filename)
+void IndexNodes(NodesX *nodesx,SegmentsX* segmentsx)
 {
- index_t i;
- int fd;
- NodesFile nodesfile={0};
- int super_number=0;
- index_t latlonbin=0,*offsets;
+ int i;
 
- /* Print the start message */
+ assert(nodesx->sorted);        /* Must be sorted */
+ assert(segmentsx->sorted);     /* Must be sorted */
 
- printf_first("Writing Nodes: Nodes=0");
+ /* Index the nodes */
 
- /* Allocate the memory for the geographical offsets array */
-
- offsets=(index_t*)malloc((nodesx->latbins*nodesx->lonbins+1)*sizeof(index_t));
-
- assert(offsets); /* Check malloc() worked */
-
- latlonbin=0;
-
- /* Re-open the file */
-
- nodesx->fd=ReOpenFile(nodesx->filename);
-
- /* Write out the nodes data */
-
- fd=OpenFileNew(filename);
-
- SeekFile(fd,sizeof(NodesFile)+(nodesx->latbins*nodesx->lonbins+1)*sizeof(index_t));
-
- for(i=0;i<nodesx->number;i++)
+ for(i=0;i<segmentsx->number;i++)
    {
-    NodeX nodex;
-    Node node;
-    ll_bin_t latbin,lonbin;
-    int llbin;
+    NodeX *node1=FindNodeX(nodesx,segmentsx->sdata[i]->node1);
+    NodeX *node2=FindNodeX(nodesx,segmentsx->sdata[i]->node2);
 
-    ReadFile(nodesx->fd,&nodex,sizeof(NodeX));
+    /* Check node1 */
 
-    /* Create the Node */
+    if(SEGMENT(node1->node.firstseg)==SEGMENT(NO_SEGMENT))
+      {
+       node1->node.firstseg^=SEGMENT(NO_SEGMENT);
+       node1->node.firstseg|=i;
+      }
+    else
+      {
+       SegmentX **segmentx=LookupSegmentX(segmentsx,SEGMENT(node1->node.firstseg));
 
-    node.latoffset=latlong_to_off(nodex.latitude);
-    node.lonoffset=latlong_to_off(nodex.longitude);
-    node.firstseg=nodex.id;
-    node.allow=nodex.allow;
-    node.flags=nodex.flags;
+       do
+         {
+          if((*segmentx)->node1==segmentsx->sdata[i]->node1)
+            {
+             segmentx++;
 
-    if(node.flags&NODE_SUPER)
-       super_number++;
+             if((*segmentx)->node1!=segmentsx->sdata[i]->node1 || (segmentx-segmentsx->sdata)>=segmentsx->number)
+                segmentx=NULL;
+            }
+          else
+            {
+             if((*segmentx)->segment.next2==NO_NODE)
+               {
+                (*segmentx)->segment.next2=i;
+                segmentx=NULL;
+               }
+             else
+                segmentx=LookupSegmentX(segmentsx,(*segmentx)->segment.next2);
+            }
+         }
+       while(segmentx);
+      }
 
-    /* Work out the offsets */
+    /* Check node2 */
 
-    latbin=latlong_to_bin(nodex.latitude )-nodesx->latzero;
-    lonbin=latlong_to_bin(nodex.longitude)-nodesx->lonzero;
-    llbin=lonbin*nodesx->latbins+latbin;
+    if(SEGMENT(node2->node.firstseg)==SEGMENT(NO_SEGMENT))
+      {
+       node2->node.firstseg^=SEGMENT(NO_SEGMENT);
+       node2->node.firstseg|=i;
+      }
+    else
+      {
+       SegmentX **segmentx=LookupSegmentX(segmentsx,SEGMENT(node2->node.firstseg));
 
-    for(;latlonbin<=llbin;latlonbin++)
-       offsets[latlonbin]=i;
+       do
+         {
+          if((*segmentx)->node1==segmentsx->sdata[i]->node2)
+            {
+             segmentx++;
 
-    /* Write the data */
-
-    WriteFile(fd,&node,sizeof(Node));
+             if((*segmentx)->node1!=segmentsx->sdata[i]->node2 || (segmentx-segmentsx->sdata)>=segmentsx->number)
+                segmentx=NULL;
+            }
+          else
+            {
+             if((*segmentx)->segment.next2==NO_NODE)
+               {
+                (*segmentx)->segment.next2=i;
+                segmentx=NULL;
+               }
+             else
+                segmentx=LookupSegmentX(segmentsx,(*segmentx)->segment.next2);
+            }
+         }
+       while(segmentx);
+      }
 
     if(!((i+1)%10000))
-       printf_middle("Writing Nodes: Nodes=%d",i+1);
+      {
+       printf("\rIndexing Segments: Segments=%d",i+1);
+       fflush(stdout);
+      }
    }
 
- /* Close the file */
-
- nodesx->fd=CloseFile(nodesx->fd);
-
- /* Finish off the offset indexing and write them out */
-
- for(;latlonbin<=(nodesx->latbins*nodesx->lonbins);latlonbin++)
-    offsets[latlonbin]=nodesx->number;
-
- SeekFile(fd,sizeof(NodesFile));
- WriteFile(fd,offsets,(nodesx->latbins*nodesx->lonbins+1)*sizeof(index_t));
-
- /* Write out the header structure */
-
- nodesfile.number=nodesx->number;
- nodesfile.snumber=super_number;
-
- nodesfile.latbins=nodesx->latbins;
- nodesfile.lonbins=nodesx->lonbins;
-
- nodesfile.latzero=nodesx->latzero;
- nodesfile.lonzero=nodesx->lonzero;
-
- SeekFile(fd,0);
- WriteFile(fd,&nodesfile,sizeof(NodesFile));
-
- CloseFile(fd);
-
- /* Print the final message */
-
- printf_last("Wrote Nodes: Nodes=%d",nodesx->number);
+ printf("\rIndexed Segments: Segments=%d \n",segmentsx->number);
+ fflush(stdout);
 }

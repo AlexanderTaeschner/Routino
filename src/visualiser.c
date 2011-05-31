@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/visualiser.c,v 1.2 2009-06-08 18:21:10 amb Exp $
+
  Extract data from Routino.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +31,6 @@
 #include "nodes.h"
 #include "segments.h"
 #include "ways.h"
-#include "relations.h"
 
 
 #define SPEED_LIMIT  1
@@ -40,30 +41,23 @@
 
 /* Local types */
 
-typedef void (*callback_t)(index_t node,double latitude,double longitude);
+typedef void (*callback_t)(index_t node,float latitude,float longitude);
 
 /* Local variables */
 
-static Nodes     *OSMNodes;
-static Segments  *OSMSegments;
-static Ways      *OSMWays;
-static Relations *OSMRelations;
-
-static double LatMin;
-static double LatMax;
-static double LonMin;
-static double LonMax;
+static Nodes    *OSMNodes;
+static Segments *OSMSegments;
+static Ways     *OSMWays;
 
 static int limit_type=0;
 
 /* Local functions */
 
-static void find_all_nodes(Nodes *nodes,callback_t callback);
-static void output_junctions(index_t node,double latitude,double longitude);
-static void output_super(index_t node,double latitude,double longitude);
-static void output_oneway(index_t node,double latitude,double longitude);
-static void output_turnrestriction(index_t node,double latitude,double longitude);
-static void output_limits(index_t node,double latitude,double longitude);
+static void find_all_nodes(Nodes *nodes,float latmin,float latmax,float lonmin,float lonmax,callback_t callback);
+static void output_junctions(index_t node,float latitude,float longitude);
+static void output_super(index_t node,float latitude,float longitude);
+static void output_oneway(index_t node,float latitude,float longitude);
+static void output_limits(index_t node,float latitude,float longitude);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -75,64 +69,56 @@ static void output_limits(index_t node,double latitude,double longitude);
 
   Ways *ways The set of ways to use.
 
-  Relations *relations The set of relations to use.
+  float latmin The minimum latitude.
 
-  double latmin The minimum latitude.
+  float latmax The maximum latitude.
 
-  double latmax The maximum latitude.
+  float lonmin The minimum longitude.
 
-  double lonmin The minimum longitude.
-
-  double lonmax The maximum longitude.
+  float lonmax The maximum longitude.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void OutputJunctions(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax)
+void OutputJunctions(Nodes *nodes,Segments *segments,Ways *ways,float latmin,float latmax,float lonmin,float lonmax)
 {
  /* Use local variables so that the callback doesn't need to pass them backwards and forwards */
 
  OSMNodes=nodes;
  OSMSegments=segments;
  OSMWays=ways;
- OSMRelations=relations;
-
- LatMin=latmin;
- LatMax=latmax;
- LonMin=lonmin;
- LonMax=lonmax;
 
  /* Iterate through the nodes and process them */
 
- find_all_nodes(nodes,(callback_t)output_junctions);
+ find_all_nodes(nodes,latmin,latmax,lonmin,lonmax,(callback_t)output_junctions);
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Process a single node as a junction (called as a callback).
+  Process a single node (called as a callback).
 
   index_t node The node to output.
 
-  double latitude The latitude of the node.
+  float latitude The latitude of the node.
 
-  double longitude The longitude of the node.
+  float longitude The longitude of the node.
   ++++++++++++++++++++++++++++++++++++++*/
 
-static void output_junctions(index_t node,double latitude,double longitude)
+static void output_junctions(index_t node,float latitude,float longitude)
 {
  Segment *segment;
  Way *firstway;
  int count=0,difference=0;
 
- segment=FirstSegment(OSMSegments,OSMNodes,node,1);
- firstway=LookupWay(OSMWays,segment->way,1);
+ segment=FirstSegment(OSMSegments,OSMNodes,node);
+ firstway=LookupWay(OSMWays,segment->way);
 
  do
    {
-    Way *way=LookupWay(OSMWays,segment->way,2);
+    Way *way=LookupWay(OSMWays,segment->way);
 
     if(IsNormalSegment(segment))
        count++;
 
-    if(WaysCompare(firstway,way))
+    if(!WaysSame(firstway,way))
        difference=1;
 
     segment=NextSegment(OSMSegments,segment,node);
@@ -140,7 +126,7 @@ static void output_junctions(index_t node,double latitude,double longitude)
  while(segment);
 
  if(count!=2 || difference)
-    printf("%.6f %.6f %d\n",radians_to_degrees(latitude),radians_to_degrees(longitude),count);
+    printf("%.6f %.6f %d\n",(180.0/M_PI)*latitude,(180.0/M_PI)*longitude,count);
 }
 
 
@@ -153,69 +139,64 @@ static void output_junctions(index_t node,double latitude,double longitude)
 
   Ways *ways The set of ways to use.
 
-  Relations *relations The set of relations to use.
+  float latmin The minimum latitude.
 
-  double latmin The minimum latitude.
+  float latmax The maximum latitude.
 
-  double latmax The maximum latitude.
+  float lonmin The minimum longitude.
 
-  double lonmin The minimum longitude.
-
-  double lonmax The maximum longitude.
+  float lonmax The maximum longitude.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void OutputSuper(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax)
+void OutputSuper(Nodes *nodes,Segments *segments,Ways *ways,float latmin,float latmax,float lonmin,float lonmax)
 {
  /* Use local variables so that the callback doesn't need to pass them backwards and forwards */
 
  OSMNodes=nodes;
  OSMSegments=segments;
  OSMWays=ways;
- OSMRelations=relations;
-
- LatMin=latmin;
- LatMax=latmax;
- LonMin=lonmin;
- LonMax=lonmax;
 
  /* Iterate through the nodes and process them */
 
- find_all_nodes(nodes,(callback_t)output_super);
+ find_all_nodes(nodes,latmin,latmax,lonmin,lonmax,(callback_t)output_super);
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Process a single node as a super-node (called as a callback).
+  Process a single node (called as a callback).
 
   index_t node The node to output.
 
-  double latitude The latitude of the node.
+  float latitude The latitude of the node.
 
-  double longitude The longitude of the node.
+  float longitude The longitude of the node.
   ++++++++++++++++++++++++++++++++++++++*/
 
-static void output_super(index_t node,double latitude,double longitude)
+static void output_super(index_t node,float latitude,float longitude)
 {
  Segment *segment;
 
- if(!IsSuperNode(LookupNode(OSMNodes,node,1)))
+ if(!IsSuperNode(OSMNodes,node))
     return;
 
- printf("%.6f %.6f n\n",radians_to_degrees(latitude),radians_to_degrees(longitude));
+ printf("%.6f %.6f n\n",(180.0/M_PI)*latitude,(180.0/M_PI)*longitude);
 
- segment=FirstSegment(OSMSegments,OSMNodes,node,1);
+ segment=FirstSegment(OSMSegments,OSMNodes,node);
 
  do
    {
     if(IsSuperSegment(segment))
       {
        index_t othernode=OtherNode(segment,node);
-       double lat,lon;
 
-       GetLatLong(OSMNodes,othernode,&lat,&lon);
+       if(node>othernode)
+         {
+          float lat,lon;
 
-       if(node>othernode || (lat<LatMin || lat>LatMax || lon<LonMin || lon>LonMax))
-          printf("%.6f %.6f s\n",radians_to_degrees(lat),radians_to_degrees(lon));
+          GetLatLong(OSMNodes,othernode,&lat,&lon);
+
+          printf("%.6f %.6f s\n",(180.0/M_PI)*lat,(180.0/M_PI)*lon);
+         }
       }
 
     segment=NextSegment(OSMSegments,segment,node);
@@ -233,52 +214,44 @@ static void output_super(index_t node,double latitude,double longitude)
 
   Ways *ways The set of ways to use.
 
-  Relations *relations The set of relations to use.
+  float latmin The minimum latitude.
 
-  double latmin The minimum latitude.
+  float latmax The maximum latitude.
 
-  double latmax The maximum latitude.
+  float lonmin The minimum longitude.
 
-  double lonmin The minimum longitude.
-
-  double lonmax The maximum longitude.
+  float lonmax The maximum longitude.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void OutputOneway(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax)
+void OutputOneway(Nodes *nodes,Segments *segments,Ways *ways,float latmin,float latmax,float lonmin,float lonmax)
 {
  /* Use local variables so that the callback doesn't need to pass them backwards and forwards */
 
  OSMNodes=nodes;
  OSMSegments=segments;
  OSMWays=ways;
- OSMRelations=relations;
-
- LatMin=latmin;
- LatMax=latmax;
- LonMin=lonmin;
- LonMax=lonmax;
 
  /* Iterate through the nodes and process them */
 
- find_all_nodes(nodes,(callback_t)output_oneway);
+ find_all_nodes(nodes,latmin,latmax,lonmin,lonmax,(callback_t)output_oneway);
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Process a single node and all connected one-way segments (called as a callback).
+  Process a single node (called as a callback).
 
   index_t node The node to output.
 
-  double latitude The latitude of the node.
+  float latitude The latitude of the node.
 
-  double longitude The longitude of the node.
+  float longitude The longitude of the node.
   ++++++++++++++++++++++++++++++++++++++*/
 
-static void output_oneway(index_t node,double latitude,double longitude)
+static void output_oneway(index_t node,float latitude,float longitude)
 {
  Segment *segment;
 
- segment=FirstSegment(OSMSegments,OSMNodes,node,1);
+ segment=FirstSegment(OSMSegments,OSMNodes,node);
 
  do
    {
@@ -288,107 +261,20 @@ static void output_oneway(index_t node,double latitude,double longitude)
 
        if(node>othernode)
          {
-          double lat,lon;
+          float lat,lon;
 
           GetLatLong(OSMNodes,othernode,&lat,&lon);
 
           if(IsOnewayFrom(segment,node))
-             printf("%.6f %.6f %.6f %.6f\n",radians_to_degrees(latitude),radians_to_degrees(longitude),radians_to_degrees(lat),radians_to_degrees(lon));
+             printf("%.6f %.6f %.6f %.6f\n",(180.0/M_PI)*latitude,(180.0/M_PI)*longitude,(180.0/M_PI)*lat,(180.0/M_PI)*lon);
           else if(IsOnewayFrom(segment,othernode))
-             printf("%.6f %.6f %.6f %.6f\n",radians_to_degrees(lat),radians_to_degrees(lon),radians_to_degrees(latitude),radians_to_degrees(longitude));
+             printf("%.6f %.6f %.6f %.6f\n",(180.0/M_PI)*lat,(180.0/M_PI)*lon,(180.0/M_PI)*latitude,(180.0/M_PI)*longitude);
          }
       }
 
     segment=NextSegment(OSMSegments,segment,node);
    }
  while(segment);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Output the data for turn restrictions.
-
-  Nodes *nodes The set of nodes to use.
-
-  Segments *segments The set of segments to use.
-
-  Ways *ways The set of ways to use.
-
-  Relations *relations The set of relations to use.
-
-  double latmin The minimum latitude.
-
-  double latmax The maximum latitude.
-
-  double lonmin The minimum longitude.
-
-  double lonmax The maximum longitude.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-void OutputTurnRestrictions(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax)
-{
- /* Use local variables so that the callback doesn't need to pass them backwards and forwards */
-
- OSMNodes=nodes;
- OSMSegments=segments;
- OSMWays=ways;
- OSMRelations=relations;
-
- LatMin=latmin;
- LatMax=latmax;
- LonMin=lonmin;
- LonMax=lonmax;
-
- /* Iterate through the nodes and process them */
-
- find_all_nodes(nodes,(callback_t)output_turnrestriction);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Process a single node as the 'via' node for a turn restriction (called as a callback).
-
-  index_t node The node to output.
-
-  double latitude The latitude of the node.
-
-  double longitude The longitude of the node.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static void output_turnrestriction(index_t node,double latitude,double longitude)
-{
- index_t turnrelation=NO_RELATION;
-
- if(!IsTurnRestrictedNode(LookupNode(OSMNodes,node,1)))
-    return;
-
- turnrelation=FindFirstTurnRelation1(OSMRelations,node);
-
- do
-   {
-    TurnRelation *relation;
-    Segment *from_segment,*to_segment;
-    index_t from_node,to_node;
-    double from_lat,from_lon,to_lat,to_lon;
-
-    relation=LookupTurnRelation(OSMRelations,turnrelation,1);
-
-    from_segment=LookupSegment(OSMSegments,relation->from,1);
-    to_segment  =LookupSegment(OSMSegments,relation->to  ,2);
-
-    from_node=OtherNode(from_segment,node);
-    to_node=OtherNode(to_segment,node);
-
-    GetLatLong(OSMNodes,from_node,&from_lat,&from_lon);
-    GetLatLong(OSMNodes,to_node,&to_lat,&to_lon);
-
-    printf("%.6f %.6f %.6f %.6f %.6f %.6f\n",radians_to_degrees(from_lat),radians_to_degrees(from_lon),
-                                             radians_to_degrees(latitude),radians_to_degrees(longitude),
-                                             radians_to_degrees(to_lat),radians_to_degrees(to_lon));
-
-    turnrelation=FindNextTurnRelation1(OSMRelations,turnrelation);
-   }
- while(turnrelation!=NO_RELATION);
 }
 
 
@@ -401,36 +287,28 @@ static void output_turnrestriction(index_t node,double latitude,double longitude
 
   Ways *ways The set of ways to use.
 
-  Relations *relations The set of relations to use.
+  float latmin The minimum latitude.
 
-  double latmin The minimum latitude.
+  float latmax The maximum latitude.
 
-  double latmax The maximum latitude.
+  float lonmin The minimum longitude.
 
-  double lonmin The minimum longitude.
-
-  double lonmax The maximum longitude.
+  float lonmax The maximum longitude.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void OutputSpeedLimits(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax)
+void OutputSpeedLimits(Nodes *nodes,Segments *segments,Ways *ways,float latmin,float latmax,float lonmin,float lonmax)
 {
  /* Use local variables so that the callback doesn't need to pass them backwards and forwards */
 
  OSMNodes=nodes;
  OSMSegments=segments;
  OSMWays=ways;
- OSMRelations=relations;
-
- LatMin=latmin;
- LatMax=latmax;
- LonMin=lonmin;
- LonMax=lonmax;
 
  /* Iterate through the nodes and process them */
 
  limit_type=SPEED_LIMIT;
 
- find_all_nodes(nodes,(callback_t)output_limits);
+ find_all_nodes(nodes,latmin,latmax,lonmin,lonmax,(callback_t)output_limits);
 }
 
 
@@ -443,36 +321,28 @@ void OutputSpeedLimits(Nodes *nodes,Segments *segments,Ways *ways,Relations *rel
 
   Ways *ways The set of ways to use.
 
-  Relations *relations The set of relations to use.
+  float latmin The minimum latitude.
 
-  double latmin The minimum latitude.
+  float latmax The maximum latitude.
 
-  double latmax The maximum latitude.
+  float lonmin The minimum longitude.
 
-  double lonmin The minimum longitude.
-
-  double lonmax The maximum longitude.
+  float lonmax The maximum longitude.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void OutputWeightLimits(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax)
+void OutputWeightLimits(Nodes *nodes,Segments *segments,Ways *ways,float latmin,float latmax,float lonmin,float lonmax)
 {
  /* Use local variables so that the callback doesn't need to pass them backwards and forwards */
 
  OSMNodes=nodes;
  OSMSegments=segments;
  OSMWays=ways;
- OSMRelations=relations;
-
- LatMin=latmin;
- LatMax=latmax;
- LonMin=lonmin;
- LonMax=lonmax;
 
  /* Iterate through the nodes and process them */
 
  limit_type=WEIGHT_LIMIT;
 
- find_all_nodes(nodes,(callback_t)output_limits);
+ find_all_nodes(nodes,latmin,latmax,lonmin,lonmax,(callback_t)output_limits);
 }
 
 
@@ -485,36 +355,28 @@ void OutputWeightLimits(Nodes *nodes,Segments *segments,Ways *ways,Relations *re
 
   Ways *ways The set of ways to use.
 
-  Relations *relations The set of relations to use.
+  float latmin The minimum latitude.
 
-  double latmin The minimum latitude.
+  float latmax The maximum latitude.
 
-  double latmax The maximum latitude.
+  float lonmin The minimum longitude.
 
-  double lonmin The minimum longitude.
-
-  double lonmax The maximum longitude.
+  float lonmax The maximum longitude.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void OutputHeightLimits(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax)
+void OutputHeightLimits(Nodes *nodes,Segments *segments,Ways *ways,float latmin,float latmax,float lonmin,float lonmax)
 {
  /* Use local variables so that the callback doesn't need to pass them backwards and forwards */
 
  OSMNodes=nodes;
  OSMSegments=segments;
  OSMWays=ways;
- OSMRelations=relations;
-
- LatMin=latmin;
- LatMax=latmax;
- LonMin=lonmin;
- LonMax=lonmax;
 
  /* Iterate through the nodes and process them */
 
  limit_type=HEIGHT_LIMIT;
 
- find_all_nodes(nodes,(callback_t)output_limits);
+ find_all_nodes(nodes,latmin,latmax,lonmin,lonmax,(callback_t)output_limits);
 }
 
 
@@ -527,36 +389,28 @@ void OutputHeightLimits(Nodes *nodes,Segments *segments,Ways *ways,Relations *re
 
   Ways *ways The set of ways to use.
 
-  Relations *relations The set of relations to use.
+  float latmin The minimum latitude.
 
-  double latmin The minimum latitude.
+  float latmax The maximum latitude.
 
-  double latmax The maximum latitude.
+  float lonmin The minimum longitude.
 
-  double lonmin The minimum longitude.
-
-  double lonmax The maximum longitude.
+  float lonmax The maximum longitude.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void OutputWidthLimits(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax)
+void OutputWidthLimits(Nodes *nodes,Segments *segments,Ways *ways,float latmin,float latmax,float lonmin,float lonmax)
 {
  /* Use local variables so that the callback doesn't need to pass them backwards and forwards */
 
  OSMNodes=nodes;
  OSMSegments=segments;
  OSMWays=ways;
- OSMRelations=relations;
-
- LatMin=latmin;
- LatMax=latmax;
- LonMin=lonmin;
- LonMax=lonmax;
 
  /* Iterate through the nodes and process them */
 
  limit_type=WIDTH_LIMIT;
 
- find_all_nodes(nodes,(callback_t)output_limits);
+ find_all_nodes(nodes,latmin,latmax,lonmin,lonmax,(callback_t)output_limits);
 }
 
 
@@ -569,50 +423,42 @@ void OutputWidthLimits(Nodes *nodes,Segments *segments,Ways *ways,Relations *rel
 
   Ways *ways The set of ways to use.
 
-  Relations *relations The set of relations to use.
+  float latmin The minimum latitude.
 
-  double latmin The minimum latitude.
+  float latmax The maximum latitude.
 
-  double latmax The maximum latitude.
+  float lonmin The minimum longitude.
 
-  double lonmin The minimum longitude.
-
-  double lonmax The maximum longitude.
+  float lonmax The maximum longitude.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void OutputLengthLimits(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax)
+void OutputLengthLimits(Nodes *nodes,Segments *segments,Ways *ways,float latmin,float latmax,float lonmin,float lonmax)
 {
  /* Use local variables so that the callback doesn't need to pass them backwards and forwards */
 
  OSMNodes=nodes;
  OSMSegments=segments;
  OSMWays=ways;
- OSMRelations=relations;
-
- LatMin=latmin;
- LatMax=latmax;
- LonMin=lonmin;
- LonMax=lonmax;
 
  /* Iterate through the nodes and process them */
 
  limit_type=LENGTH_LIMIT;
 
- find_all_nodes(nodes,(callback_t)output_limits);
+ find_all_nodes(nodes,latmin,latmax,lonmin,lonmax,(callback_t)output_limits);
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Process a single node as a speed, weight, height, length, width limit (called as a callback).
+  Process a single node (called as a callback).
 
   index_t node The node to output.
 
-  double latitude The latitude of the node.
+  float latitude The latitude of the node.
 
-  double longitude The longitude of the node.
+  float longitude The longitude of the node.
   ++++++++++++++++++++++++++++++++++++++*/
 
-static void output_limits(index_t node,double latitude,double longitude)
+static void output_limits(index_t node,float latitude,float longitude)
 {
  Segment *segment,*segments[16];
  Way *ways[16];
@@ -620,13 +466,13 @@ static void output_limits(index_t node,double latitude,double longitude)
  int count=0;
  int i,j,same=0;
 
- segment=FirstSegment(OSMSegments,OSMNodes,node,1);
+ segment=FirstSegment(OSMSegments,OSMNodes,node);
 
  do
    {
     if(IsNormalSegment(segment) && count<16)
       {
-       ways    [count]=LookupWay(OSMWays,segment->way,1);
+       ways    [count]=LookupWay(OSMWays,segment->way);
        segments[count]=segment;
 
        switch(limit_type)
@@ -638,8 +484,7 @@ static void output_limits(index_t node,double latitude,double longitude)
          case LENGTH_LIMIT: limits[count]=ways[count]->length; break;
          }
 
-       if(limits[count] || ways[count]->type<Way_Track)
-          count++;
+       count++;
       }
 
     segment=NextSegment(OSMSegments,segment,node);
@@ -663,7 +508,7 @@ static void output_limits(index_t node,double latitude,double longitude)
 
  /* Display the interesting speed limits */
 
- printf("%.6f %.6f\n",radians_to_degrees(latitude),radians_to_degrees(longitude));
+ printf("%.6f %.6f\n",(180.0/M_PI)*latitude,(180.0/M_PI)*longitude);
 
  for(i=0;i<count;i++)
    {
@@ -674,26 +519,26 @@ static void output_limits(index_t node,double latitude,double longitude)
 
     if(count==2 || same!=(count-1))
       {
-       double lat,lon;
+       float lat,lon;
 
        GetLatLong(OSMNodes,OtherNode(segments[i],node),&lat,&lon);
 
        switch(limit_type)
          {
          case SPEED_LIMIT:
-          printf("%.6f %.6f %d\n",radians_to_degrees(lat),radians_to_degrees(lon),speed_to_kph(limits[i]));
+          printf("%.6f %.6f %.0f\n",(180.0/M_PI)*lat,(180.0/M_PI)*lon,(float)speed_to_kph(limits[i]));
           break;
          case WEIGHT_LIMIT:
-          printf("%.6f %.6f %.1f\n",radians_to_degrees(lat),radians_to_degrees(lon),weight_to_tonnes(limits[i]));
+          printf("%.6f %.6f %.1f\n",(180.0/M_PI)*lat,(180.0/M_PI)*lon,weight_to_tonnes(limits[i]));
           break;
          case HEIGHT_LIMIT:
-          printf("%.6f %.6f %.1f\n",radians_to_degrees(lat),radians_to_degrees(lon),height_to_metres(limits[i]));
+          printf("%.6f %.6f %.1f\n",(180.0/M_PI)*lat,(180.0/M_PI)*lon,height_to_metres(limits[i]));
           break;
          case WIDTH_LIMIT:
-          printf("%.6f %.6f %.1f\n",radians_to_degrees(lat),radians_to_degrees(lon),width_to_metres(limits[i]));
+          printf("%.6f %.6f %.1f\n",(180.0/M_PI)*lat,(180.0/M_PI)*lon,width_to_metres(limits[i]));
           break;
          case LENGTH_LIMIT:
-          printf("%.6f %.6f %.1f\n",radians_to_degrees(lat),radians_to_degrees(lon),length_to_metres(limits[i]));
+          printf("%.6f %.6f %.1f\n",(180.0/M_PI)*lat,(180.0/M_PI)*lon,length_to_metres(limits[i]));
           break;
          }
       }
@@ -704,42 +549,45 @@ static void output_limits(index_t node,double latitude,double longitude)
 /*++++++++++++++++++++++++++++++++++++++
   A function to iterate through all nodes and call a callback function for each one.
 
-  Nodes *nodes The set of nodes to use.
+  Nodes *nodes The list of nodes to process.
+
+  float latmin The minimum latitude.
+
+  float latmax The maximum latitude.
+
+  float lonmin The minimum longitude.
+
+  float lonmax The maximum longitude.
 
   callback_t callback The callback function for each node.
   ++++++++++++++++++++++++++++++++++++++*/
 
-static void find_all_nodes(Nodes *nodes,callback_t callback)
+static void find_all_nodes(Nodes *nodes,float latmin,float latmax,float lonmin,float lonmax,callback_t callback)
 {
- int32_t latminbin=latlong_to_bin(radians_to_latlong(LatMin))-nodes->file.latzero;
- int32_t latmaxbin=latlong_to_bin(radians_to_latlong(LatMax))-nodes->file.latzero;
- int32_t lonminbin=latlong_to_bin(radians_to_latlong(LonMin))-nodes->file.lonzero;
- int32_t lonmaxbin=latlong_to_bin(radians_to_latlong(LonMax))-nodes->file.lonzero;
+ int32_t latminbin=lat_long_to_bin(latmin)-nodes->latzero;
+ int32_t latmaxbin=lat_long_to_bin(latmax)-nodes->latzero;
+ int32_t lonminbin=lat_long_to_bin(lonmin)-nodes->lonzero;
+ int32_t lonmaxbin=lat_long_to_bin(lonmax)-nodes->lonzero;
  int latb,lonb,llbin;
- index_t i,index1,index2;
+ index_t node;
 
  /* Loop through all of the nodes. */
 
  for(latb=latminbin;latb<=latmaxbin;latb++)
     for(lonb=lonminbin;lonb<=lonmaxbin;lonb++)
       {
-       llbin=lonb*nodes->file.latbins+latb;
+       llbin=lonb*nodes->latbins+latb;
 
-       if(llbin<0 || llbin>(nodes->file.latbins*nodes->file.lonbins))
+       if(llbin<0 || llbin>(nodes->latbins*nodes->lonbins))
           continue;
 
-       index1=LookupNodeOffset(nodes,llbin);
-       index2=LookupNodeOffset(nodes,llbin+1);
-
-       for(i=index1;i<index2;i++)
+       for(node=nodes->offsets[llbin];node<nodes->offsets[llbin+1];node++)
          {
-          Node *node=LookupNode(nodes,i,1);
+          float lat=(float)((nodes->latzero+latb)*LAT_LONG_BIN+nodes->nodes[node].latoffset)/LAT_LONG_SCALE;
+          float lon=(float)((nodes->lonzero+lonb)*LAT_LONG_BIN+nodes->nodes[node].lonoffset)/LAT_LONG_SCALE;
 
-          double lat=latlong_to_radians(bin_to_latlong(nodes->file.latzero+latb)+off_to_latlong(node->latoffset));
-          double lon=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonb)+off_to_latlong(node->lonoffset));
-
-          if(lat>LatMin && lat<LatMax && lon>LonMin && lon<LonMax)
-             (*callback)(i,lat,lon);
+          if(lat>latmin && lat<latmax && lon>lonmin && lon<lonmax)
+             (*callback)(node,lat,lon);
          }
       }
 }
