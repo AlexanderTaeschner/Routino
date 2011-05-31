@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/results.c,v 1.19 2009-08-15 14:18:23 amb Exp $
+
  Result data type functions.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +29,7 @@
 #include "results.h"
 
 /*+ The size of the increment for the Results data structure. +*/
-#define RESULTS_INCREMENT 64
+#define RESULTS_INCREMENT    16
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -72,11 +74,8 @@ Results *NewResultsList(int nbins)
  results->data=(Result**)malloc(1*sizeof(Result*));
  results->data[0]=(Result*)malloc(results->nbins*RESULTS_INCREMENT*sizeof(Result));
 
- results->start_node=NO_NODE;
- results->prev_segment=NO_SEGMENT;
-
- results->finish_node=NO_NODE;
- results->last_segment=NO_SEGMENT;
+ results->start=NO_NODE;
+ results->finish=NO_NODE;
 
  return(results);
 }
@@ -116,17 +115,14 @@ void FreeResultsList(Results *results)
   Results *results The results structure to insert into.
 
   index_t node The node that is to be inserted into the results.
-
-  index_t segment The segment that is to be inserted into the results.
   ++++++++++++++++++++++++++++++++++++++*/
 
-Result *InsertResult(Results *results,index_t node,index_t segment)
+Result *InsertResult(Results *results,index_t node)
 {
- Result *result;
  int bin=node&results->mask;
  uint32_t i;
 
- /* Check that the arrays have enough space or allocate more. */
+ /* Check that the arrays have enough space. */
 
  if(results->count[bin]==results->alloced)
    {
@@ -152,72 +148,48 @@ Result *InsertResult(Results *results,index_t node,index_t segment)
 
  results->count[bin]++;
 
- /* Initialise the result */
+ results->point[bin][results->count[bin]-1]->node=node;
+ results->point[bin][results->count[bin]-1]->queued=~0;
 
- result=results->point[bin][results->count[bin]-1];
+ return(results->point[bin][results->count[bin]-1]);
+}
 
- result->node=node;
- result->segment=segment;
 
- result->prev=NULL;
- result->next=NULL;
+/*++++++++++++++++++++++++++++++++++++++
+  Zero the values in a result structure.
+
+  Result *result The result to modify.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+void ZeroResult(Result *result)
+{
+ result->prev=NO_NODE;
+ result->next=NO_NODE;
 
  result->score=0;
  result->sortby=0;
 
- result->queued=NOT_QUEUED;
-
- return(result);
+ result->segment=NULL;
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Find a result; search by node only (don't care about the segment but find the shortest).
-
-  Result *FindResult1 Returns the result that has been found.
-
-  Results *results The results structure to search.
-
-  index_t node The node that is to be found.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-Result *FindResult1(Results *results,index_t node)
-{
- int bin=node&results->mask;
- score_t best_score=INF_SCORE;
- Result *best_result=NULL;
- int i;
-
- for(i=results->count[bin]-1;i>=0;i--)
-    if(results->point[bin][i]->node==node && results->point[bin][i]->score<best_score)
-      {
-       best_score=results->point[bin][i]->score;
-       best_result=results->point[bin][i];
-      }
-
- return(best_result);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Find a result; search by node and segment.
+  Find a result; search by node.
 
   Result *FindResult Returns the result that has been found.
 
   Results *results The results structure to search.
 
   index_t node The node that is to be found.
-
-  index_t segment The segment that was used to reach this node.
   ++++++++++++++++++++++++++++++++++++++*/
 
-Result *FindResult(Results *results,index_t node,index_t segment)
+Result *FindResult(Results *results,index_t node)
 {
  int bin=node&results->mask;
  int i;
 
  for(i=results->count[bin]-1;i>=0;i--)
-    if(results->point[bin][i]->node==node && results->point[bin][i]->segment==segment)
+    if(results->point[bin][i]->node==node)
        return(results->point[bin][i]);
 
  return(NULL);
@@ -225,9 +197,9 @@ Result *FindResult(Results *results,index_t node,index_t segment)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Find the first result from a set of results.
+  Find a result from a set of results.
 
-  Result *FirstResult Returns the first result.
+  Result *FirstResult Returns the first results from a set of results.
 
   Results *results The set of results.
   ++++++++++++++++++++++++++++++++++++++*/
@@ -239,9 +211,9 @@ Result *FirstResult(Results *results)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Find the next result from a set of results.
+  Find a result from a set of results.
 
-  Result *NextResult Returns the next result.
+  Result *NextResult Returns the next result from a set of results.
 
   Results *results The set of results.
 

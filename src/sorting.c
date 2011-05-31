@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/sorting.c,v 1.4 2009-10-12 17:35:26 amb Exp $
+
  Merge sort functions.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2009-2011 Andrew M. Bishop
+ This file Copyright 2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -25,24 +27,16 @@
 #include <string.h>
 #include <assert.h>
 
-#include "types.h"
-
-#include "files.h"
-#include "sorting.h"
+#include "functions.h"
 
 
-/* Global variables */
+/* Variables */
 
-/*+ The command line '--tmpdir' option or its default value. +*/
 extern char *option_tmpdirname;
-
-/*+ The amount of RAM to use for filesorting. +*/
-extern size_t option_filesort_ramsize;
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  A function to sort the contents of a file of fixed length objects using a
-  limited amount of RAM.
+  A function to sort the contents of a file using a limited amount of RAM.
 
   The data is sorted using a "Merge sort" http://en.wikipedia.org/wiki/Merge_sort
   and in particular an "external sort" http://en.wikipedia.org/wiki/External_sorting.
@@ -56,6 +50,8 @@ extern size_t option_filesort_ramsize;
 
   size_t itemsize The size of each item in the file that needs sorting.
 
+  size_t ramsize The maximum in-core buffer size to use when sorting.
+
   int (*compare)(const void*, const void*) The comparison function (identical to qsort if the
                                            data to be sorted is an array of things not pointers).
 
@@ -63,12 +59,13 @@ extern size_t option_filesort_ramsize;
                                     returns 1 then it is written to the output file.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void filesort_fixed(int fd_in,int fd_out,size_t itemsize,int (*compare)(const void*,const void*),int (*buildindex)(void*,index_t))
+void filesort(int fd_in,int fd_out,size_t itemsize,size_t ramsize,int (*compare)(const void*,const void*),
+                                                                  int (*buildindex)(void*,index_t))
 {
  int *fds=NULL,*heap=NULL;
  int nfiles=0,ndata=0;
  index_t count=0,total=0;
- size_t nitems=option_filesort_ramsize/(itemsize+sizeof(void*));
+ size_t nitems=ramsize/(itemsize+sizeof(void*));
  void *data=NULL,**datap=NULL;
  char *filename;
  int i,more=1;
@@ -103,23 +100,16 @@ void filesort_fixed(int fd_in,int fd_out,size_t itemsize,int (*compare)(const vo
 
     n=i;
 
-    /* Shortcut if there is no data and no previous files (i.e. no data at all) */
-
-    if(nfiles==0 && n==0)
-       goto tidy_and_exit;
-
-    /* No new data read in this time round */
-
     if(n==0)
        break;
 
     /* Sort the data pointers using a heap sort */
 
-    filesort_heapsort(datap,n,compare);
+    heapsort(datap,n,compare);
 
     /* Shortcut if all read in and sorted at once */
 
-    if(nfiles==0 && !more)
+    if(nfiles==0 && n<nitems)
       {
        for(i=0;i<n;i++)
          {
@@ -137,7 +127,7 @@ void filesort_fixed(int fd_in,int fd_out,size_t itemsize,int (*compare)(const vo
 
     sprintf(filename,"%s/filesort.%d.tmp",option_tmpdirname,nfiles);
 
-    fd=OpenFileNew(filename);
+    fd=OpenFile(filename);
 
     for(i=0;i<n;i++)
        WriteFile(fd,datap[i],itemsize);
@@ -297,279 +287,6 @@ void filesort_fixed(int fd_in,int fd_out,size_t itemsize,int (*compare)(const vo
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  A function to sort the contents of a file of variable length objects (each
-  preceded by its length in 2 bytes) using a limited amount of RAM.
-
-  The data is sorted using a "Merge sort" http://en.wikipedia.org/wiki/Merge_sort
-  and in particular an "external sort" http://en.wikipedia.org/wiki/External_sorting.
-  The individual sort steps and the merge step both use a "Heap sort"
-  http://en.wikipedia.org/wiki/Heapsort.  The combination of the two should work well
-  if the data is already partially sorted.
-
-  int fd_in The file descriptor of the input file (opened for reading and at the beginning).
-
-  int fd_out The file descriptor of the output file (opened for writing and empty).
-
-  int (*compare)(const void*, const void*) The comparison function (identical to qsort if the
-                                           data to be sorted is an array of things not pointers).
-
-  int (*buildindex)(void *,index_t) If non-NULL then this function is called for each item, if it
-                                    returns 1 then it is written to the output file.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-void filesort_vary(int fd_in,int fd_out,int (*compare)(const void*,const void*),int (*buildindex)(void*,index_t))
-{
- int *fds=NULL,*heap=NULL;
- int nfiles=0,ndata=0;
- index_t count=0,total=0;
- FILESORT_VARINT nextitemsize,largestitemsize=0;
- void *data=NULL,**datap=NULL;
- char *filename;
- int i,more=1;
-
- /* Allocate the RAM buffer and other bits */
-
- data=malloc(option_filesort_ramsize);
-
- filename=(char*)malloc(strlen(option_tmpdirname)+24);
-
- /* Loop around, fill the buffer, sort the data and write a temporary file */
-
- if(ReadFile(fd_in,&nextitemsize,FILESORT_VARSIZE))    /* Always have the next item size known in advance */
-    goto tidy_and_exit;
-
- do
-   {
-    int fd,n=0;
-    size_t ramused=FILESORT_VARALIGN-FILESORT_VARSIZE;
-
-    datap=data+option_filesort_ramsize;
-
-    /* Read in the data and create pointers */
-
-    while((ramused+FILESORT_VARSIZE+nextitemsize)<=((void*)datap-sizeof(void*)-data))
-      {
-       FILESORT_VARINT itemsize=nextitemsize;
-
-       if(itemsize>largestitemsize)
-          largestitemsize=itemsize;
-
-       *(FILESORT_VARINT*)(data+ramused)=itemsize;
-
-       ramused+=FILESORT_VARSIZE;
-
-       ReadFile(fd_in,data+ramused,itemsize);
-
-       *--datap=data+ramused; /* points to real data */
-
-       ramused+=itemsize;
-
-       ramused =FILESORT_VARALIGN*((ramused+FILESORT_VARSIZE-1)/FILESORT_VARALIGN);
-       ramused+=FILESORT_VARALIGN-FILESORT_VARSIZE;
-
-       total++;
-       n++;
-
-       if(ReadFile(fd_in,&nextitemsize,FILESORT_VARSIZE))
-         {
-          more=0;
-          break;
-         }
-      }
-
-    /* No new data read in this time round */
-
-    if(n==0)
-       break;
-
-    /* Sort the data pointers using a heap sort */
-
-    filesort_heapsort(datap,n,compare);
-
-    /* Shortcut if all read in and sorted at once */
-
-    if(nfiles==0 && !more)
-      {
-       for(i=0;i<n;i++)
-         {
-          if(!buildindex || buildindex(datap[i],count))
-            {
-             FILESORT_VARINT itemsize=*(FILESORT_VARINT*)(datap[i]-FILESORT_VARSIZE);
-
-             WriteFile(fd_out,datap[i]-FILESORT_VARSIZE,itemsize+FILESORT_VARSIZE);
-             count++;
-            }
-         }
-
-       goto tidy_and_exit;
-      }
-
-    /* Create a temporary file and write the result */
-
-    sprintf(filename,"%s/filesort.%d.tmp",option_tmpdirname,nfiles);
-
-    fd=OpenFileNew(filename);
-
-    for(i=0;i<n;i++)
-      {
-       FILESORT_VARINT itemsize=*(FILESORT_VARINT*)(datap[i]-FILESORT_VARSIZE);
-
-       WriteFile(fd,datap[i]-FILESORT_VARSIZE,itemsize+FILESORT_VARSIZE);
-      }
-
-    CloseFile(fd);
-
-    nfiles++;
-   }
- while(more);
-
- /* Check that number of files is less than file size */
-
- largestitemsize=FILESORT_VARALIGN*(1+(largestitemsize+FILESORT_VARALIGN-FILESORT_VARSIZE)/FILESORT_VARALIGN);
-
- assert(nfiles<((option_filesort_ramsize-nfiles*sizeof(void*))/largestitemsize));
-
- /* Open all of the temporary files */
-
- fds=(int*)malloc(nfiles*sizeof(int));
-
- for(i=0;i<nfiles;i++)
-   {
-    sprintf(filename,"%s/filesort.%d.tmp",option_tmpdirname,i);
-
-    fds[i]=ReOpenFile(filename);
-
-    DeleteFile(filename);
-   }
-
- /* Perform an n-way merge using a binary heap */
-
- heap=(int*)malloc(nfiles*sizeof(int));
-
- datap=data+option_filesort_ramsize-nfiles*sizeof(void*);
-
- /* Fill the heap to start with */
-
- for(i=0;i<nfiles;i++)
-   {
-    int index;
-    FILESORT_VARINT itemsize;
-
-    datap[i]=data+FILESORT_VARALIGN-FILESORT_VARSIZE+i*largestitemsize;
-
-    ReadFile(fds[i],&itemsize,FILESORT_VARSIZE);
-
-    *(FILESORT_VARINT*)(datap[i]-FILESORT_VARSIZE)=itemsize;
-
-    ReadFile(fds[i],datap[i],itemsize);
-
-    heap[i]=i;
-
-    index=i;
-
-    /* Bubble up the new value */
-
-    while(index>0 &&
-          compare(datap[heap[index]],datap[heap[(index-1)/2]])<0)
-      {
-       int newindex;
-       int temp;
-
-       newindex=(index-1)/2;
-
-       temp=heap[index];
-       heap[index]=heap[newindex];
-       heap[newindex]=temp;
-
-       index=newindex;
-      }
-   }
-
- /* Repeatedly pull out the root of the heap and refill from the same file */
-
- ndata=nfiles;
-
- do
-   {
-    int index=0;
-    FILESORT_VARINT itemsize;
-
-    if(!buildindex || buildindex(datap[heap[0]],count))
-      {
-       itemsize=*(FILESORT_VARINT*)(datap[heap[0]]-FILESORT_VARSIZE);
-
-       WriteFile(fd_out,datap[heap[0]]-FILESORT_VARSIZE,itemsize+FILESORT_VARSIZE);
-       count++;
-      }
-
-    if(ReadFile(fds[heap[0]],&itemsize,FILESORT_VARSIZE))
-      {
-       ndata--;
-       heap[0]=heap[ndata];
-      }
-    else
-      {
-       *(FILESORT_VARINT*)(datap[heap[0]]-FILESORT_VARSIZE)=itemsize;
-
-       ReadFile(fds[heap[0]],datap[heap[0]],itemsize);
-      }
-
-    /* Bubble down the new value */
-
-    while((2*index+2)<ndata &&
-          (compare(datap[heap[index]],datap[heap[2*index+1]])>0 ||
-           compare(datap[heap[index]],datap[heap[2*index+2]])>0))
-      {
-       int newindex;
-       int temp;
-
-       if(compare(datap[heap[2*index+1]],datap[heap[2*index+2]])<0)
-          newindex=2*index+1;
-       else
-          newindex=2*index+2;
-
-       temp=heap[newindex];
-       heap[newindex]=heap[index];
-       heap[index]=temp;
-
-       index=newindex;
-      }
-
-    if((2*index+2)==ndata &&
-       compare(datap[heap[index]],datap[heap[2*index+1]])>0)
-      {
-       int newindex;
-       int temp;
-
-       newindex=2*index+1;
-
-       temp=heap[newindex];
-       heap[newindex]=heap[index];
-       heap[index]=temp;
-      }
-   }
- while(ndata>0);
-
- /* Tidy up */
-
- tidy_and_exit:
-
- if(fds)
-   {
-    for(i=0;i<nfiles;i++)
-       CloseFile(fds[i]);
-    free(fds);
-   }
-
- if(heap)
-    free(heap);
-
- free(data);
- free(filename);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
   A function to sort an array of pointers efficiently.
 
   The data is sorted using a "Heap sort" http://en.wikipedia.org/wiki/Heapsort,
@@ -584,7 +301,7 @@ void filesort_vary(int fd_in,int fd_out,int (*compare)(const void*,const void*),
                                             data to be sorted was an array of things not pointers).
   ++++++++++++++++++++++++++++++++++++++*/
 
-void filesort_heapsort(void **datap,size_t nitems,int(*compare)(const void*, const void*))
+void heapsort(void **datap,size_t nitems,int(*compare)(const void*, const void*))
 {
  int i;
 

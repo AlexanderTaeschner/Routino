@@ -1,9 +1,11 @@
 /***************************************
- Header file for miscellaneous function prototypes
+ $Header: /home/amb/CVS/routino/src/functions.h,v 1.43 2009-10-04 15:53:31 amb Exp $
+
+ Header file for function prototypes
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -23,30 +25,55 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H    /*+ To stop multiple inclusions. +*/
 
-#include "types.h"
+#include <stdio.h>
 
+#include "types.h"
 #include "profiles.h"
 #include "results.h"
 
 
-/* Functions in optimiser.c */
+/* In files.c */
 
-Results *FindNormalRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t start_node,index_t prev_segment,index_t finish_node);
+char *FileName(const char *dirname,const char *prefix, const char *name);
 
-Results *FindMiddleRoute(Nodes *supernodes,Segments *supersegments,Ways *superways,Relations *relations,Profile *profile,Results *begin,Results *end);
+void *MapFile(const char *filename);
+void *UnmapFile(const char *filename);
 
-Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t start_node,index_t prev_segment,index_t finish_node,int *nsuper);
+int OpenFile(const char *filename);
+int ReOpenFile(const char *filename);
 
-Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t finish_node);
+int WriteFile(int fd,const void *address,size_t length);
+int ReadFile(int fd,void *address,size_t length);
+int SeekFile(int fd,size_t position);
 
-Results *CombineRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,Results *begin,Results *middle);
+void CloseFile(int fd);
 
-void FixForwardRoute(Results *results,Result *finish_result);
+int DeleteFile(char *filename);
 
 
-/* Functions in output.c */
+/* In optimiser.c */
 
-void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile);
+Results *FindNormalRoute(Nodes *nodes,Segments *segments,Ways *ways,index_t start,index_t finish,Profile *profile);
+Results *FindMiddleRoute(Nodes *supernodes,Segments *supersegments,Ways *superways,Results *begin,Results *end,Profile *profile);
+
+Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,index_t start,Profile *profile);
+Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,index_t finish,Profile *profile);
+
+Results *CombineRoutes(Results *results,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile);
+
+
+/* In output.c */
+
+void PrintRouteHead(const char *copyright);
+void PrintRoute(Results *results,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile);
+void PrintRouteTail(void);
+
+
+/* In sorting.c */
+
+void filesort(int fd_in,int fd_out,size_t itemsize,size_t ramsize,int (*compare)(const void*,const void*),
+                                                                  int (*buildindex)(void*,index_t));
+void heapsort(void **datap,size_t nitems,int(*compare)(const void*, const void*));
 
 
 #endif /* FUNCTIONS_H */

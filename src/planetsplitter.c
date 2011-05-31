@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/planetsplitter.c,v 1.61 2009-10-12 17:35:26 amb Exp $
+
  OSM planet file splitter.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -23,104 +25,98 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-
-#include "types.h"
-#include "ways.h"
 
 #include "typesx.h"
+#include "types.h"
+#include "functionsx.h"
+#include "functions.h"
 #include "nodesx.h"
 #include "segmentsx.h"
 #include "waysx.h"
-#include "relationsx.h"
 #include "superx.h"
-
-#include "files.h"
-#include "logging.h"
-#include "functions.h"
-#include "functionsx.h"
-#include "tagging.h"
+#include "profiles.h"
+#include "ways.h"
 
 
-/* Global variables */
+/* Variables */
+
+/*+ The option to use a slim mode with file-backed read-only intermediate storage. +*/
+int option_slim=0;
 
 /*+ The name of the temporary directory. +*/
 char *option_tmpdirname=NULL;
 
-/*+ The amount of RAM to use for filesorting. +*/
-size_t option_filesort_ramsize=0;
-
-
-/* Local functions */
-
-static void print_usage(int detail,const char *argerr,const char *err);
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  The main program for the planetsplitter.
-  ++++++++++++++++++++++++++++++++++++++*/
 
 int main(int argc,char** argv)
 {
- NodesX     *Nodes;
- SegmentsX  *Segments,*SuperSegments=NULL,*MergedSegments=NULL;
- WaysX      *Ways;
- RelationsX *Relations;
- int         iteration=0,quit=0;
- int         max_iterations=10;
- char       *dirname=NULL,*prefix=NULL,*tagging=NULL;
- int         option_parse_only=0,option_process_only=0;
- int         option_filenames=0;
- int         arg;
+ NodesX *Nodes;
+ SegmentsX *Segments,*SuperSegments=NULL,*MergedSegments=NULL;
+ WaysX *Ways;
+ int iteration=0,quit=0;
+ int max_iterations=10;
+ char *dirname=NULL,*prefix=NULL;
+ Profile profile={0};
+ int i;
+
+ /* Fill in the default profile. */
+
+ profile.transport=Transport_None; /* Not used by planetsplitter */
+
+ profile.allow=Allow_ALL;
+
+ for(i=1;i<Way_Unknown;i++)
+    profile.highway[i]=1;
+
+ profile.oneway=1; /* Not used by planetsplitter */
 
  /* Parse the command line arguments */
 
- for(arg=1;arg<argc;arg++)
+ while(--argc>=1)
    {
-    if(!strcmp(argv[arg],"--help"))
-       print_usage(1,NULL,NULL);
-    else if(!strncmp(argv[arg],"--sort-ram-size=",16))
-       option_filesort_ramsize=atoi(&argv[arg][16]);
-    else if(!strncmp(argv[arg],"--dir=",6))
-       dirname=&argv[arg][6];
-    else if(!strncmp(argv[arg],"--tmpdir=",9))
-       option_tmpdirname=&argv[arg][9];
-    else if(!strncmp(argv[arg],"--prefix=",9))
-       prefix=&argv[arg][9];
-    else if(!strcmp(argv[arg],"--parse-only"))
-       option_parse_only=1;
-    else if(!strcmp(argv[arg],"--process-only"))
-       option_process_only=1;
-    else if(!strcmp(argv[arg],"--loggable"))
-       option_loggable=1;
-    else if(!strncmp(argv[arg],"--max-iterations=",17))
-       max_iterations=atoi(&argv[arg][17]);
-    else if(!strncmp(argv[arg],"--tagging=",10))
-       tagging=&argv[arg][10];
-    else if(argv[arg][0]=='-' && argv[arg][1]=='-')
-       print_usage(0,argv[arg],NULL);
+    if(!strcmp(argv[argc],"--help"))
+       goto usage;
+    else if(!strcmp(argv[argc],"--slim"))
+       option_slim=1;
+    else if(!strncmp(argv[argc],"--dir=",6))
+       dirname=&argv[argc][6];
+    else if(!strncmp(argv[argc],"--tmpdir=",9))
+       option_tmpdirname=&argv[argc][9];
+    else if(!strncmp(argv[argc],"--prefix=",9))
+       prefix=&argv[argc][9];
+    else if(!strncmp(argv[argc],"--max-iterations=",17))
+       max_iterations=atoi(&argv[argc][17]);
+    else if(!strncmp(argv[argc],"--transport=",12))
+      {
+       profile.transport=TransportType(&argv[argc][12]);
+       profile.allow=1<<(profile.transport-1);
+      }
+    else if(!strncmp(argv[argc],"--not-highway=",14))
+      {
+       Highway highway=HighwayType(&argv[argc][14]);
+       profile.highway[highway]=0;
+      }
     else
-       option_filenames++;
+      {
+      usage:
+
+       fprintf(stderr,"Usage: planetsplitter\n"
+                      "                      [--help]\n"
+                      "                      [--slim] [--tmpdir=<name>]\n"
+                      "                      [--dir=<name>] [--prefix=<name>]\n"
+                      "                      [--max-iterations=<number>]\n"
+                      "                      [--transport=<transport>]\n"
+                      "                      [--not-highway=<highway> ...]\n"
+                      "\n"
+                      "<transport> defaults to all but can be set to:\n"
+                      "%s"
+                      "\n"
+                      "<highway> can be selected from:\n"
+                      "%s",
+                      TransportList(),HighwayList());
+
+       return(1);
+      }
    }
-
- /* Check the specified command line options */
-
- if(option_parse_only && option_process_only)
-    print_usage(0,NULL,"Cannot use '--parse-only' and '--process-only' at the same time.");
-
- if(option_filenames && option_process_only)
-    print_usage(0,NULL,"Cannot use '--process-only' and filenames at the same time.");
-
- if(!option_filesort_ramsize)
-   {
-#if SLIM
-       option_filesort_ramsize=64*1024*1024;
-#else
-       option_filesort_ramsize=256*1024*1024;
-#endif
-   }
- else
-    option_filesort_ramsize*=1024*1024;
 
  if(!option_tmpdirname)
    {
@@ -130,104 +126,33 @@ int main(int argc,char** argv)
        option_tmpdirname=dirname;
    }
 
- if(tagging)
-   {
-    if(!ExistsFile(tagging))
-      {
-       fprintf(stderr,"Error: The '--tagging' option specifies a file that does not exist.\n");
-       return(1);
-      }
-   }
- else
-   {
-    if(ExistsFile(FileName(dirname,prefix,"tagging.xml")))
-       tagging=FileName(dirname,prefix,"tagging.xml");
-    else if(ExistsFile(FileName(DATADIR,NULL,"tagging.xml")))
-       tagging=FileName(DATADIR,NULL,"tagging.xml");
-    else
-      {
-       fprintf(stderr,"Error: The '--tagging' option was not used and the default 'tagging.xml' does not exist.\n");
-       return(1);
-      }
-   }
+ /* Create new node, segment and way variables */
 
- if(ParseXMLTaggingRules(tagging))
-   {
-    fprintf(stderr,"Error: Cannot read the tagging rules in the file '%s'.\n",tagging);
-    return(1);
-   }
+ Nodes=NewNodeList();
 
- /* Create new node, segment, way and relation variables */
+ Segments=NewSegmentList();
 
- Nodes=NewNodeList(option_parse_only||option_process_only);
-
- Segments=NewSegmentList(option_parse_only||option_process_only);
-
- Ways=NewWayList(option_parse_only||option_process_only);
-
- Relations=NewRelationList(option_parse_only||option_process_only);
+ Ways=NewWayList();
 
  /* Parse the file */
 
- if(option_filenames)
-   {
-    for(arg=1;arg<argc;arg++)
-      {
-       FILE *file;
+ printf("\nParse OSM Data\n==============\n\n");
+ fflush(stdout);
 
-       if(argv[arg][0]=='-' && argv[arg][1]=='-')
-          continue;
-
-       file=fopen(argv[arg],"rb");
-
-       if(!file)
-         {
-          fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",argv[arg],strerror(errno));
-          exit(EXIT_FAILURE);
-         }
-
-       printf("\nParse OSM Data [%s]\n==============\n\n",argv[arg]);
-       fflush(stdout);
-
-       if(ParseOSM(file,Nodes,Segments,Ways,Relations))
-          exit(EXIT_FAILURE);
-
-       fclose(file);
-      }
-   }
- else if(!option_process_only)
-   {
-    printf("\nParse OSM Data\n==============\n\n");
-    fflush(stdout);
-
-    if(ParseOSM(stdin,Nodes,Segments,Ways,Relations))
-       exit(EXIT_FAILURE);
-   }
-
- if(option_parse_only)
-   {
-    FreeNodeList(Nodes,1);
-    FreeSegmentList(Segments,1);
-    FreeWayList(Ways,1);
-    FreeRelationList(Relations,1);
-
-    return(0);
-   }
+ ParseXML(stdin,Nodes,Segments,Ways,&profile);
 
  /* Process the data */
 
  printf("\nProcess OSM Data\n================\n\n");
  fflush(stdout);
 
- /* Sort the nodes, segments, ways and relations */
+ /* Sort the nodes, segments and ways */
 
  SortNodeList(Nodes);
 
  SortSegmentList(Segments);
 
  SortWayList(Ways);
-
- SortRelationList(Relations);
 
  /* Remove bad segments (must be after sorting the nodes and segments) */
 
@@ -237,35 +162,15 @@ int main(int argc,char** argv)
 
  RemoveNonHighwayNodes(Nodes,Segments);
 
- /* Process the route relations and first part of turn relations (must be before compacting the ways) */
-
- ProcessRouteRelations(Relations,Ways);
-
- ProcessTurnRelations1(Relations,Nodes,Ways);
-
- /* Compact the ways (must be before measuring the segments) */
-
- CompactWayList(Ways);
-
  /* Measure the segments and replace node/way id with index (must be after removing non-highway nodes) */
 
- MeasureSegments(Segments,Nodes,Ways);
-
- /* Index the segments */
-
- IndexSegments(Segments,Nodes);
-
- /* Convert the turn relations from ways into nodes */
-
- ProcessTurnRelations2(Relations,Nodes,Segments,Ways);
+ UpdateSegments(Segments,Nodes,Ways);
 
 
  /* Repeated iteration on Super-Nodes and Super-Segments */
 
  do
    {
-    int nsuper;
-
     printf("\nProcess Super-Data (iteration %d)\n================================%s\n\n",iteration,iteration>9?"=":"");
     fflush(stdout);
 
@@ -277,9 +182,7 @@ int main(int argc,char** argv)
 
        /* Select the super-segments */
 
-       SuperSegments=CreateSuperSegments(Nodes,Segments,Ways);
-
-       nsuper=Segments->number;
+       SuperSegments=CreateSuperSegments(Nodes,Segments,Ways,iteration);
       }
     else
       {
@@ -291,11 +194,12 @@ int main(int argc,char** argv)
 
        /* Select the super-segments */
 
-       SuperSegments2=CreateSuperSegments(Nodes,SuperSegments,Ways);
+       SuperSegments2=CreateSuperSegments(Nodes,SuperSegments,Ways,iteration);
 
-       nsuper=SuperSegments->number;
+       if(SuperSegments->xnumber==SuperSegments2->xnumber)
+          quit=1;
 
-       FreeSegmentList(SuperSegments,0);
+       FreeSegmentList(SuperSegments);
 
        SuperSegments=SuperSegments2;
       }
@@ -307,15 +211,6 @@ int main(int argc,char** argv)
     /* Remove duplicated super-segments */
 
     DeduplicateSegments(SuperSegments,Nodes,Ways);
-
-    /* Index the segments */
-
-    IndexSegments(SuperSegments,Nodes);
-
-    /* Check for end condition */
-
-    if(SuperSegments->number==nsuper)
-       quit=1;
 
     iteration++;
 
@@ -333,44 +228,50 @@ int main(int argc,char** argv)
 
  MergedSegments=MergeSuperSegments(Segments,SuperSegments);
 
- FreeSegmentList(Segments,0);
+ FreeSegmentList(Segments);
 
- FreeSegmentList(SuperSegments,0);
+ FreeSegmentList(SuperSegments);
 
  Segments=MergedSegments;
 
- /* Sort and re-index the segments */
+ /* Rotate segments so that node1<node2 */
+
+ RotateSegments(Segments);
+
+ /* Sort the segments */
 
  SortSegmentList(Segments);
 
- IndexSegments(Segments,Nodes);
+ /* Remove duplicated segments */
+
+ DeduplicateSegments(Segments,Nodes,Ways);
 
  /* Cross reference the nodes and segments */
 
  printf("\nCross-Reference Nodes and Segments\n==================================\n\n");
  fflush(stdout);
 
- /* Sort the nodes geographically and update the segment indexes accordingly */
+ /* Compact the ways */
+
+ CompactWayNames(Ways);
+
+ CompactWayProperties(Ways);
+
+ /* Sort the node list geographically */
 
  SortNodeListGeographically(Nodes);
 
- UpdateSegments(Segments,Nodes,Ways);
+ /* Create the real segments and nodes */
 
- /* Sort the segments geographically and re-index them */
+ CreateRealNodes(Nodes,iteration);
 
- SortSegmentList(Segments);
+ CreateRealSegments(Segments,Ways);
+
+ /* Fix the segment and node indexes */
+
+ IndexNodes(Nodes,Segments);
 
  IndexSegments(Segments,Nodes);
-
- /* Update the nodes */
-
- UpdateNodes(Nodes,Segments);
-
- /* Fix the turn relations after sorting nodes geographically */
-
- UpdateTurnRelations(Relations,Nodes,Segments);
-
- SortTurnRelationList(Relations);
 
  /* Output the results */
 
@@ -381,104 +282,19 @@ int main(int argc,char** argv)
 
  SaveNodeList(Nodes,FileName(dirname,prefix,"nodes.mem"));
 
- FreeNodeList(Nodes,0);
+ FreeNodeList(Nodes);
 
  /* Write out the segments */
 
  SaveSegmentList(Segments,FileName(dirname,prefix,"segments.mem"));
 
- FreeSegmentList(Segments,0);
+ FreeSegmentList(Segments);
 
  /* Write out the ways */
 
  SaveWayList(Ways,FileName(dirname,prefix,"ways.mem"));
 
- FreeWayList(Ways,0);
-
- /* Write out the relations */
-
- SaveRelationList(Relations,FileName(dirname,prefix,"relations.mem"));
-
- FreeRelationList(Relations,0);
+ FreeWayList(Ways);
 
  return(0);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Print out the usage information.
-
-  int detail The level of detail to use - 0 = low, 1 = high.
-
-  const char *argerr The argument that gave the error (if there is one).
-
-  const char *err Other error message (if there is one).
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static void print_usage(int detail,const char *argerr,const char *err)
-{
- fprintf(stderr,
-         "Usage: planetsplitter [--help]\n"
-         "                      [--dir=<dirname>] [--prefix=<name>]\n"
-         "                      [--sort-ram-size=<size>]\n"
-         "                      [--tmpdir=<dirname>]\n"
-         "                      [--parse-only | --process-only]\n"
-         "                      [--loggable]\n"
-         "                      [--max-iterations=<number>]\n"
-         "                      [--tagging=<filename>]\n"
-         "                      [<filename.osm> ...]\n");
-
- if(argerr)
-    fprintf(stderr,
-            "\n"
-            "Error with command line parameter: %s\n",argerr);
-
- if(err)
-    fprintf(stderr,
-            "\n"
-            "Error: %s\n",err);
-
- if(detail)
-    fprintf(stderr,
-            "\n"
-            "--help                    Prints this information.\n"
-            "\n"
-            "--dir=<dirname>           The directory containing the routing database.\n"
-            "--prefix=<name>           The filename prefix for the routing database.\n"
-            "\n"
-            "--sort-ram-size=<size>    The amount of RAM (in MB) to use for data sorting\n"
-#if SLIM
-            "                          (defaults to 64MB otherwise.)\n"
-#else
-            "                          (defaults to 256MB otherwise.)\n"
-#endif
-            "--tmpdir=<dirname>        The directory name for temporary files.\n"
-            "                          (defaults to the '--dir' option directory.)\n"
-            "\n"
-            "--parse-only              Parse the input OSM files and store the results.\n"
-            "--process-only            Process the stored results from previous option.\n"
-            "\n"
-            "--loggable                Print progress messages suitable for logging to file.\n"
-            "\n"
-            "--max-iterations=<number> The number of iterations for finding super-nodes.\n"
-            "\n"
-            "--tagging=<filename>      The name of the XML file containing the tagging rules\n"
-            "                          (defaults to 'tagging.xml' with '--dir' and\n"
-            "                           '--prefix' options or the file installed in\n"
-            "                           '" DATADIR "').\n"
-            "\n"
-            "<filename.osm> ...        The name(s) of the file(s) to process (by default\n"
-            "                          data is read from standard input).\n"
-            "\n"
-            "<transport> defaults to all but can be set to:\n"
-            "%s"
-            "\n"
-            "<highway> can be selected from:\n"
-            "%s"
-            "\n"
-            "<property> can be selected from:\n"
-            "%s",
-            TransportList(),HighwayList(),PropertyList());
-
- exit(!detail);
 }

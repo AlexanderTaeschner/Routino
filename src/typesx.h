@@ -1,11 +1,11 @@
 /***************************************
- $Header: /home/amb/CVS/routino/src/typesx.h,v 1.6 2010-12-12 16:35:55 amb Exp $
+ $Header: /home/amb/CVS/routino/src/typesx.h,v 1.3 2009-10-09 18:47:40 amb Exp $
 
  Type definitions for eXtended types.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2010 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -37,26 +37,6 @@ typedef uint32_t node_t;
 /*+ A way identifier - must be at least as large as index_t. +*/
 typedef uint32_t way_t;
 
-/*+ A relation identifier - must be at least as large as index_t. +*/
-typedef uint32_t relation_t;
-
-
-/* Enumerated types */
-
-/*+ Turn restrictions. +*/
-typedef enum _TurnRestriction
- {
-  TurnRestrict_None              =0,
-  TurnRestrict_no_right_turn,
-  TurnRestrict_no_left_turn,
-  TurnRestrict_no_u_turn,
-  TurnRestrict_no_straight_on,
-  TurnRestrict_only_right_turn,
-  TurnRestrict_only_left_turn,
-  TurnRestrict_only_straight_on
- }
- TurnRestriction;
-
 
 /* Data structures */
 
@@ -71,12 +51,6 @@ typedef struct _SegmentsX SegmentsX;
 typedef struct _WayX WayX;
 
 typedef struct _WaysX WaysX;
-
-typedef struct _RouteRelX RouteRelX;
-
-typedef struct _TurnRestrictRelX TurnRestrictRelX;
-
-typedef struct _RelationsX RelationsX;
 
 
 #endif /* TYPESX_H */
