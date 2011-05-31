@@ -1,8 +1,10 @@
+# $Header: /home/amb/CVS/routino/doc/Makefile,v 1.2 2010-07-07 17:27:03 amb Exp $
+#
 # Documentation directory Makefile
 #
 # Part of the Routino routing software.
 #
-# This file Copyright 2010-2011 Andrew M. Bishop
+# This file Copyright 2010 Andrew M. Bishop
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -18,46 +20,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# Web file paths
-
 WEBDIR=../web/www/routino/documentation
 
-# Files to install
-
-HTML_FILES=html/*
-TXT_FILES=*.txt
-TOP_FILES=../agpl-3.0.txt
+FILES=html/*
 
 ########
 
 all :
 	-@[ -d $(WEBDIR) ] && \
-	  for file in $(HTML_FILES); do \
+	  for file in $(FILES); do \
 	     if [ ! -f $(WEBDIR)/`basename $$file` ] || [ $$file -nt $(WEBDIR)/`basename $$file` ]; then \
 	        echo cp $$file $(WEBDIR) ;\
 	        cp -f $$file $(WEBDIR) ;\
 	     fi ;\
-	  done
-
-########
-
-install: all
-	-[ -d $(DESTDIR)$(docdir) ] || mkdir -p $(DESTDIR)$(docdir)
-	@[ -d $(DESTDIR)$(docdir) ] && \
-	  for file in $(TOP_FILES); do \
-	     echo cp $$file $(DESTDIR)$(docdir) ;\
-	     cp -f $$file $(DESTDIR)$(docdir) ;\
-	  done
-	@[ -d $(DESTDIR)$(docdir) ] && \
-	  for file in $(TXT_FILES); do \
-	     echo cp $$file $(DESTDIR)$(docdir) ;\
-	     cp -f $$file $(DESTDIR)$(docdir) ;\
-	  done
-	-[ -d $(DESTDIR)$(docdir)/html ] || mkdir -p $(DESTDIR)$(docdir)/html
-	@[ -d $(DESTDIR)$(docdir)/html ] && \
-	  for file in $(HTML_FILES); do \
-	     echo cp $$file $(DESTDIR)$(docdir)/html ;\
-	     cp -f $$file $(DESTDIR)$(docdir)/html ;\
 	  done
 
 ########
@@ -71,8 +46,3 @@ clean:
 
 distclean: clean
 	rm -f $(WEBDIR)/*
-
-########
-
-top=-top
-include ../Makefile

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!-- ============================================================
-     $Header: /home/amb/CVS/routino/xml/routino-tagging.xml,v 1.9 2010-12-29 09:29:36 amb Exp $
+     $Header: /home/amb/CVS/routino/xml/routino-tagging.xml,v 1.2 2010-06-26 19:26:47 amb Exp $
 
      An XML format file containing Routino tagging rules
 
@@ -18,139 +18,14 @@
 <routino-tagging xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                  xsi:noNamespaceSchemaLocation="http://www.routino.org/xml/routino-tagging.xsd">
 
-  <!-- -------------------- Node rules -------------------- -->
+  <!-- Node rules are not currently used -->
 
   <node>
-
-    <!-- Note: The default is that all transport types are allowed past a barrier;
-               access must be specified to disallow each transport type. -->
-
-    <!-- Barriers -->
-
-    <if k="barrier" v="bollard">
-      <output k="motorcar"   v="no"/>
-      <output k="goods"      v="no"/>
-      <output k="hgv"        v="no"/>
-      <output k="psv"        v="no"/>
-    </if>
-
-    <if k="barrier" v="kissing_gate">
-      <output k="horse"      v="no"/>
-      <output k="wheelchair" v="no"/>
-      <output k="bicycle"    v="no"/>
-      <output k="moped"      v="no"/>
-      <output k="motorbike"  v="no"/>
-      <output k="motorcar"   v="no"/>
-      <output k="goods"      v="no"/>
-      <output k="hgv"        v="no"/>
-      <output k="psv"        v="no"/>
-    </if>
-
-    <if k="barrier" v="stile">
-      <output k="horse"      v="no"/>
-      <output k="wheelchair" v="no"/>
-      <output k="bicycle"    v="no"/>
-      <output k="moped"      v="no"/>
-      <output k="motorbike"  v="no"/>
-      <output k="motorcar"   v="no"/>
-      <output k="goods"      v="no"/>
-      <output k="hgv"        v="no"/>
-      <output k="psv"        v="no"/>
-    </if>
-
-    <if k="barrier" v="turnstile">
-      <output k="horse"      v="no"/>
-      <output k="wheelchair" v="no"/>
-      <output k="bicycle"    v="no"/>
-      <output k="moped"      v="no"/>
-      <output k="motorbike"  v="no"/>
-      <output k="motorcar"   v="no"/>
-      <output k="goods"      v="no"/>
-      <output k="hgv"        v="no"/>
-      <output k="psv"        v="no"/>
-    </if>
-
-    <!-- Normalisation of access tags -->
-
-    <if v="designated" ><set v="yes"/></if>
-    <if v="permissive" ><set v="yes"/></if>
-    <if v="destination"><set v="yes"/></if>
-    <if v="true"       ><set v="yes"/></if>
-
-    <if v="private"    ><set v="no"/></if>
-
-    <!-- Generic access permissions for all transport types (to override defaults) -->
-
-    <if k="access">
-      <set k="noaccess" v="yes"/>
-    </if>
-
-    <if k="access" v="yes">
-      <set k="noaccess" v="no"/>
-    </if>
-
-    <if k="noaccess" v="yes">
-      <output k="foot"       v="no"/>
-      <output k="horse"      v="no"/>
-      <output k="wheelchair" v="no"/>
-      <output k="bicycle"    v="no"/>
-      <output k="moped"      v="no"/>
-      <output k="motorbike"  v="no"/>
-      <output k="motorcar"   v="no"/>
-      <output k="goods"      v="no"/>
-      <output k="hgv"        v="no"/>
-      <output k="psv"        v="no"/>
-    </if>
-
-    <!-- Generic access permissions for classes of transport types -->
-
-    <if k="motor_vehicle">
-      <output k="moped"/>
-      <output k="motorbike"/>
-      <output k="motorcar"/>
-      <output k="goods"/>
-      <output k="hgv"/>
-      <output k="psv"/>
-    </if>
-
-    <if k="vehicle">
-      <output k="bicycle"/>
-      <output k="moped"/>
-      <output k="motorbike"/>
-      <output k="motorcar"/>
-      <output k="goods"/>
-      <output k="hgv"/>
-      <output k="psv"/>
-    </if>
-
-    <!-- Specific access rules (to override the generic ones) -->
-
-    <if k="foot"      ><output/></if>
-    <if k="horse"     ><output/></if>
-    <if k="wheelchair"><output/></if>
-    <if k="bicycle"   ><output/></if>
-    <if k="moped"     ><output/></if>
-    <if k="motorbike" ><output/></if>
-    <if k="motorcar"  ><output/></if>
-    <if k="goods"     ><output/></if>
-    <if k="hgv"       ><output/></if>
-    <if k="psv"       ><output/></if>
-
-
-    <!-- Mini-roundabouts  -->
-
-    <if k="highway" v="mini_roundabout">
-      <output k="highway"/>
-    </if>
-
   </node>
 
-  <!-- -------------------- Way rules -------------------- -->
+  <!-- Way rules -->
 
   <way>
-
-    <!-- Note: The default is that no transport type is allowed on any highway;
-               access must be specified to allow each transport type. -->
 
     <!-- Highway types (includes default access and default properties) -->
 
@@ -386,8 +261,9 @@
       <output k="foot"       v="yes"/>
     </if>
 
-    <if k="route" v="ferry">
-      <set k="highway" v="ferry"/>
+    <if k="junction" v="roundabout">
+      <output k="junction" v="roundabout"/>
+      <output k="oneway"   v="yes"/>
     </if>
 
     <!-- Normalisation of access tags -->
@@ -395,14 +271,17 @@
     <if v="designated" ><set v="yes"/></if>
     <if v="permissive" ><set v="yes"/></if>
     <if v="destination"><set v="yes"/></if>
-    <if v="true"       ><set v="yes"/></if>
 
-    <if v="private"    ><set v="no"/></if>
+    <if v="private"><set v="no"/></if>
 
     <!-- Generic access permissions for all transport types (to override defaults) -->
 
     <if k="access">
       <set k="noaccess" v="yes"/>
+    </if>
+
+    <if k="access" v="true">
+      <set k="noaccess" v="no"/>
     </if>
 
     <if k="access" v="yes">
@@ -509,7 +388,7 @@
       <set k="paved" v="yes"/>
     </if>
 
-    <if k="surface" v="asphalt">
+    <if k="surface" v="ashphalt">
       <set k="paved" v="yes"/>
     </if>
 
@@ -530,9 +409,6 @@
     <if k="bridge"   ><output/></if>
     <if k="tunnel"   ><output/></if>
 
-    <!-- The "footroute" and "bicycleroute" properties can be set here,
-         but normally they are set by the relation rules. -->
-
     <!-- Output the restriction tags -->
 
     <if k="oneway"><output/></if>
@@ -551,48 +427,9 @@
 
   </way>
 
-  <!-- -------------------- Relation rules -------------------- -->
+  <!-- Relation rules are not currently used -->
 
   <relation>
-
-    <if k="type">
-      <output/>
-    </if>
-
-    <!-- Copy route relations -->
-
-    <if k="route" v="foot">
-      <output k="footroute" v="yes"/>
-    </if>
-
-    <if k="route" v="walking">
-      <output k="footroute" v="yes"/>
-    </if>
-
-    <if k="route" v="hiking">
-      <output k="footroute" v="yes"/>
-    </if>
-
-    <if k="route" v="foot;bicycle">
-      <output k="footroute"    v="yes"/>
-      <output k="bicycleroute" v="yes"/>
-    </if>
-
-    <if k="route" v="bicycle;foot">
-      <output k="footroute"    v="yes"/>
-      <output k="bicycleroute" v="yes"/>
-    </if>
-
-    <if k="route" v="bicycle">
-      <output k="bicycleroute" v="yes"/>
-    </if>
-
-    <!-- Pass through turn relations -->
-
-    <if k="restriction">
-      <output/>
-    </if>
-
   </relation>
 
 </routino-tagging>

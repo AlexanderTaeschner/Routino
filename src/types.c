@@ -1,5 +1,5 @@
 /***************************************
- $Header: /home/amb/CVS/routino/src/types.c,v 1.10 2010-11-28 15:12:41 amb Exp $
+ $Header: /home/amb/CVS/routino/src/types.c,v 1.3 2010-05-27 17:25:23 amb Exp $
 
  Functions for handling the data types.
 
@@ -41,10 +41,6 @@ Highway HighwayType(const char *highway)
    {
    case 'c':
     if(!strcmp(highway,"cycleway")) return(Way_Cycleway);
-    return(Way_Count);
-
-   case 'f':
-    if(!strcmp(highway,"ferry")) return(Way_Ferry);
     return(Way_Count);
 
    case 'm':
@@ -158,16 +154,8 @@ Property PropertyType(const char *property)
  switch(*property)
    {
    case 'b':
-    if(!strcmp(property,"bicycleroute"))
-       return(Property_BicycleRoute);
-
     if(!strcmp(property,"bridge"))
        return(Property_Bridge);
-    break;
-
-   case 'f':
-    if(!strcmp(property,"footroute"))
-       return(Property_FootRoute);
     break;
 
    case 'm':
@@ -229,13 +217,12 @@ const char *HighwayName(Highway highway)
     return("path");
    case Way_Steps:
     return("steps");
-   case Way_Ferry:
-    return("ferry");
 
    case Way_Count:
     ;
 
    case Way_OneWay:
+   case Way_Roundabout:
     ;
    }
 
@@ -314,12 +301,6 @@ const char *PropertyName(Property property)
    case Property_Tunnel:
     return("tunnel");
 
-   case Property_FootRoute:
-    return("footroute");
-
-   case Property_BicycleRoute:
-    return("bicycleroute");
-
    case Property_Count:
     ;
   }
@@ -329,158 +310,71 @@ const char *PropertyName(Property property)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  A string containing the names of highways.
-
-  const char *HighwaysNameList Returns the list of names.
-
-  highways_t highways The highways type.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-const char *HighwaysNameList(highways_t highways)
-{
- static char string[256];
-
- string[0]=0;
-
- if(highways & Highways_Motorway)
-    strcat(string,"motorway");
-
- if(highways & Highways_Trunk)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"trunk");
-   }
-
- if(highways & Highways_Primary)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"primary");
-   }
-
- if(highways & Highways_Tertiary)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"tertiary");
-   }
-
- if(highways & Highways_Unclassified)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"unclassified");
-   }
-
- if(highways & Highways_Residential)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"residential");
-   }
-
- if(highways & Highways_Service)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"service");
-   }
-
- if(highways & Highways_Track)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"track");
-   }
-
- if(highways & Highways_Cycleway)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"cycleway");
-   }
-
- if(highways & Highways_Path)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"path");
-   }
-
- if(highways & Highways_Steps)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"steps");
-   }
-
- if(highways & Highways_Ferry)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"ferry");
-   }
-
- return(string);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
   A string containing the names of allowed transports on a way.
 
   const char *AllowedNameList Returns the list of names.
 
-  transports_t allowed The allowed type.
+  wayallow_t allowed The allowed type.
   ++++++++++++++++++++++++++++++++++++++*/
 
-const char *AllowedNameList(transports_t allowed)
+const char *AllowedNameList(wayallow_t allowed)
 {
  static char string[256];
 
  string[0]=0;
 
- if(allowed & Transports_Foot)
+ if(allowed & Allow_Foot)
     strcat(string,"foot");
 
- if(allowed & Transports_Horse)
+ if(allowed & Allow_Horse)
    {
     if(*string) strcat(string,", ");
     strcat(string,"horse");
    }
 
- if(allowed & Transports_Wheelchair)
+ if(allowed & Allow_Wheelchair)
    {
     if(*string) strcat(string,", ");
     strcat(string,"wheelchair");
    }
 
- if(allowed & Transports_Bicycle)
+ if(allowed & Allow_Bicycle)
    {
     if(*string) strcat(string,", ");
     strcat(string,"bicycle");
    }
 
- if(allowed & Transports_Moped)
+ if(allowed & Allow_Moped)
    {
     if(*string) strcat(string,", ");
     strcat(string,"moped");
    }
 
- if(allowed & Transports_Motorbike)
+ if(allowed & Allow_Motorbike)
    {
     if(*string) strcat(string,", ");
     strcat(string,"motorbike");
    }
 
- if(allowed & Transports_Motorcar)
+ if(allowed & Allow_Motorcar)
    {
     if(*string) strcat(string,", ");
     strcat(string,"motorcar");
    }
 
- if(allowed & Transports_Goods)
+ if(allowed & Allow_Goods)
    {
     if(*string) strcat(string,", ");
     strcat(string,"goods");
    }
 
- if(allowed & Transports_HGV)
+ if(allowed & Allow_HGV)
    {
     if(*string) strcat(string,", ");
     strcat(string,"hgv");
    }
 
- if(allowed & Transports_PSV)
+ if(allowed & Allow_PSV)
    {
     if(*string) strcat(string,", ");
     strcat(string,"psv");
@@ -495,10 +389,10 @@ const char *AllowedNameList(transports_t allowed)
 
   const char *PropertiesNameList Returns the list of names.
 
-  properties_t properties The properties of the way.
+  wayprop_t properties The properties of the way.
   ++++++++++++++++++++++++++++++++++++++*/
 
-const char *PropertiesNameList(properties_t properties)
+const char *PropertiesNameList(wayprop_t properties)
 {
  static char string[256];
 
@@ -528,18 +422,6 @@ const char *PropertiesNameList(properties_t properties)
     strcat(string,"tunnel");
    }
 
- if(properties & Properties_FootRoute)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"footroute");
-   }
-
- if(properties & Properties_BicycleRoute)
-   {
-    if(*string) strcat(string,", ");
-    strcat(string,"bicycleroute");
-   }
-
  return(string);
 }
 
@@ -564,7 +446,6 @@ const char *HighwayList(void)
         "    cycleway     = Cycleway\n"
         "    path         = Path\n"
         "    steps        = Steps\n"
-        "    ferry        = Ferry\n"
         ;
 }
 
@@ -599,11 +480,9 @@ const char *TransportList(void)
 
 const char *PropertyList(void)
 {
- return "    paved        = Paved (suitable for normal wheels)\n"
-        "    multilane    = Multiple lanes\n"
-        "    bridge       = Bridge\n"
-        "    tunnel       = Tunnel\n"
-        "    footroute    = A route marked for foot travel\n"
-        "    bicycleroute = A route marked for bicycle travel\n"
+ return "    paved     = Paved (suitable for normal wheels)\n"
+        "    multilane = Multiple lanes\n"
+        "    bridge    = Bridge\n"
+        "    Tunnel    = Tunnel\n"
         ;
 }

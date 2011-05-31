@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/filedumper.c,v 1.43 2010-05-30 12:52:16 amb Exp $
+
  Memory file dumper.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008-2010 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -26,35 +28,30 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <time.h>
-#include <math.h>
 
 #include "types.h"
+#include "functions.h"
+#include "visualiser.h"
 #include "nodes.h"
 #include "segments.h"
 #include "ways.h"
-#include "relations.h"
-
-#include "files.h"
-#include "visualiser.h"
 #include "xmlparse.h"
 
 
 /* Local functions */
 
-static void print_node(Nodes *nodes,index_t item);
+static void print_node(Nodes* nodes,index_t item);
 static void print_segment(Segments *segments,index_t item);
 static void print_way(Ways *ways,index_t item);
-static void print_turnrelation(Relations *relations,index_t item,Segments *segments,Nodes *nodes);
 
 static void print_head_osm(void);
-static void print_node_osm(Nodes *nodes,index_t item);
+static void print_node_osm(Nodes* nodes,index_t item);
 static void print_segment_osm(Segments *segments,index_t item,Ways *ways);
-static void print_turnrelation_osm(Relations *relations,index_t item,Segments *segments,Nodes *nodes);
 static void print_tail_osm(void);
 
 static char *RFC822Date(time_t t);
 
-static void print_usage(int detail,const char *argerr,const char *err);
+static void print_usage(int detail);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -66,10 +63,9 @@ int main(int argc,char** argv)
  Nodes    *OSMNodes;
  Segments *OSMSegments;
  Ways     *OSMWays;
- Relations*OSMRelations;
  int       arg;
  char     *dirname=NULL,*prefix=NULL;
- char     *nodes_filename,*segments_filename,*ways_filename,*relations_filename;
+ char     *nodes_filename,*segments_filename,*ways_filename;
  int       option_statistics=0;
  int       option_visualiser=0,coordcount=0;
  double    latmin=0,latmax=0,lonmin=0,lonmax=0;
@@ -82,7 +78,7 @@ int main(int argc,char** argv)
  for(arg=1;arg<argc;arg++)
    {
     if(!strcmp(argv[arg],"--help"))
-       print_usage(1,NULL,NULL);
+       print_usage(1);
     else if(!strncmp(argv[arg],"--dir=",6))
        dirname=&argv[arg][6];
     else if(!strncmp(argv[arg],"--prefix=",9))
@@ -113,14 +109,12 @@ int main(int argc,char** argv)
        ;
     else if(!strncmp(argv[arg],"--way=",6))
        ;
-    else if(!strncmp(argv[arg],"--turn-relation=",16))
-       ;
     else
-       print_usage(0,argv[arg],NULL);
+       print_usage(0);
    }
 
- if((option_statistics + option_visualiser + option_dump + option_dump_osm)!=1)
-    print_usage(0,NULL,"Must choose --visualiser, --statistics, --dump or --dump-osm.");
+ if(!option_statistics && !option_visualiser && !option_dump && !option_dump_osm)
+    print_usage(0);
 
  /* Load in the data - Note: No error checking because Load*List() will call exit() in case of an error. */
 
@@ -130,38 +124,43 @@ int main(int argc,char** argv)
 
  OSMWays=LoadWayList(ways_filename=FileName(dirname,prefix,"ways.mem"));
 
- OSMRelations=LoadRelationList(relations_filename=FileName(dirname,prefix,"relations.mem"));
-
  /* Write out the visualiser data */
 
  if(option_visualiser)
    {
     if(coordcount!=4)
-       print_usage(0,NULL,"The --visualiser option must have --latmin, --latmax, --lonmin, --lonmax.\n");
+      {
+       fprintf(stderr,"The --visualiser option must have --latmin, --latmax, --lonmin, --lonmax.\n");
+       exit(1);
+      }
 
     if(!option_data)
-       print_usage(0,NULL,"The --visualiser option must have --data.\n");
+      {
+       fprintf(stderr,"The --visualiser option must have --data.\n");
+       exit(1);
+      }
 
     if(!strcmp(option_data,"junctions"))
-       OutputJunctions(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax);
+       OutputJunctions(OSMNodes,OSMSegments,OSMWays,latmin,latmax,lonmin,lonmax);
     else if(!strcmp(option_data,"super"))
-       OutputSuper(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax);
+       OutputSuper(OSMNodes,OSMSegments,OSMWays,latmin,latmax,lonmin,lonmax);
     else if(!strcmp(option_data,"oneway"))
-       OutputOneway(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax);
-    else if(!strcmp(option_data,"turns"))
-       OutputTurnRestrictions(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax);
+       OutputOneway(OSMNodes,OSMSegments,OSMWays,latmin,latmax,lonmin,lonmax);
     else if(!strcmp(option_data,"speed"))
-       OutputSpeedLimits(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax);
+       OutputSpeedLimits(OSMNodes,OSMSegments,OSMWays,latmin,latmax,lonmin,lonmax);
     else if(!strcmp(option_data,"weight"))
-       OutputWeightLimits(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax);
+       OutputWeightLimits(OSMNodes,OSMSegments,OSMWays,latmin,latmax,lonmin,lonmax);
     else if(!strcmp(option_data,"height"))
-       OutputHeightLimits(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax);
+       OutputHeightLimits(OSMNodes,OSMSegments,OSMWays,latmin,latmax,lonmin,lonmax);
     else if(!strcmp(option_data,"width"))
-       OutputWidthLimits(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax);
+       OutputWidthLimits(OSMNodes,OSMSegments,OSMWays,latmin,latmax,lonmin,lonmax);
     else if(!strcmp(option_data,"length"))
-       OutputLengthLimits(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax);
+       OutputLengthLimits(OSMNodes,OSMSegments,OSMWays,latmin,latmax,lonmin,lonmax);
     else
-       print_usage(0,option_data,NULL);
+      {
+       fprintf(stderr,"Unrecognised data option '%s' with --visualiser.\n",option_data);
+       exit(1);
+      }
    }
 
  /* Print out statistics */
@@ -178,25 +177,19 @@ int main(int argc,char** argv)
 
     stat(nodes_filename,&buf);
 
-    printf("'%s%snodes.mem'     - %9lld Bytes\n",prefix?prefix:"",prefix?"-":"",(long long)buf.st_size);
+    printf("'%s%snodes.mem'    - %9lld Bytes\n",prefix?prefix:"",prefix?"-":"",(long long)buf.st_size);
     printf("%s\n",RFC822Date(buf.st_mtime));
     printf("\n");
 
     stat(segments_filename,&buf);
 
-    printf("'%s%ssegments.mem'  - %9lld Bytes\n",prefix?prefix:"",prefix?"-":"",(long long)buf.st_size);
+    printf("'%s%ssegments.mem' - %9lld Bytes\n",prefix?prefix:"",prefix?"-":"",(long long)buf.st_size);
     printf("%s\n",RFC822Date(buf.st_mtime));
     printf("\n");
 
     stat(ways_filename,&buf);
 
-    printf("'%s%sways.mem'      - %9lld Bytes\n",prefix?prefix:"",prefix?"-":"",(long long)buf.st_size);
-    printf("%s\n",RFC822Date(buf.st_mtime));
-    printf("\n");
-
-    stat(relations_filename,&buf);
-
-    printf("'%s%srelations.mem' - %9lld Bytes\n",prefix?prefix:"",prefix?"-":"",(long long)buf.st_size);
+    printf("'%s%sways.mem'     - %9lld Bytes\n",prefix?prefix:"",prefix?"-":"",(long long)buf.st_size);
     printf("%s\n",RFC822Date(buf.st_mtime));
     printf("\n");
 
@@ -207,16 +200,16 @@ int main(int argc,char** argv)
     printf("\n");
 
     printf("sizeof(Node) =%9d Bytes\n",sizeof(Node));
-    printf("Number       =%9d\n",OSMNodes->file.number);
-    printf("Number(super)=%9d\n",OSMNodes->file.snumber);
+    printf("Number       =%9d\n",OSMNodes->number);
+    printf("Number(super)=%9d\n",OSMNodes->snumber);
     printf("\n");
 
-    printf("Lat bins= %4d\n",OSMNodes->file.latbins);
-    printf("Lon bins= %4d\n",OSMNodes->file.lonbins);
+    printf("Lat bins= %4d\n",OSMNodes->latbins);
+    printf("Lon bins= %4d\n",OSMNodes->lonbins);
     printf("\n");
 
-    printf("Lat zero=%5d (%8.4f deg)\n",OSMNodes->file.latzero,radians_to_degrees(latlong_to_radians(bin_to_latlong(OSMNodes->file.latzero))));
-    printf("Lon zero=%5d (%8.4f deg)\n",OSMNodes->file.lonzero,radians_to_degrees(latlong_to_radians(bin_to_latlong(OSMNodes->file.lonzero))));
+    printf("Lat zero=%5d (%8.4f deg)\n",OSMNodes->latzero,radians_to_degrees(latlong_to_radians(bin_to_latlong(OSMNodes->latzero))));
+    printf("Lon zero=%5d (%8.4f deg)\n",OSMNodes->lonzero,radians_to_degrees(latlong_to_radians(bin_to_latlong(OSMNodes->lonzero))));
 
     /* Examine the segments */
 
@@ -226,9 +219,9 @@ int main(int argc,char** argv)
     printf("\n");
 
     printf("sizeof(Segment)=%9d Bytes\n",sizeof(Segment));
-    printf("Number(total)  =%9d\n",OSMSegments->file.number);
-    printf("Number(super)  =%9d\n",OSMSegments->file.snumber);
-    printf("Number(normal) =%9d\n",OSMSegments->file.nnumber);
+    printf("Number(total)  =%9d\n",OSMSegments->number);
+    printf("Number(super)  =%9d\n",OSMSegments->snumber);
+    printf("Number(normal) =%9d\n",OSMSegments->nnumber);
 
     /* Examine the ways */
 
@@ -238,30 +231,18 @@ int main(int argc,char** argv)
     printf("\n");
 
     printf("sizeof(Way)      =%9d Bytes\n",sizeof(Way));
-    printf("Number(compacted)=%9d\n",OSMWays->file.number);
-    printf("Number(original) =%9d\n",OSMWays->file.onumber);
+    printf("Number(compacted)=%9d\n",OSMWays->number);
+    printf("Number(original) =%9d\n",OSMWays->onumber);
     printf("\n");
 
-    stat(ways_filename,&buf);
-    printf("Total names =%9ld Bytes\n",(long)buf.st_size-sizeof(Ways)-OSMWays->file.number*sizeof(Way));
+    printf("Total names =%9ld Bytes\n",(long)buf.st_size-sizeof(Ways)-OSMWays->number*sizeof(Way));
     printf("\n");
 
-    printf("Included highways  : %s\n",HighwaysNameList(OSMWays->file.highways));
-    printf("Included transports: %s\n",AllowedNameList(OSMWays->file.allow));
-    printf("Included properties: %s\n",PropertiesNameList(OSMWays->file.props));
-
-    /* Examine the relations */
-
-    printf("\n");
-    printf("Relations\n");
-    printf("---------\n");
-    printf("\n");
-
-    printf("sizeof(TurnRelation)=%9d Bytes\n",sizeof(TurnRelation));
-    printf("Number              =%9d\n",OSMRelations->file.trnumber);
+    printf("Included transports: %s\n",AllowedNameList(OSMWays->allow));
+    printf("Included properties: %s\n",PropertiesNameList(OSMWays->props));
    }
 
- /* Print out internal data (in plain text format) */
+ /* Print out internal data */
 
  if(option_dump)
    {
@@ -270,131 +251,99 @@ int main(int argc,char** argv)
     for(arg=1;arg<argc;arg++)
        if(!strcmp(argv[arg],"--node=all"))
          {
-          for(item=0;item<OSMNodes->file.number;item++)
+          for(item=0;item<OSMNodes->number;item++)
              print_node(OSMNodes,item);
          }
        else if(!strncmp(argv[arg],"--node=",7))
          {
           item=atoi(&argv[arg][7]);
 
-          if(item>=0 && item<OSMNodes->file.number)
+          if(item>=0 && item<OSMNodes->number)
              print_node(OSMNodes,item);
           else
-             printf("Invalid node number; minimum=0, maximum=%d.\n",OSMNodes->file.number-1);
+             printf("Invalid node number; minimum=0, maximum=%d.\n",OSMNodes->number-1);
          }
        else if(!strcmp(argv[arg],"--segment=all"))
          {
-          for(item=0;item<OSMSegments->file.number;item++)
+          for(item=0;item<OSMSegments->number;item++)
              print_segment(OSMSegments,item);
          }
        else if(!strncmp(argv[arg],"--segment=",10))
          {
           item=atoi(&argv[arg][10]);
 
-          if(item>=0 && item<OSMSegments->file.number)
+          if(item>=0 && item<OSMSegments->number)
              print_segment(OSMSegments,item);
           else
-             printf("Invalid segment number; minimum=0, maximum=%d.\n",OSMSegments->file.number-1);
+             printf("Invalid segment number; minimum=0, maximum=%d.\n",OSMSegments->number-1);
          }
        else if(!strcmp(argv[arg],"--way=all"))
          {
-          for(item=0;item<OSMWays->file.number;item++)
+          for(item=0;item<OSMWays->number;item++)
              print_way(OSMWays,item);
          }
        else if(!strncmp(argv[arg],"--way=",6))
          {
           item=atoi(&argv[arg][6]);
 
-          if(item>=0 && item<OSMWays->file.number)
+          if(item>=0 && item<OSMWays->number)
              print_way(OSMWays,item);
           else
-             printf("Invalid way number; minimum=0, maximum=%d.\n",OSMWays->file.number-1);
-         }
-       else if(!strcmp(argv[arg],"--turn-relation=all"))
-         {
-          for(item=0;item<OSMRelations->file.trnumber;item++)
-             print_turnrelation(OSMRelations,item,OSMSegments,OSMNodes);
-         }
-       else if(!strncmp(argv[arg],"--turn-relation=",16))
-         {
-          item=atoi(&argv[arg][16]);
-
-          if(item>=0 && item<OSMRelations->file.trnumber)
-             print_turnrelation(OSMRelations,item,OSMSegments,OSMNodes);
-          else
-             printf("Invalid turn relation number; minimum=0, maximum=%d.\n",OSMRelations->file.trnumber-1);
+             printf("Invalid way number; minimum=0, maximum=%d.\n",OSMWays->number-1);
          }
    }
 
- /* Print out internal data (in OSM XML format) */
+ /* Print out internal data in XML format */
 
  if(option_dump_osm)
    {
     if(coordcount>0 && coordcount!=4)
-       print_usage(0,NULL,"The --dump-osm option must have all of --latmin, --latmax, --lonmin, --lonmax or none.\n");
+      {
+       fprintf(stderr,"The --dump-osm option must have all of --latmin, --latmax, --lonmin, --lonmax or none.\n");
+       exit(1);
+      }
 
     print_head_osm();
 
     if(coordcount)
       {
-       int32_t latminbin=latlong_to_bin(radians_to_latlong(latmin))-OSMNodes->file.latzero;
-       int32_t latmaxbin=latlong_to_bin(radians_to_latlong(latmax))-OSMNodes->file.latzero;
-       int32_t lonminbin=latlong_to_bin(radians_to_latlong(lonmin))-OSMNodes->file.lonzero;
-       int32_t lonmaxbin=latlong_to_bin(radians_to_latlong(lonmax))-OSMNodes->file.lonzero;
+       int32_t latminbin=latlong_to_bin(radians_to_latlong(latmin))-OSMNodes->latzero;
+       int32_t latmaxbin=latlong_to_bin(radians_to_latlong(latmax))-OSMNodes->latzero;
+       int32_t lonminbin=latlong_to_bin(radians_to_latlong(lonmin))-OSMNodes->lonzero;
+       int32_t lonmaxbin=latlong_to_bin(radians_to_latlong(lonmax))-OSMNodes->lonzero;
        int latb,lonb,llbin;
-       index_t item,index1,index2;
-
-       if(latminbin<0)                      latminbin=0;
-       if(latmaxbin>OSMNodes->file.latbins) latmaxbin=OSMNodes->file.latbins-1;
-       if(lonminbin<0)                      lonminbin=0;
-       if(lonmaxbin>OSMNodes->file.lonbins) lonmaxbin=OSMNodes->file.lonbins-1;
+       index_t node;
 
        /* Loop through all of the nodes. */
 
        for(latb=latminbin;latb<=latmaxbin;latb++)
           for(lonb=lonminbin;lonb<=lonmaxbin;lonb++)
             {
-             llbin=lonb*OSMNodes->file.latbins+latb;
+             llbin=lonb*OSMNodes->latbins+latb;
 
-             if(llbin<0 || llbin>(OSMNodes->file.latbins*OSMNodes->file.lonbins))
+             if(llbin<0 || llbin>(OSMNodes->latbins*OSMNodes->lonbins))
                 continue;
 
-             index1=LookupNodeOffset(OSMNodes,llbin);
-             index2=LookupNodeOffset(OSMNodes,llbin+1);
-
-             for(item=index1;item<index2;item++)
+             for(node=OSMNodes->offsets[llbin];node<OSMNodes->offsets[llbin+1];node++)
                {
-                Node *node=LookupNode(OSMNodes,item,1);
-                double lat=latlong_to_radians(bin_to_latlong(OSMNodes->file.latzero+latb)+off_to_latlong(node->latoffset));
-                double lon=latlong_to_radians(bin_to_latlong(OSMNodes->file.lonzero+lonb)+off_to_latlong(node->lonoffset));
+                double lat=latlong_to_radians(bin_to_latlong(OSMNodes->latzero+latb)+off_to_latlong(OSMNodes->nodes[node].latoffset));
+                double lon=latlong_to_radians(bin_to_latlong(OSMNodes->lonzero+lonb)+off_to_latlong(OSMNodes->nodes[node].lonoffset));
 
                 if(lat>latmin && lat<latmax && lon>lonmin && lon<lonmax)
                   {
                    Segment *segment;
 
-                   print_node_osm(OSMNodes,item);
+                   print_node_osm(OSMNodes,node);
 
-                   segment=FirstSegment(OSMSegments,OSMNodes,item,1);
+                   segment=FirstSegment(OSMSegments,OSMNodes,node);
 
                    while(segment)
                      {
-                      if(item>OtherNode(segment,item))
+                      if(node>OtherNode(segment,node))
                          if(!option_no_super || IsNormalSegment(segment))
                             print_segment_osm(OSMSegments,IndexSegment(OSMSegments,segment),OSMWays);
 
-                      segment=NextSegment(OSMSegments,segment,item);
-                     }
-
-                   if(node->flags&NODE_TURNRSTRCT)
-                     {
-                      index_t relindex=FindFirstTurnRelation1(OSMRelations,item);
-
-                      while(relindex!=NO_RELATION)
-                        {
-                         print_turnrelation_osm(OSMRelations,relindex,OSMSegments,OSMNodes);
-
-                         relindex=FindNextTurnRelation1(OSMRelations,relindex);
-                        }
+                      segment=NextSegment(OSMSegments,segment,node);
                      }
                   }
                }
@@ -404,15 +353,12 @@ int main(int argc,char** argv)
       {
        index_t item;
 
-       for(item=0;item<OSMNodes->file.number;item++)
+       for(item=0;item<OSMNodes->number;item++)
           print_node_osm(OSMNodes,item);
 
-       for(item=0;item<OSMSegments->file.number;item++)
-          if(!option_no_super || IsNormalSegment(LookupSegment(OSMSegments,item,1)))
+       for(item=0;item<OSMSegments->number;item++)
+          if(!option_no_super || IsNormalSegment(LookupSegment(OSMSegments,item)))
              print_segment_osm(OSMSegments,item,OSMWays);
-
-       for(item=0;item<OSMRelations->file.trnumber;item++)
-          print_turnrelation_osm(OSMRelations,item,OSMSegments,OSMNodes);
       }
 
     print_tail_osm();
@@ -423,31 +369,30 @@ int main(int argc,char** argv)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Print out the contents of a node from the routing database (as plain text).
+  Print out the contents of a node from the routing database.
 
   Nodes *nodes The set of nodes to use.
 
   index_t item The node index to print.
   ++++++++++++++++++++++++++++++++++++++*/
 
-static void print_node(Nodes *nodes,index_t item)
+static void print_node(Nodes* nodes,index_t item)
 {
- Node *node=LookupNode(nodes,item,1);
+ Node *node=LookupNode(nodes,item);
  double latitude,longitude;
 
  GetLatLong(nodes,item,&latitude,&longitude);
 
  printf("Node %d\n",item);
- printf("  firstseg=%d\n",node->firstseg);
+ printf("  firstseg=%d\n",SEGMENT(node->firstseg));
  printf("  latoffset=%d lonoffset=%d (latitude=%.6f longitude=%.6f)\n",node->latoffset,node->lonoffset,radians_to_degrees(latitude),radians_to_degrees(longitude));
- printf("  allow=%02x (%s)\n",node->allow,AllowedNameList(node->allow));
- if(IsSuperNode(node))
+ if(IsSuperNode(nodes,item))
     printf("  Super-Node\n");
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Print out the contents of a segment from the routing database (as plain text).
+  Print out the contents of a segment from the routing database.
 
   Segments *segments The set of segments to use.
 
@@ -456,7 +401,7 @@ static void print_node(Nodes *nodes,index_t item)
 
 static void print_segment(Segments *segments,index_t item)
 {
- Segment *segment=LookupSegment(segments,item,1);
+ Segment *segment=LookupSegment(segments,item);
 
  printf("Segment %d\n",item);
  printf("  node1=%d node2=%d\n",segment->node1,segment->node2);
@@ -475,7 +420,7 @@ static void print_segment(Segments *segments,index_t item)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Print out the contents of a way from the routing database (as plain text).
+  Print out the contents of a way from the routing database.
 
   Ways *ways The set of ways to use.
 
@@ -484,13 +429,11 @@ static void print_segment(Segments *segments,index_t item)
 
 static void print_way(Ways *ways,index_t item)
 {
- Way *way=LookupWay(ways,item,1);
- char *name=WayName(ways,way);
+ Way *way=LookupWay(ways,item);
 
  printf("Way %d\n",item);
- if(*name)
-    printf("  name=%s\n",name);
- printf("  type=%02x (%s%s)\n",way->type,HighwayName(HIGHWAY(way->type)),way->type&Way_OneWay?",One-Way":"");
+ printf("  name=%s\n",WayNameHighway(ways,way));
+ printf("  type=%02x (%s%s%s)\n",way->type,HighwayName(HIGHWAY(way->type)),way->type&Way_OneWay?",One-Way":"",way->type&Way_Roundabout?",Roundabout":"");
  printf("  allow=%02x (%s)\n",way->allow,AllowedNameList(way->allow));
  if(way->props)
     printf("  props=%02x (%s)\n",way->props,PropertiesNameList(way->props));
@@ -508,56 +451,6 @@ static void print_way(Ways *ways,index_t item)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Print out the contents of a turn relation from the routing database (as plain text).
-
-  Relations *relations The set of relations to use.
-
-  index_t item The turn relation index to print.
-
-  Segments *segments The set of segments to use.
-
-  Nodes *nodes The set of nodes to use.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static void print_turnrelation(Relations *relations,index_t item,Segments *segments,Nodes *nodes)
-{
- TurnRelation *relation=LookupTurnRelation(relations,item,1);
- Segment *segment;
- index_t from_way=NO_WAY,to_way=NO_WAY;
- index_t from_node=NO_NODE,to_node=NO_NODE;
-
- segment=FirstSegment(segments,nodes,relation->via,1);
-
- do
-   {
-    index_t seg=IndexSegment(segments,segment);
-
-    if(seg==relation->from)
-      {
-       from_node=OtherNode(segment,relation->from);
-       from_way=segment->way;
-      }
-
-    if(seg==relation->to)
-      {
-       to_node=OtherNode(segment,relation->to);
-       to_way=segment->way;
-      }
-
-    segment=NextSegment(segments,segment,relation->via);
-   }
- while(segment);
-
- printf("Relation %d\n",item);
- printf("  from=%d (segment) = %d (way) = %d (node)\n",relation->from,from_way,from_node);
- printf("  via=%d (node)\n",relation->via);
- printf("  to=%d (segment) = %d (way) = %d (node)\n",relation->to,to_way,to_node);
- if(relation->except)
-    printf("  except=%02x (%s)\n",relation->except,AllowedNameList(relation->except));
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
   Print out a header in OSM XML format.
   ++++++++++++++++++++++++++++++++++++++*/
 
@@ -569,50 +462,32 @@ static void print_head_osm(void)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Print out the contents of a node from the routing database (in OSM XML format).
+  Print out the contents of a node from the routing database in OSM XML format.
 
   Nodes *nodes The set of nodes to use.
 
   index_t item The node index to print.
   ++++++++++++++++++++++++++++++++++++++*/
 
-static void print_node_osm(Nodes *nodes,index_t item)
+static void print_node_osm(Nodes* nodes,index_t item)
 {
- Node *node=LookupNode(nodes,item,1);
  double latitude,longitude;
- int i;
 
  GetLatLong(nodes,item,&latitude,&longitude);
 
- if(node->allow==Transports_ALL && node->flags==0)
-    printf("  <node id='%lu' lat='%.7f' lon='%.7f' version='1' />\n",(unsigned long)item+1,radians_to_degrees(latitude),radians_to_degrees(longitude));
- else
+ if(IsSuperNode(nodes,item))
    {
     printf("  <node id='%lu' lat='%.7f' lon='%.7f' version='1'>\n",(unsigned long)item+1,radians_to_degrees(latitude),radians_to_degrees(longitude));
-
-    if(node->flags & NODE_SUPER)
-       printf("    <tag k='routino:super' v='yes' />\n");
-
-    if(node->flags & NODE_UTURN)
-       printf("    <tag k='routino:uturn' v='yes' />\n");
-
-    if(node->flags & NODE_MINIRNDBT)
-       printf("    <tag k='highway' v='mini_roundabout' />\n");
-
-    if(node->flags & NODE_TURNRSTRCT)
-       printf("    <tag k='routino:turnrestriction' v='yes' />\n");
-
-    for(i=1;i<Transport_Count;i++)
-       if(!(node->allow & TRANSPORTS(i)))
-          printf("    <tag k='%s' v='no' />\n",TransportName(i));
-
+    printf("    <tag k='routino:super' v='yes' />\n");
     printf("  </node>\n");
    }
+ else
+    printf("  <node id='%lu' lat='%.7f' lon='%.7f' version='1' />\n",(unsigned long)item+1,radians_to_degrees(latitude),radians_to_degrees(longitude));
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Print out the contents of a segment from the routing database (as a way in OSM XML format).
+  Print out the contents of a segment from the routing database as a way in OSM XML format.
 
   Segments *segments The set of segments to use.
 
@@ -623,9 +498,8 @@ static void print_node_osm(Nodes *nodes,index_t item)
 
 static void print_segment_osm(Segments *segments,index_t item,Ways *ways)
 {
- Segment *segment=LookupSegment(segments,item,1);
- Way *way=LookupWay(ways,segment->way,1);
- char *name=WayName(ways,way);
+ Segment *segment=LookupSegment(segments,item);
+ Way *way=LookupWay(ways,segment->way);
  int i;
 
  printf("  <way id='%lu' version='1'>\n",(unsigned long)item+1);
@@ -646,18 +520,18 @@ static void print_segment_osm(Segments *segments,index_t item,Ways *ways)
  if(IsNormalSegment(segment))
     printf("    <tag k='routino:normal' v='yes' />\n");
 
- printf("     <tag k='routino:distance' v='%.3f' />\n",distance_to_km(DISTANCE(segment->distance)));
-
  if(way->type & Way_OneWay)
     printf("    <tag k='oneway' v='yes' />\n");
+ if(way->type & Way_Roundabout)
+    printf("    <tag k='junction' v='roundabout' />\n");
 
  printf("    <tag k='highway' v='%s' />\n",HighwayName(HIGHWAY(way->type)));
 
- if(IsNormalSegment(segment) && *name)
-    printf("    <tag k='name' v='%s' />\n",ParseXML_Encode_Safe_XML(name));
+ if(IsNormalSegment(segment) && WayNamed(ways,way))
+    printf("    <tag k='name' v='%s' />\n",ParseXML_Encode_Safe_XML(WayNameHighway(ways,way)));
 
  for(i=1;i<Transport_Count;i++)
-    if(way->allow & TRANSPORTS(i))
+    if(way->allow & ALLOWED(i))
        printf("    <tag k='%s' v='yes' />\n",TransportName(i));
 
  for(i=1;i<Property_Count;i++)
@@ -677,53 +551,6 @@ static void print_segment_osm(Segments *segments,index_t item,Ways *ways)
     printf("    <tag k='maxlength' v='%.1f' />\n",length_to_metres(way->length));
 
  printf("  </way>\n");
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Print out the contents of a turn relation from the routing database (in OSM XML format).
-
-  Relations *relations The set of relations to use.
-
-  index_t item The relation index to print.
-
-  Segments *segments The set of segments to use.
-
-  Nodes *nodes The set of nodes to use.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static void print_turnrelation_osm(Relations *relations,index_t item,Segments *segments,Nodes *nodes)
-{
- TurnRelation *relation=LookupTurnRelation(relations,item,1);
-
- Segment *segment_from=LookupSegment(segments,relation->from,1);
- Segment *segment_to  =LookupSegment(segments,relation->to  ,2);
-
- double angle=TurnAngle(nodes,segment_from,segment_to,relation->via);
-
- char *restriction;
-
- if(angle>150 || angle<-150)
-    restriction="no_u_turn";
- else if(angle>30)
-    restriction="no_right_turn";
- else if(angle<-30)
-    restriction="no_left_turn";
- else
-    restriction="no_straight_on";
-
- printf("  <relation id='%lu' version='1'>\n",(unsigned long)item+1);
- printf("    <tag k='type' v='restriction' />\n");
- printf("    <tag k='restriction' v='%s'/>\n",restriction);
-
- if(relation->except)
-    printf("    <tag k='except' v='%s' />\n",AllowedNameList(relation->except));
-
- printf("    <member type='way' ref='%lu' role='from' />\n",(unsigned long)relation->from+1);
- printf("    <member type='node' ref='%lu' role='via' />\n",(unsigned long)relation->via+1);
- printf("    <member type='way' ref='%lu' role='to' />\n",(unsigned long)relation->to+1);
-
- printf("  </relation>\n");
 }
 
 
@@ -785,13 +612,9 @@ static char *RFC822Date(time_t t)
   Print out the usage information.
 
   int detail The level of detail to use - 0 = low, 1 = high.
-
-  const char *argerr The argument that gave the error (if there is one).
-
-  const char *err Other error message (if there is one).
   ++++++++++++++++++++++++++++++++++++++*/
 
-static void print_usage(int detail,const char *argerr,const char *err)
+static void print_usage(int detail)
 {
  fprintf(stderr,
          "Usage: filedumper [--help]\n"
@@ -803,20 +626,9 @@ static void print_usage(int detail,const char *argerr,const char *err)
          "                  [--dump [--node=<node> ...]\n"
          "                          [--segment=<segment> ...]\n"
          "                          [--way=<way> ...]]\n"
-         "                          [--turn-relation=<rel> ...]]\n"
          "                  [--dump-osm [--no-super]\n"
          "                              [--latmin=<latmin> --latmax=<latmax>\n"
          "                               --lonmin=<lonmin> --lonmax=<lonmax>]]\n");
-
- if(argerr)
-    fprintf(stderr,
-            "\n"
-            "Error with command line parameter: %s\n",argerr);
-
- if(err)
-    fprintf(stderr,
-            "\n"
-            "Error: %s\n",err);
 
  if(detail)
     fprintf(stderr,
@@ -839,7 +651,6 @@ static void print_usage(int detail,const char *argerr,const char *err)
             "      junctions = segment count at each junction.\n"
             "      super     = super-node and super-segments.\n"
             "      oneway    = oneway segments.\n"
-            "      turns     = turn restrictions.\n"
             "      speed     = speed limits.\n"
             "      weight    = weight limits.\n"
             "      height    = height limits.\n"
@@ -847,10 +658,9 @@ static void print_usage(int detail,const char *argerr,const char *err)
             "      length    = length limits.\n"
             "\n"
             "--dump                    Dump selected contents of the database.\n"
-            "  --node=<node>           * the node with the selected index.\n"
-            "  --segment=<segment>     * the segment with the selected index.\n"
-            "  --way=<way>             * the way with the selected index.\n"
-            "  --turn-relation=<rel>   * the turn relation with the selected index.\n"
+            "  --node=<node>           * the node with the selected number.\n"
+            "  --segment=<segment>     * the segment with the selected number.\n"
+            "  --way=<way>             * the way with the selected number.\n"
             "                          Use 'all' instead of a number to get all of them.\n"
             "\n"
             "--dump-osm                Dump all or part of the database as an XML file.\n"

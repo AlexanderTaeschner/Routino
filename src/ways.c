@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/ways.c,v 1.44 2010-04-28 17:27:02 amb Exp $
+
  Way data type functions.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008-2010 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -22,57 +24,36 @@
 
 #include <stdlib.h>
 
+#include "functions.h"
 #include "ways.h"
-
-#include "files.h"
 
 
 /*++++++++++++++++++++++++++++++++++++++
   Load in a way list from a file.
 
-  Ways *LoadWayList Returns the way list.
+  Ways* LoadWayList Returns the way list.
 
   const char *filename The name of the file to load.
   ++++++++++++++++++++++++++++++++++++++*/
 
 Ways *LoadWayList(const char *filename)
 {
+ void *data;
  Ways *ways;
-#if SLIM
- int i;
-#endif
 
  ways=(Ways*)malloc(sizeof(Ways));
 
-#if !SLIM
+ data=MapFile(filename);
 
- ways->data=MapFile(filename);
+ /* Copy the Ways structure from the loaded data */
 
- /* Copy the WaysFile structure from the loaded data */
+ *ways=*((Ways*)data);
 
- ways->file=*((WaysFile*)ways->data);
+ /* Adjust the pointers in the Ways structure. */
 
- /* Set the pointers in the Ways structure. */
-
- ways->ways =(Way *)(ways->data+sizeof(WaysFile));
- ways->names=(char*)(ways->data+sizeof(WaysFile)+ways->file.number*sizeof(Way));
-
-#else
-
- ways->fd=ReOpenFile(filename);
-
- /* Copy the WaysFile header structure from the loaded data */
-
- ReadFile(ways->fd,&ways->file,sizeof(WaysFile));
-
- for(i=0;i<sizeof(ways->cached)/sizeof(ways->cached[0]);i++)
-    ways->incache[i]=NO_WAY;
-
- ways->namesoffset=sizeof(WaysFile)+ways->file.number*sizeof(Way);
-
- ways->ncached=NULL;
-
-#endif
+ ways->data =data;
+ ways->ways =(Way *)(data+sizeof(Ways));
+ ways->names=(char*)(data+(sizeof(Ways)+ways->number*sizeof(Way)));
 
  return(ways);
 }
