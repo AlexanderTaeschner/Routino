@@ -1,6 +1,6 @@
 %{
 /***************************************
- $Header: /home/amb/CVS/routino/src/xmlparse.l,v 1.20 2010-10-09 11:05:28 amb Exp $
+ $Header: /home/amb/CVS/routino/src/xmlparse.l,v 1.17 2010-05-25 18:24:20 amb Exp $
 
  A simple generic XML parser where the structure comes from the function parameters.
  Not intended to be fully conforming to XML staandard or a validating parser but
@@ -116,27 +116,9 @@ static int xmlparse_options;
 %option nounput
 
 
- /* Grammar based on http://www.w3.org/TR/2004/REC-xml-20040204/ but for ASCII tags not Unicode. */
+ /* Grammar based on http://www.w3.org/TR/2004/REC-xml-20040204/ but for ASCII not Unicode. */
 
 S               [ \t\r\n]
-
-U1              [\x09\x0A\x0D\x20-\x7F]
-U2              [\xC2-\xDF][\x80-\xBF]
-U3a             \xE0[\xA0-\xBF][\x80-\xBF]
-U3b             [\xE1-\xEC][\x80-\xBF][\x80-\xBF]
-U3c             \xED[\x80-\x9F][\x80-\xBF]
-U3d             [\xEE-\xEF][\x80-\xBF][\x80-\xBF]
-U3              {U3a}|{U3b}|{U3c}|{U3d}
-U4a             \xF0[\x90-\xBF][\x80-\xBF][\x80-\xBF]
-U4b             [\xF1-\xF3][\x80-\xBF][\x80-\xBF][\x80-\xBF]
-U4c             \xF4[\x80-\x8F][\x80-\xBF][\x80-\xBF]
-U4              {U4a}|{U4b}|{U4c}
-
-U               ({U1}|{U2}|{U3}|{U4})
-UquotedS        ([\x09\x0A\x0D\x20-\x25\x28-\x3B\x3D\x3F-\x7F]|{U2}|{U3}|{U4})
-UquotedD        ([\x09\x0A\x0D\x20-\x21\x23-\x25\x27-\x3B\x3D\x3F-\x7F]|{U2}|{U3}|{U4})
-
-N               (\n|\r\n)
 
 letter          [a-zA-Z]
 digit           [0-9]
@@ -199,28 +181,28 @@ charref         &#({digit}+|x{xdigit}+);
 
  /* XML Declaration start */
 
-<XML_DECL_START>xml         { BEGIN(XML_DECL); yylval=yytext; return(LEX_XML_DECL_BEGIN); }
-<XML_DECL_START>.|{N}       { return(LEX_ERROR_XML_DECL_START); }
+<XML_DECL_START>{name}      { BEGIN(XML_DECL); yylval=yytext; return(LEX_XML_DECL_BEGIN); }
+<XML_DECL_START>.|\n        { return(LEX_ERROR_XML_DECL_START); }
 
  /* Tag middle */
 
 <XML_DECL>"?>"              { BEGIN(INITIAL); return(LEX_XML_DECL_FINISH); }
 <XML_DECL>{S}+              { }
 <XML_DECL>{name}            { after_attr=XML_DECL; BEGIN(ATTR_KEY); yylval=yytext; return(LEX_ATTR_KEY); }
-<XML_DECL>.|{N}             { return(LEX_ERROR_XML_DECL); }
+<XML_DECL>.|\n              { return(LEX_ERROR_XML_DECL); }
 
  /* Any tag start */
 
 <TAG_START>{name}           { BEGIN(TAG); yylval=yytext; return(LEX_TAG_BEGIN); }
-<TAG_START>.|{N}            { return(LEX_ERROR_TAG_START); }
+<TAG_START>.|\n             { return(LEX_ERROR_TAG_START); }
 
  /* End-tag start */
 
 <END_TAG1>{name}            { BEGIN(END_TAG2); yylval=yytext; return(LEX_TAG_POP); }
-<END_TAG1>.|{N}             { return(LEX_ERROR_END_TAG); }
+<END_TAG1>.|\n              { return(LEX_ERROR_END_TAG); }
 
 <END_TAG2>">"               { BEGIN(INITIAL); }
-<END_TAG2>.|{N}             { return(LEX_ERROR_END_TAG); }
+<END_TAG2>.|\n              { return(LEX_ERROR_END_TAG); }
 
  /* Any tag middle */
 
@@ -228,16 +210,16 @@ charref         &#({digit}+|x{xdigit}+);
 <TAG>">"                    { BEGIN(INITIAL); return(LEX_TAG_PUSH); }
 <TAG>{S}+                   { }
 <TAG>{name}                 { after_attr=TAG; BEGIN(ATTR_KEY); yylval=yytext; return(LEX_ATTR_KEY); }
-<TAG>.|{N}                  { return(LEX_ERROR_TAG); }
+<TAG>.|\n                   { return(LEX_ERROR_TAG); }
 
  /* Attributes */
 
 <ATTR_KEY>=                 { BEGIN(ATTR_VAL); }
-<ATTR_KEY>.|{N}             { return(LEX_ERROR_ATTR); }
+<ATTR_KEY>.|\n              { return(LEX_ERROR_ATTR); }
 
 <ATTR_VAL>\"                { BEGIN(DQUOTED); reset_string; }
 <ATTR_VAL>\'                { BEGIN(SQUOTED); reset_string; }
-<ATTR_VAL>.|{N}             { return(LEX_ERROR_ATTR); }
+<ATTR_VAL>.|\n              { return(LEX_ERROR_ATTR); }
 
  /* Quoted strings */
 
@@ -246,9 +228,8 @@ charref         &#({digit}+|x{xdigit}+);
                               else { const char *str=ParseXML_Decode_Entity_Ref(yytext); if(str) {append_string(str);} else {yylval=yytext; return(LEX_ERROR_ENTITY_REF);} } }
 <DQUOTED>{charref}          { if(xmlparse_options&XMLPARSE_RETURN_ATTR_ENCODED) {append_string(yytext);}
                               else { const char *str=ParseXML_Decode_Char_Ref(yytext);   if(str) {append_string(str);} else {yylval=yytext; return(LEX_ERROR_CHAR_REF);} } }
-<DQUOTED>[<>&\"]            { yylval=yytext; return(LEX_ERROR_ATTR_VAL); }
-<DQUOTED>{UquotedD}+        { append_string(yytext); }
-<DQUOTED>.                  { yylval=yytext; return(LEX_ERROR_ATTR_VAL); }
+<DQUOTED>[<>&]              { yylval=yytext; return(LEX_ERROR_ATTR_VAL); }
+<DQUOTED>[^<>&\"]+          { append_string(yytext); }
 
 <SQUOTED>\'                 { BEGIN(after_attr); yylval=string; return(LEX_ATTR_VAL); }
 <SQUOTED>{entityref}        { if(xmlparse_options&XMLPARSE_RETURN_ATTR_ENCODED) {append_string(yytext);}
@@ -256,8 +237,7 @@ charref         &#({digit}+|x{xdigit}+);
 <SQUOTED>{charref}          { if(xmlparse_options&XMLPARSE_RETURN_ATTR_ENCODED) {append_string(yytext);}
                               else { const char *str=ParseXML_Decode_Char_Ref(yytext);   if(str) {append_string(str);} else {yylval=yytext; return(LEX_ERROR_CHAR_REF);} } }
 <SQUOTED>[<>&]              { yylval=yytext; return(LEX_ERROR_ATTR_VAL); }
-<SQUOTED>{UquotedS}+        { append_string(yytext); }
-<SQUOTED>.                  { yylval=yytext; return(LEX_ERROR_ATTR_VAL); }
+<SQUOTED>[^<>&\']+          { append_string(yytext); }
 
  /* End of file */
 
@@ -625,48 +605,16 @@ char *ParseXML_Decode_Entity_Ref(const char *string)
 
 char *ParseXML_Decode_Char_Ref(const char *string)
 {
- static char result[5]="";
- long int unicode;
+ static char result[2]=" ";
+ long int val;
 
- if(string[2]=='x') unicode=strtol(string+3,NULL,16);
- else               unicode=strtol(string+2,NULL,10);
+ if(string[2]=='x') val=strtol(string+3,NULL,16);
+ else               val=strtol(string+2,NULL,10);
 
- if(unicode<0x80)
-   {
-    /* 0000 0000-0000 007F  =>  0xxxxxxx */
-    result[0]=unicode;
-    result[1]=0;
-   }
- else if(unicode<0x07FF)
-   {
-    /* 0000 0080-0000 07FF  =>  110xxxxx 10xxxxxx */
-    result[0]=0xC0+((unicode&0x07C0)>>6);
-    result[1]=0x80+ (unicode&0x003F);
-    result[2]=0;
-   }
- else if(unicode<0xFFFF)
-   {
-    /* 0000 0800-0000 FFFF  =>  1110xxxx 10xxxxxx 10xxxxxx */
-    result[0]=0xE0+((unicode&0xF000)>>12);
-    result[1]=0x80+((unicode&0x0FC0)>>6);
-    result[2]=0x80+ (unicode&0x003F);
-    result[3]=0;
-   }
- else if(unicode<0x1FFFFF)
-   {
-    /* 0001 0000-001F FFFF  =>  11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
-    result[0]=0xF0+((unicode&0x1C0000)>>18);
-    result[1]=0x80+((unicode&0x03F000)>>12);
-    result[2]=0x80+((unicode&0x000FC0)>>6);
-    result[3]=0x80+ (unicode&0x00003F);
-    result[4]=0;
-   }
- else
-   {
-    result[0]=0xFF;
-    result[1]=0xFD;
-    result[2]=0;
-   }
+ if(val<0 || val>255)
+    return(NULL);
+
+ result[0]=val&0xff;
 
  return(result);
 }
@@ -687,7 +635,7 @@ char *ParseXML_Encode_Safe_XML(const char *string)
  char *result;
 
  for(i=0;string[i];i++)
-    if(string[i]=='<' || string[i]=='>' || string[i]=='&' || string[i]=='\'' || string[i]=='"' || string[i]<32 || (unsigned char)string[i]>127)
+    if(string[i]=='<' || string[i]=='>' || string[i]=='&' || string[i]=='\'' || string[i]=='"' || string[i]<32 || string[i]>126)
        break;
 
  if(!string[i])
@@ -741,64 +689,17 @@ char *ParseXML_Encode_Safe_XML(const char *string)
           result[j++]='t';
           result[j++]=';';
          }
-       else if(string[i]>=32 && (unsigned char)string[i]<=127)
-          result[j++]=string[i];
-       else
+       else if(string[i]<32 || string[i]>126)
          {
-          unsigned int unicode;
-
-          /* Decode the UTF-8 */
-
-          if((string[i]&0x80)==0)
-            {
-             /* 0000 0000-0000 007F  =>  0xxxxxxx */
-             unicode=string[i];
-            }
-          else if((string[i]&0xE0)==0xC0 && (string[i]&0x1F)>=2 && (string[i+1]&0xC0)==0x80)
-            {
-             /* 0000 0080-0000 07FF  =>  110xxxxx 10xxxxxx */
-             unicode =(string[i++]&0x1F)<<6;
-             unicode|= string[i  ]&0x3F;
-            }
-          else if((string[i]&0xF0)==0xE0 && (string[i+1]&0xC0)==0x80 && (string[i+2]&0xC0)==0x80)
-            {
-             /* 0000 0800-0000 FFFF  =>  1110xxxx 10xxxxxx 10xxxxxx */
-             unicode =(string[i++]&0x0F)<<12;
-             unicode|=(string[i++]&0x3F)<<6;
-             unicode|= string[i  ]&0x3F;
-            }
-          else if((string[i]&0xF8)==0xF0 && (string[i+1]&0xC0)==0x80 && (string[i+2]&0xC0)==0x80 && (string[i+3]&0xC0)==0x80)
-            {
-             /* 0001 0000-001F FFFF  =>  11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
-             unicode =(string[i++]&0x07)<<18;
-             unicode|=(string[i++]&0x3F)<<12;
-             unicode|=(string[i++]&0x3F)<<6;
-             unicode|= string[i  ]&0x3F;
-            }
-          else
-             unicode=0xFFFD;
-
-          /* Output the character entity */
-
           result[j++]='&';
           result[j++]='#';
           result[j++]='x';
-
-          if(unicode&0x00FF0000)
-            {
-             result[j++]=hexstring[((unicode>>16)&0xf0)>>4];
-             result[j++]=hexstring[((unicode>>16)&0x0f)   ];
-            }
-          if(unicode&0x00FFFF00)
-            {
-             result[j++]=hexstring[((unicode>>8)&0xf0)>>4];
-             result[j++]=hexstring[((unicode>>8)&0x0f)   ];
-            }
-          result[j++]=hexstring[(unicode&0xf0)>>4];
-          result[j++]=hexstring[(unicode&0x0f)   ];
-
+          result[j++]=hexstring[(string[i]&0xf0)>>4];
+          result[j++]=hexstring[ string[i]&0x0f    ];
           result[j++]=';';
          }
+       else
+          result[j++]=string[i];
 
     if(string[i])                  /* Not finished */
       {

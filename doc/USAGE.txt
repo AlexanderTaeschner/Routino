@@ -10,7 +10,6 @@
    statistics to be extracted. The fourth program is a test program for
    the tag transformations.
 
-
 planetsplitter
 --------------
 
@@ -19,10 +18,9 @@ planetsplitter
 
   Usage: planetsplitter [--help]
                         [--dir=<dirname>] [--prefix=<name>]
-                        [--sort-ram-size=<size>]
+                        [--slim] [--sort-ram-size=<size>]
                         [--tmpdir=<dirname>]
                         [--parse-only | --process-only]
-                        [--loggable]
                         [--max-iterations=<number>]
                         [--tagging=<filename>]
                         [<filename.osm> ...]
@@ -38,10 +36,18 @@ planetsplitter
           Sets the filename prefix for the files that are created.
           Defaults to no prefix.
 
+   --slim
+          Selects a mode of operation that uses less memory and will
+          therefore work where virtual memory is very limited or
+          unavailable. Selecting this option will cause raw data to be
+          held in disk files with only indexes in RAM. Not using this
+          option will still use disk files but only for sequential access
+          and the files are memory mapped for random access.
+
    --sort-ram-size=<size>
           Specifies the amount of RAM (in MB) to use for sorting the data.
-          If not specified then 64 MB will be used in slim mode or 256 MB
-          otherwise.
+          If not specified then 64 MB will be used if the '--slim' option
+          is specified or 256 MB otherwise.
 
    --tmpdir=<dirname>
           Specifies the name of the directory to store the temporary disk
@@ -56,40 +62,22 @@ planetsplitter
           Don't read in any files but process the existing temporary file
           into the routing database.
 
-   --loggable
-          Print progress messages that are suitable for logging to a file;
-          normally an incrementing counter is printed which is more
-          suitable for real-time display than logging.
-
    --max-iterations=<number>
           The maximum number of iterations to use when generating
           super-nodes and super-segments. Defaults to 10 which is normally
           enough.
 
    --tagging=<filename>
-          Sets the filename containing the list of tagging rules in XML
-          format for the parsing the input files. If the file doesn't
-          exist then dirname, prefix and "profiles.xml" will be combined
-          and used, if that doesn't exist then the file
-          '/usr/local/share/routino/profiles.xml' (or custom installation
-          location) will be used.
+          The name of the XML file containing the tagging rules (defaults
+          to 'tagging.xml' with '--dirname' and '--prefix' options).
 
    <filename.osm> ...
           Specifies the filename(s) to read data from, by default data is
           read from the standard input.
 
    Note: In version 1.4 of Routino the --transport, --not-highway and
-   --not-property options have been removed. The same functionality can be
-   achieved by editing the tagging rules file to not output unwanted data.
-
-   Note: In version 1.5 of Routino the --slim option has been removed but
-   at compilation time a separate program called planetsplitter-slim is
-   created that operates in slim mode. In slim mode the temporary files
-   and database files are read as needed rather than being mapped into
-   memory. This allows a database size greater than 2 GB on 32-bit
-   machines or usage with little or no virtual memory (e.g. some virtual
-   machines). The penalty for this is that the program takes about four
-   times as long to run.
+   --not-property options have been removed.  The same functionality can be
+   achieved by editing the tagging rules file to not output unwwanted data.
 
    Example usage:
 
@@ -110,7 +98,7 @@ router
                 [--dir=<dirname>] [--prefix=<name>]
                 [--profiles=<filename>] [--translations=<filename>]
                 [--exact-nodes-only]
-                [--loggable | --quiet]
+                [--quiet]
                 [--output-html]
                 [--output-gpx-track] [--output-gpx-route]
                 [--output-text] [--output-text-all]
@@ -121,11 +109,10 @@ router
                 --lon1=<longitude> --lat1=<latitude>
                 --lon2=<longitude> --lon2=<latitude>
                 [ ... --lon99=<longitude> --lon99=<latitude>]
-                [--heading=<bearing>]
                 [--highway-<highway>=<preference> ...]
                 [--speed-<highway>=<speed> ...]
                 [--property-<property>=<preference> ...]
-                [--oneway=(0|1)] [--turns=(0|1)]
+                [--oneway=(0|1)]
                 [--weight=<weight>]
                 [--height=<height>] [--width=<width>] [--length=<length>]
 
@@ -157,30 +144,24 @@ router
           Defaults to no prefix.
 
    --profiles=<filename>
-          Sets the filename containing the list of routing profiles in XML
-          format. If the file doesn't exist then dirname, prefix and
+          Sets the filename containing the list of profiles in XML format.
+          If the file doesn't exist then dirname, prefix and
           "profiles.xml" will be combined and used, if that doesn't exist
-          then the file '/usr/local/share/routino/profiles.xml' (or custom
-          installation location) will be used.
+          then the command line must contain all relevant profile
+          information.
 
    --translations=<filename>
           Sets the filename containing the list of translations in XML
           format for the output files. If the file doesn't exist then
           dirname, prefix and "translations.xml" will be combined and
-          used, if that doesn't exist then the file
-          '/usr/local/share/routino/translations.xml' (or custom
-          installation location) will be used.
+          used, if that doesn't exist then no file will be read and no
+          language can be selected.
 
    --exact-nodes-only
           When processing the specified latitude and longitude points only
           select the nearest node instead of finding the nearest point
           within a segment (quicker but less accurate unless the points
           are already near nodes).
-
-   --loggable
-          Print progress messages that are suitable for logging to a file;
-          normally an incrementing counter is printed which is more
-          suitable for real-time display than logging.
 
    --quiet
           Don't generate any screen output while running (useful for
@@ -242,11 +223,6 @@ router
           sequence. The algorithm will use the closest node or point
           within a segment that allows the specified traffic type.
 
-   --heading=<bearing>
-          Specifies the initial direction of travel at the start of the
-          route (from the lowest numbered waypoint) as a compass bearing
-          from 0 to 360 degrees.
-
    --highway-<highway>=<preference>
           Selects the percentage preference for using each particular type
           of highway. The value of <highway> can be selected from:
@@ -263,7 +239,6 @@ router
           + cycleway = Cycleway
           + path = Path
           + steps = Steps
-          + ferry = Ferry
 
           Default value depends on the profile selected by the --transport
           option.
@@ -281,8 +256,6 @@ router
           + multilane = Multiple lanes
           + bridge = Bridge
           + tunnel = Tunnel
-          + footroute = A route marked for foot travel
-          + bicycleroute = A route marked for bicycle travel
 
           Default value depends on the profile selected by the --transport
           option.
@@ -291,11 +264,6 @@ router
           Selects if the direction of oneway streets are to be obeyed
           (useful to not obey them when walking). Default value depends on
           the profile selected by the --transport option.
-
-   --turns=[0|1]
-          Selects if turn restrictions are to be obeyed (useful to not
-          obey them when walking). Default value depends on the profile
-          selected by the --transport option.
 
    --weight=<weight>
           Specifies the weight of the mode of transport in tonnes; ensures
@@ -317,11 +285,6 @@ router
           that the length limit on the highway is not exceeded. Default
           value depends on the profile selected by the --transport option.
 
-   Note: In version 1.5 of Routino a slim option has been added and at
-   compilation time a separate program called router-slim is created that
-   operates in slim mode. In slim mode the database files are read as
-   needed rather than being mapped into memory.
-
    The meaning of the <preference> parameter in the command line options
    is slightly different for the highway preferences and the property
    preferences. For the highway preference consider the choice between two
@@ -329,14 +292,11 @@ router
    shortest route. If highway A has a preference of 100% and highway B has
    a preference of 90% then highway A will be chosen even if it is up to
    11% longer (100/90 = 111%). For the highway properties each highway
-   either has a particular property or not. If the preference for the
-   property is 60% then a highway with the property has a preference of
-   77% (sqrt(60%)) and one without has a preference of 63%
-   (sqrt(100-60%)). A highway with the property will be chosen even if it
-   is up to 22% longer than one without the property (77/63 = 122%). The
-   overall preference for each highway segment is the product of the
-   preference for the highway type and all of the preferences for the
-   highway properties.
+   either has a particular property or not. If the preference for highways
+   with the property is 60% then the preference for highways without the
+   property is 40%. The overall preference for the highway is the product
+   of the highway preference and the preference for highways with (or
+   without) each property that the highway has (or doesn't have).
 
    Example usage (motorbike journey, scenic route, not very fast):
 
@@ -363,8 +323,7 @@ filedumper
                                   --data=<data-type>]
                     [--dump [--node=<node> ...]
                             [--segment=<segment> ...]
-                            [--way=<way> ...]
-                            [--turn-relation=<relation> ...]]
+                            [--way=<way> ...]]
                     [--dump-osm [--no-super]
                                 [--latmin=<latmin> --latmax=<latmax>
                                  --lonmin=<lonmin> --lonmax=<lonmax>]]
@@ -399,7 +358,6 @@ filedumper
                o junctions = segment count at each junction.
                o super = super-node and super-segments.
                o oneway = oneway segments.
-               o turns = turn restrictions.
                o speed = speed limits.
                o weight = weight limits.
                o height = height limits.
@@ -409,8 +367,7 @@ filedumper
    --dump
           Selects a data dumping mode which allows looking at individual
           items in the databases (specifying 'all' instead of a number
-          dumps all of them). More than one of the following parameters
-          can be specified on the command line.
+          dumps all of them).
 
         --node=<node>
                 Prints the information about the selected node number
@@ -424,11 +381,6 @@ filedumper
                 Prints the information about the selected way number
                 (internal number, not the way id number in the original
                 source file).
-
-        --turn-relation=<relation>
-                Prints the information about the selected turn relation
-                number (internal number, not the relation id number in the
-                original source file).
 
    --osm-dump
           Dumps the contents of the database as an OSM format XML file,
@@ -444,12 +396,6 @@ filedumper
         --lonmin=<lonmin> --lonmax=<lonmax>
                 The range of longitudes to dump the data for.
 
-   Note: In version 1.5 of Routino a slim option has been added and at
-   compilation time a separate program called filedumper-slim is created
-   that operates in slim mode. In slim mode the database files are read as
-   needed rather than being mapped into memory.
-
-
 tagmodifier
 -----------
 
@@ -457,17 +403,11 @@ tagmodifier
    XML file for test purposes.
 
    Usage: tagmodifier [--help]
-                      [--loggable]
                       [--tagging=<filename>]
                       [<filename.osm>]
 
    --help
           Prints out the help information.
-
-   --loggable
-          Print progress messages that are suitable for logging to a file;
-          normally an incrementing counter is printed which is more
-          suitable for real-time display than logging.
 
    --tagging=<filename>
           The name of the XML file containing the tagging rules (defaults
@@ -476,8 +416,8 @@ tagmodifier
    <filename.osm> ...
           Specifies the filename to read data from, by default data is
           read from the standard input.
-
+     __________________________________________________________________
 
 --------
 
-Copyright 2008-2011 Andrew M. Bishop.
+Copyright 2008-2010 Andrew M. Bishop.

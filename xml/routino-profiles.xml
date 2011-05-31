@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!-- ============================================================
+     $Header: /home/amb/CVS/routino/xml/routino-profiles.xml,v 1.1 2010-03-31 17:42:32 amb Exp $
+
      An XML format file containing Routino routing profiles
 
      Part of the Routino routing software.
      ============================================================
-     This file Copyright 2010-2011 Andrew M. Bishop
+     This file Copyright 2010 Andrew M. Bishop
 
      This program is free software: you can redistribute it and/or modify
      it under the terms of the GNU Affero General Public License as published by
@@ -13,8 +15,7 @@
      (at your option) any later version.
      ============================================================ -->
 
-<routino-profiles xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                  xsi:noNamespaceSchemaLocation="http://www.routino.org/xml/routino-profiles.xsd">
+<routino-profiles xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="routino-profiles.xsd">
 
   <profile name="foot" transport="foot">
     <speeds>
@@ -30,7 +31,6 @@
       <speed highway="cycleway"      kph="4" />
       <speed highway="path"          kph="4" />
       <speed highway="steps"         kph="4" />
-      <speed highway="ferry"         kph="10" />
     </speeds>
     <preferences>
       <preference highway="motorway"      percent="0" />
@@ -45,19 +45,15 @@
       <preference highway="cycleway"      percent="95" />
       <preference highway="path"          percent="100" />
       <preference highway="steps"         percent="80" />
-      <preference highway="ferry"         percent="20" />
     </preferences>
     <properties>
-      <property type="paved"        percent="50" />
-      <property type="multilane"    percent="25" />
-      <property type="bridge"       percent="50" />
-      <property type="tunnel"       percent="50" />
-      <property type="footroute"    percent="55" />
-      <property type="bicycleroute" percent="55" />
+      <property type="paved"      percent="50" />
+      <property type="multilane"  percent="25" />
+      <property type="bridge"     percent="50" />
+      <property type="tunnel"     percent="50" />
     </properties>
     <restrictions>
       <oneway obey="0" /> 
-      <turns  obey="0" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -79,7 +75,6 @@
       <speed highway="cycleway"      kph="8" />
       <speed highway="path"          kph="8" />
       <speed highway="steps"         kph="0" />
-      <speed highway="ferry"         kph="10" />
     </speeds>
     <preferences>
       <preference highway="motorway"      percent="0" />
@@ -94,19 +89,15 @@
       <preference highway="cycleway"      percent="90" />
       <preference highway="path"          percent="100" />
       <preference highway="steps"         percent="0" />
-      <preference highway="ferry"         percent="20" />
     </preferences>
     <properties>
-      <property type="paved"        percent="20" />
-      <property type="multilane"    percent="25" />
-      <property type="bridge"       percent="50" />
-      <property type="tunnel"       percent="50" />
-      <property type="footroute"    percent="50" />
-      <property type="bicycleroute" percent="50" />
+      <property type="paved"      percent="20" />
+      <property type="multilane"  percent="25" />
+      <property type="bridge"     percent="50" />
+      <property type="tunnel"     percent="50" />
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -128,7 +119,6 @@
       <speed highway="cycleway"      kph="4" />
       <speed highway="path"          kph="4" />
       <speed highway="steps"         kph="4" />
-      <speed highway="ferry"         kph="10" />
     </speeds>
     <preferences>
       <preference highway="motorway"      percent="0" />
@@ -143,19 +133,15 @@
       <preference highway="cycleway"      percent="95" />
       <preference highway="path"          percent="100" />
       <preference highway="steps"         percent="0" />
-      <preference highway="ferry"         percent="20" />
     </preferences>
     <properties>
-      <property type="paved"        percent="90" />
-      <property type="multilane"    percent="25" />
-      <property type="bridge"       percent="50" />
-      <property type="tunnel"       percent="50" />
-      <property type="footroute"    percent="55" />
-      <property type="bicycleroute" percent="55" />
+      <property type="paved"      percent="90" />
+      <property type="multilane"  percent="25" />
+      <property type="bridge"     percent="50" />
+      <property type="tunnel"     percent="50" />
     </properties>
     <restrictions>
       <oneway obey="0" /> 
-      <turns  obey="0" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -177,7 +163,6 @@
       <speed highway="cycleway"      kph="20" />
       <speed highway="path"          kph="20" />
       <speed highway="steps"         kph="0" />
-      <speed highway="ferry"         kph="10" />
     </speeds>
     <preferences>
       <preference highway="motorway"      percent="0" />
@@ -192,19 +177,15 @@
       <preference highway="cycleway"      percent="100" />
       <preference highway="path"          percent="90" />
       <preference highway="steps"         percent="0" />
-      <preference highway="ferry"         percent="20" />
     </preferences>
     <properties>
-      <property type="paved"        percent="50" />
-      <property type="multilane"    percent="25" />
-      <property type="bridge"       percent="50" />
-      <property type="tunnel"       percent="50" />
-      <property type="footroute"    percent="50" />
-      <property type="bicycleroute" percent="60" />
+      <property type="paved"      percent="50" />
+      <property type="multilane"  percent="25" />
+      <property type="bridge"     percent="50" />
+      <property type="tunnel"     percent="50" />
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -226,7 +207,6 @@
       <speed highway="cycleway"      kph="0" />
       <speed highway="path"          kph="0" />
       <speed highway="steps"         kph="0" />
-      <speed highway="ferry"         kph="10" />
     </speeds>
     <preferences>
       <preference highway="motorway"      percent="0" />
@@ -241,19 +221,15 @@
       <preference highway="cycleway"      percent="0" />
       <preference highway="path"          percent="0" />
       <preference highway="steps"         percent="0" />
-      <preference highway="ferry"         percent="20" />
     </preferences>
     <properties>
-      <property type="paved"        percent="100" />
-      <property type="multilane"    percent="35" />
-      <property type="bridge"       percent="50" />
-      <property type="tunnel"       percent="50" />
-      <property type="footroute"    percent="50" />
-      <property type="bicycleroute" percent="50" />
+      <property type="paved"      percent="100" />
+      <property type="multilane"  percent="25" />
+      <property type="bridge"     percent="50" />
+      <property type="tunnel"     percent="50" />
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -275,7 +251,6 @@
       <speed highway="cycleway"      kph="0" />
       <speed highway="path"          kph="0" />
       <speed highway="steps"         kph="0" />
-      <speed highway="ferry"         kph="10" />
     </speeds>
     <preferences>
       <preference highway="motorway"      percent="100" />
@@ -290,19 +265,15 @@
       <preference highway="cycleway"      percent="0" />
       <preference highway="path"          percent="0" />
       <preference highway="steps"         percent="0" />
-      <preference highway="ferry"         percent="20" />
     </preferences>
     <properties>
-      <property type="paved"        percent="100" />
-      <property type="multilane"    percent="60" />
-      <property type="bridge"       percent="50" />
-      <property type="tunnel"       percent="50" />
-      <property type="footroute"    percent="50" />
-      <property type="bicycleroute" percent="50" />
+      <property type="paved"      percent="100" />
+      <property type="multilane"  percent="75" />
+      <property type="bridge"     percent="50" />
+      <property type="tunnel"     percent="50" />
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -324,7 +295,6 @@
       <speed highway="cycleway"      kph="0" />
       <speed highway="path"          kph="0" />
       <speed highway="steps"         kph="0" />
-      <speed highway="ferry"         kph="10" />
     </speeds>
     <preferences>
       <preference highway="motorway"      percent="100" />
@@ -339,19 +309,15 @@
       <preference highway="cycleway"      percent="0" />
       <preference highway="path"          percent="0" />
       <preference highway="steps"         percent="0" />
-      <preference highway="ferry"         percent="20" />
     </preferences>
     <properties>
-      <property type="paved"        percent="100" />
-      <property type="multilane"    percent="60" />
-      <property type="bridge"       percent="50" />
-      <property type="tunnel"       percent="50" />
-      <property type="footroute"    percent="45" />
-      <property type="bicycleroute" percent="45" />
+      <property type="paved"      percent="100" />
+      <property type="multilane"  percent="75" />
+      <property type="bridge"     percent="50" />
+      <property type="tunnel"     percent="50" />
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="0.0" />
       <height limit="0.0" />
       <width  limit="0.0" />
@@ -373,7 +339,6 @@
       <speed highway="cycleway"      kph="0" />
       <speed highway="path"          kph="0" />
       <speed highway="steps"         kph="0" />
-      <speed highway="ferry"         kph="10" />
     </speeds>
     <preferences>
       <preference highway="motorway"      percent="100" />
@@ -388,19 +353,15 @@
       <preference highway="cycleway"      percent="0" />
       <preference highway="path"          percent="0" />
       <preference highway="steps"         percent="0" />
-      <preference highway="ferry"         percent="20" />
     </preferences>
     <properties>
-      <property type="paved"        percent="100" />
-      <property type="multilane"    percent="60" />
-      <property type="bridge"       percent="50" />
-      <property type="tunnel"       percent="50" />
-      <property type="footroute"    percent="45" />
-      <property type="bicycleroute" percent="45" />
+      <property type="paved"      percent="100" />
+      <property type="multilane"  percent="75" />
+      <property type="bridge"     percent="50" />
+      <property type="tunnel"     percent="50" />
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="5.0" />
       <height limit="2.5" />
       <width  limit="2.0" />
@@ -422,7 +383,6 @@
       <speed highway="cycleway"      kph="0" />
       <speed highway="path"          kph="0" />
       <speed highway="steps"         kph="0" />
-      <speed highway="ferry"         kph="10" />
     </speeds>
     <preferences>
       <preference highway="motorway"      percent="100" />
@@ -437,19 +397,15 @@
       <preference highway="cycleway"      percent="0" />
       <preference highway="path"          percent="0" />
       <preference highway="steps"         percent="0" />
-      <preference highway="ferry"         percent="20" />
     </preferences>
     <properties>
-      <property type="paved"        percent="100" />
-      <property type="multilane"    percent="60" />
-      <property type="bridge"       percent="50" />
-      <property type="tunnel"       percent="50" />
-      <property type="footroute"    percent="45" />
-      <property type="bicycleroute" percent="45" />
+      <property type="paved"      percent="100" />
+      <property type="multilane"  percent="75" />
+      <property type="bridge"     percent="50" />
+      <property type="tunnel"     percent="50" />
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="10.0" />
       <height limit="3.0" />
       <width  limit="2.5" />
@@ -471,7 +427,6 @@
       <speed highway="cycleway"      kph="0" />
       <speed highway="path"          kph="0" />
       <speed highway="steps"         kph="0" />
-      <speed highway="ferry"         kph="10" />
     </speeds>
     <preferences>
       <preference highway="motorway"      percent="100" />
@@ -486,19 +441,15 @@
       <preference highway="cycleway"      percent="0" />
       <preference highway="path"          percent="0" />
       <preference highway="steps"         percent="0" />
-      <preference highway="ferry"         percent="20" />
     </preferences>
     <properties>
-      <property type="paved"        percent="100" />
-      <property type="multilane"    percent="60" />
-      <property type="bridge"       percent="50" />
-      <property type="tunnel"       percent="50" />
-      <property type="footroute"    percent="45" />
-      <property type="bicycleroute" percent="45" />
+      <property type="paved"      percent="100" />
+      <property type="multilane"  percent="75" />
+      <property type="bridge"     percent="50" />
+      <property type="tunnel"     percent="50" />
     </properties>
     <restrictions>
       <oneway obey="1" /> 
-      <turns  obey="1" /> 
       <weight limit="15.0" />
       <height limit="3.0" />
       <width  limit="2.5" />

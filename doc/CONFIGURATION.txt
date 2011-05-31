@@ -2,7 +2,7 @@
                            =======================
 
 
-   New in version 1.4 of Routino is the use of configuration files to
+   New in version 1.4 of Routino are the use of configuration files to
    allow more information to be provided to the programs at run-time. The
    configuration files that are used are:
      * Tagging transformation rules for the planetsplitter program.
@@ -110,12 +110,10 @@ Routing Profiles
       <preference highway="steps"         percent="80" />
     </preferences>
     <properties>
-      <property type="paved"        percent="50" />
-      <property type="multilane"    percent="25" />
-      <property type="bridge"       percent="50" />
-      <property type="tunnel"       percent="50" />
-      <property type="footroute"    percent="55" />
-      <property type="bicycleroute" percent="55" />
+      <property type="paved"      percent="50" />
+      <property type="multilane"  percent="25" />
+      <property type="bridge"     percent="50" />
+      <property type="tunnel"     percent="50" />
     </properties>
     <restrictions>
       <oneway obey="0" />

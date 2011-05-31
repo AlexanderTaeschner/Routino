@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/tagging.h,v 1.2 2010-05-23 10:18:59 amb Exp $
+
  The data types for the tagging rules.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2010-2011 Andrew M. Bishop
+ This file Copyright 2010 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -68,14 +70,14 @@ typedef struct _TagList
  TagList;
 
 
-/* Global variables */
+/* Variables */
 
 extern TaggingRuleList NodeRules;
 extern TaggingRuleList WayRules;
 extern TaggingRuleList RelationRules;
 
 
-/* Functions in tagging.c */
+/* Functions */
 
 int ParseXMLTaggingRules(const char *filename);
 

@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/ways.h,v 1.37 2010-05-29 13:54:24 amb Exp $
+
  A header file for the ways.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008-2010 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -24,11 +26,8 @@
 #define WAYS_H    /*+ To stop multiple inclusions. +*/
 
 #include <stdint.h>
-#include <stdlib.h>
 
 #include "types.h"
-
-#include "files.h"
 
 
 /* Data structures */
@@ -37,156 +36,61 @@
 /*+ A structure containing a single way (members ordered to minimise overall size). +*/
 struct _Way
 {
- index_t      name;             /*+ The offset of the name of the way in the names array. +*/
+ index_t    name;               /*+ The offset of the name of the way in the names array. +*/
 
- transports_t allow;            /*+ The type of traffic allowed on the way. +*/
+ wayallow_t allow;              /*+ The type of traffic allowed on the way. +*/
 
- highway_t    type;             /*+ The highway type of the way. +*/
+ waytype_t  type;               /*+ The highway type of the way. +*/
 
- properties_t props;            /*+ The properties of the way. +*/
+ wayprop_t  props;              /*+ The properties of the way. +*/
 
- speed_t      speed;            /*+ The defined maximum speed limit of the way. +*/
+ speed_t    speed;              /*+ The defined maximum speed limit of the way. +*/
 
- weight_t     weight;           /*+ The defined maximum weight of traffic on the way. +*/
- height_t     height;           /*+ The defined maximum height of traffic on the way. +*/
- width_t      width;            /*+ The defined maximum width of traffic on the way. +*/
- length_t     length;           /*+ The defined maximum length of traffic on the way. +*/
+ weight_t   weight;             /*+ The defined maximum weight of traffic on the way. +*/
+ height_t   height;             /*+ The defined maximum height of traffic on the way. +*/
+ width_t    width;              /*+ The defined maximum width of traffic on the way. +*/
+ length_t   length;             /*+ The defined maximum length of traffic on the way. +*/
 };
 
 
-/*+ A structure containing the header from the file. +*/
-typedef struct _WaysFile
-{
- index_t      number;           /*+ The number of ways stored. +*/
- index_t      onumber;          /*+ The number of ways originally. +*/
-
- highways_t   highways;         /*+ The types of highways that were seen when parsing. +*/
- transports_t allow;            /*+ The types of traffic that were seen when parsing. +*/
- properties_t props;            /*+ The properties that were seen when parsing. +*/
-}
- WaysFile;
-
-
-/*+ A structure containing a set of ways (and pointers to mmap file). +*/
+/*+ A structure containing a set of ways (mmap format). +*/
 struct _Ways
 {
- WaysFile file;                 /*+ The header data from the file. +*/
+ uint32_t   number;             /*+ How many ways are stored? +*/
+ uint32_t   onumber;            /*+ How many ways were there originally? +*/
 
-#if !SLIM
-
- void      *data;               /*+ The memory mapped data. +*/
+ wayallow_t allow;              /*+ The types of traffic that were seen when parsing. +*/
+ wayprop_t  props;              /*+ The properties that were seen when parsing. +*/
 
  Way       *ways;               /*+ An array of ways. +*/
  char      *names;              /*+ An array of characters containing the names. +*/
 
-#else
-
- int        fd;                 /*+ The file descriptor for the file. +*/
- off_t      namesoffset;        /*+ The offset of the names within the file. +*/
-
- Way        cached[2];          /*+ Two cached nodes read from the file in slim mode. +*/
- index_t    incache[2];         /*+ The indexes of the cached ways. +*/
-
- char      *ncached;            /*+ The cached way name. +*/
- int        nalloc;             /*+ The amount of memory allocated for the way name. +*/
-
-#endif
+ void      *data;               /*+ The memory mapped data. +*/
 };
 
 
-/* Functions in ways.c */
+/* Macros */
+
+
+/*+ Return a Way* pointer given a set of ways and an index. +*/
+#define LookupWay(xxx,yyy)     (&(xxx)->ways[yyy])
+
+/*+ Return the raw name of a way given the Way pointer and a set of ways. +*/
+#define WayNameRaw(xxx,yyy)        (&(xxx)->names[(yyy)->name])
+
+/*+ Decide if a way has a name or not. +*/
+#define WayNamed(xxx,yyy)          ((xxx)->names[(yyy)->name])
+
+/*+ Return the name of a way if it has one or the name of the highway type otherwise. +*/
+#define WayNameHighway(xxx,yyy)    (WayNamed(xxx,yyy)?WayNameRaw(xxx,yyy):HighwayName(HIGHWAY(yyy->type)))
+
+
+/* Functions */
+
 
 Ways *LoadWayList(const char *filename);
 
 int WaysCompare(Way *way1,Way *way2);
-
-
-/* Macros and inline functions */
-
-#if !SLIM
-
-/*+ Return a Way* pointer given a set of ways and an index. +*/
-#define LookupWay(xxx,yyy,zzz)     (&(xxx)->ways[yyy])
-
-/*+ Return the name of a way given the Way pointer and a set of ways. +*/
-#define WayName(xxx,yyy)           (&(xxx)->names[(yyy)->name])
-
-#else
-
-static Way *LookupWay(Ways *ways,index_t index,int position);
-
-static char *WayName(Ways *ways,Way *way);
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Find the Way information for a particular way.
-
-  Way *LookupWay Returns a pointer to the cached way information.
-
-  Ways *ways The set of ways to use.
-
-  index_t index The index of the way.
-
-  int position The position in the cache to store the value.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static inline Way *LookupWay(Ways *ways,index_t index,int position)
-{
- if(ways->incache[position-1]!=index)
-   {
-    SeekFile(ways->fd,sizeof(WaysFile)+(off_t)index*sizeof(Way));
-
-    ReadFile(ways->fd,&ways->cached[position-1],sizeof(Way));
-
-    ways->incache[position-1]=index;
-   }
-
- return(&ways->cached[position-1]);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Find the name of a way.
-
-  char *WayName Returns a pointer to the name of the way.
-
-  Ways *ways The set of ways to use.
-
-  Way *way The Way pointer.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static inline char *WayName(Ways *ways,Way *way)
-{
- int n=0;
-
- SeekFile(ways->fd,ways->namesoffset+way->name);
-
- if(!ways->ncached)
-    ways->ncached=(char*)malloc(32);
-
- while(1)
-   {
-    int i;
-    int m=ReadFile(ways->fd,ways->ncached+n,32);
-
-    if(m<0)
-       break;
-    
-    for(i=n;i<n+32;i++)
-       if(ways->ncached[i]==0)
-          goto exitloop;
-
-    n+=32;
-
-    ways->ncached=(char*)realloc((void*)ways->ncached,n+32);
-   }
-
- exitloop:
-
- return(ways->ncached);
-}
-
-#endif
 
 
 #endif /* WAYS_H */

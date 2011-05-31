@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!-- ============================================================
-     $Header: /home/amb/CVS/routino/xml/routino-tagging-nomodify.xml,v 1.5 2010-09-17 17:40:55 amb Exp $
+     $Header: /home/amb/CVS/routino/xml/routino-tagging-nomodify.xml,v 1.1 2010-05-30 18:20:16 amb Exp $
 
      An XML format file containing Routino tagging rules - copy the input file
      directly to the output with no modifications (e.g. importing a file dumped
@@ -17,26 +17,16 @@
      (at your option) any later version.
      ============================================================ -->
 
-<routino-tagging xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                 xsi:noNamespaceSchemaLocation="http://www.routino.org/xml/routino-tagging.xsd">
+<routino-tagging xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="routino.xsd">
 
-  <!-- -------------------- Node rules -------------------- -->
+  <!-- Node rules are not currently used -->
 
   <node>
-
-    <!-- Copy everything from input to output -->
-
-    <if>
-      <output />
-    </if>
-
   </node>
 
-  <!-- -------------------- Way rules -------------------- -->
+  <!-- Way rules (copy everything from input to output) -->
 
   <way>
-
-    <!-- Copy everything from input to output -->
 
     <if>
       <output />
@@ -44,16 +34,9 @@
 
   </way>
 
-  <!-- -------------------- Relation rules -------------------- -->
+  <!-- Relation rules are not currently used -->
 
   <relation>
-
-    <!-- Copy everything from input to output -->
-
-    <if>
-      <output />
-    </if>
-
   </relation>
 
 </routino-tagging>

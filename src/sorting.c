@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/sorting.c,v 1.8 2010-04-09 15:15:02 amb Exp $
+
  Merge sort functions.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2009-2011 Andrew M. Bishop
+ This file Copyright 2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -25,13 +27,10 @@
 #include <string.h>
 #include <assert.h>
 
-#include "types.h"
-
-#include "files.h"
-#include "sorting.h"
+#include "functions.h"
 
 
-/* Global variables */
+/* Variables */
 
 /*+ The command line '--tmpdir' option or its default value. +*/
 extern char *option_tmpdirname;
@@ -103,19 +102,12 @@ void filesort_fixed(int fd_in,int fd_out,size_t itemsize,int (*compare)(const vo
 
     n=i;
 
-    /* Shortcut if there is no data and no previous files (i.e. no data at all) */
-
-    if(nfiles==0 && n==0)
-       goto tidy_and_exit;
-
-    /* No new data read in this time round */
-
     if(n==0)
        break;
 
     /* Sort the data pointers using a heap sort */
 
-    filesort_heapsort(datap,n,compare);
+    heapsort(datap,n,compare);
 
     /* Shortcut if all read in and sorted at once */
 
@@ -137,7 +129,7 @@ void filesort_fixed(int fd_in,int fd_out,size_t itemsize,int (*compare)(const vo
 
     sprintf(filename,"%s/filesort.%d.tmp",option_tmpdirname,nfiles);
 
-    fd=OpenFileNew(filename);
+    fd=OpenFile(filename);
 
     for(i=0;i<n;i++)
        WriteFile(fd,datap[i],itemsize);
@@ -377,14 +369,12 @@ void filesort_vary(int fd_in,int fd_out,int (*compare)(const void*,const void*),
          }
       }
 
-    /* No new data read in this time round */
-
     if(n==0)
        break;
 
     /* Sort the data pointers using a heap sort */
 
-    filesort_heapsort(datap,n,compare);
+    heapsort(datap,n,compare);
 
     /* Shortcut if all read in and sorted at once */
 
@@ -408,7 +398,7 @@ void filesort_vary(int fd_in,int fd_out,int (*compare)(const void*,const void*),
 
     sprintf(filename,"%s/filesort.%d.tmp",option_tmpdirname,nfiles);
 
-    fd=OpenFileNew(filename);
+    fd=OpenFile(filename);
 
     for(i=0;i<n;i++)
       {
@@ -584,7 +574,7 @@ void filesort_vary(int fd_in,int fd_out,int (*compare)(const void*,const void*),
                                             data to be sorted was an array of things not pointers).
   ++++++++++++++++++++++++++++++++++++++*/
 
-void filesort_heapsort(void **datap,size_t nitems,int(*compare)(const void*, const void*))
+void heapsort(void **datap,size_t nitems,int(*compare)(const void*, const void*))
 {
  int i;
 

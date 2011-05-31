@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/output.c,v 1.32 2010-05-29 13:54:23 amb Exp $
+
  Routing output generator.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008-2010 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -31,14 +33,11 @@
 #include <unistd.h>
 
 #include "types.h"
+#include "functions.h"
+#include "translations.h"
 #include "nodes.h"
 #include "segments.h"
 #include "ways.h"
-
-#include "files.h"
-#include "functions.h"
-#include "fakes.h"
-#include "translations.h"
 #include "results.h"
 #include "xmlparse.h"
 
@@ -55,21 +54,26 @@ extern int option_html,option_gpx_track,option_gpx_route,option_text,option_text
 
 /*+ Heuristics for determining if a junction is important. +*/
 static char junction_other_way[Way_Count][Way_Count]=
- { /* M, T, P, S, T, U, R, S, T, C, P, S, F = Way type of route not taken */
-  {   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, /* Motorway     */
-  {   1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, /* Trunk        */
-  {   1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, /* Primary      */
-  {   1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, /* Secondary    */
-  {   1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1 }, /* Tertiary     */
-  {   1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1 }, /* Unclassified */
-  {   1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1 }, /* Residential  */
-  {   1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1 }, /* Service      */
-  {   1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1 }, /* Track        */
-  {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1 }, /* Cycleway     */
-  {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* Path         */
-  {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* Steps        */
-  {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* Ferry        */
+ { /* M, T, P, S, T, U, R, S, T, C, P, S = Way type of route not taken */
+  {   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, /* Motorway     */
+  {   1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, /* Trunk        */
+  {   1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, /* Primary      */
+  {   1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 }, /* Secondary    */
+  {   1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 }, /* Tertiary     */
+  {   1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0 }, /* Unclassified */
+  {   1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 }, /* Residential  */
+  {   1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0 }, /* Service      */
+  {   1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 }, /* Track        */
+  {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0 }, /* Cycleway     */
+  {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* Path         */
+  {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* Steps        */
  };
+
+
+/* Local functions */
+
+static int turn_angle(Nodes *nodes,Segment *segment1,Segment *segment2,index_t node);
+static int bearing_angle(Nodes *nodes,Segment *segment,index_t node);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -79,11 +83,11 @@ static char junction_other_way[Way_Count][Way_Count]=
 
   int nresults The number of results in the list.
 
-  Nodes *nodes The set of nodes to use.
+  Nodes *nodes The list of nodes.
 
   Segments *segments The set of segments to use.
 
-  Ways *ways The set of ways to use.
+  Ways *ways The list of ways.
 
   Profile *profile The profile containing the transport type, speeds and allowed highways.
   ++++++++++++++++++++++++++++++++++++++*/
@@ -96,8 +100,8 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
  distance_t cum_distance=0;
  duration_t cum_duration=0;
  double finish_lat,finish_lon;
- int segment_count=0,route_count=0;
- int point_count=0;
+ int segment_count=0;
+ int route_count=0;
 
  /* Open the files */
 
@@ -170,8 +174,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
     fprintf(htmlfile,"<TITLE>");
     fprintf(htmlfile,translate_html_title,option_quickest?translate_route_quickest:translate_route_shortest);
     fprintf(htmlfile,"</TITLE>\n");
-    fprintf(htmlfile,"<META http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n");
-    fprintf(htmlfile,"<STYLE type=\"text/css\">\n");
+    fprintf(htmlfile,"<STYLE type='text/css'>\n");
     fprintf(htmlfile,"<!--\n");
     fprintf(htmlfile,"   table   {table-layout: fixed; border: none; border-collapse: collapse;}\n");
     fprintf(htmlfile,"   table.c {color: grey; font-size: x-small;} /* copyright */\n");
@@ -304,28 +307,26 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
     if(gpxtrackfile)
        fprintf(gpxtrackfile,"<trkseg>\n");
 
-    if(IsFakeNode(results[point]->start_node))
-       GetFakeLatLong(results[point]->start_node,&start_lat,&start_lon);
+    if(IsFakeNode(results[point]->start))
+       GetFakeLatLong(results[point]->start,&start_lat,&start_lon);
     else
-       GetLatLong(nodes,results[point]->start_node,&start_lat,&start_lon);
+       GetLatLong(nodes,results[point]->start,&start_lat,&start_lon);
 
-    if(IsFakeNode(results[point]->finish_node))
-       GetFakeLatLong(results[point]->finish_node,&finish_lat,&finish_lon);
+    if(IsFakeNode(results[point]->finish))
+       GetFakeLatLong(results[point]->finish,&finish_lat,&finish_lon);
     else
-       GetLatLong(nodes,results[point]->finish_node,&finish_lat,&finish_lon);
+       GetLatLong(nodes,results[point]->finish,&finish_lat,&finish_lon);
 
-    result=FindResult(results[point],results[point]->start_node,results[point]->prev_segment);
+    result=FindResult(results[point],results[point]->start);
 
     do
       {
        double latitude,longitude;
        Result *nextresult;
-       index_t nextrealsegment;
-       Segment *nextresultsegment;
 
-       if(result->node==results[point]->start_node)
+       if(result->node==results[point]->start)
          {latitude=start_lat; longitude=start_lon;}
-       else if(result->node==results[point]->finish_node)
+       else if(result->node==results[point]->finish)
          {latitude=finish_lat; longitude=finish_lon;}
        else
           GetLatLong(nodes,result->node,&latitude,&longitude);
@@ -334,68 +335,36 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
           fprintf(gpxtrackfile,"<trkpt lat=\"%.6f\" lon=\"%.6f\"/>\n",
                   radians_to_degrees(latitude),radians_to_degrees(longitude));
 
-       nextresult=result->next;
+       nextresult=FindResult(results[point],result->next);
 
        if(!nextresult)
           for(nextpoint=point+1;nextpoint<=nresults;nextpoint++)
              if(results[nextpoint])
                {
-                nextresult=FindResult(results[nextpoint],results[nextpoint]->start_node,results[nextpoint]->prev_segment);
-                nextresult=nextresult->next;
+                nextresult=FindResult(results[nextpoint],results[nextpoint]->start);
+                nextresult=FindResult(results[nextpoint],nextresult->next);
                 break;
                }
 
-       if(nextresult)
-         {
-          if(IsFakeSegment(nextresult->segment))
-            {
-             nextresultsegment=LookupFakeSegment(nextresult->segment);
-             nextrealsegment=IndexRealSegment(nextresult->segment);
-            }
-          else
-            {
-             nextresultsegment=LookupSegment(segments,nextresult->segment,1);
-             nextrealsegment=nextresult->segment;
-            }
-         }
-       else
-         {
-          nextresultsegment=NULL;
-          nextrealsegment=NO_SEGMENT;
-         }
-
-       if(result->node!=results[point]->start_node)
+       if(result->node!=results[point]->start)
          {
           distance_t seg_distance=0;
           duration_t seg_duration=0;
-          index_t realsegment;
-          Segment *resultsegment;
           Way *resultway;
           int important=0;
 
           /* Cache the values to be printed rather than calculating them repeatedly for each output format */
 
-          char *waynameraw=NULL,*waynamexml=NULL;
-          const char *wayname=NULL;
-          int bearing_int=0,bearing_next_int=0,turn_int=0;
+          char *waynameraw=NULL,*wayname=NULL,*waynamexml=NULL;
+          int bearing_int,bearing_next_int,turn_int;
           char *bearing_str=NULL,*bearing_next_str=NULL,*turn_str=NULL;
 
           /* Get the properties of this segment */
 
-          if(IsFakeSegment(result->segment))
-            {
-             resultsegment=LookupFakeSegment(result->segment);
-             realsegment=IndexRealSegment(result->segment);
-            }
-          else
-            {
-             resultsegment=LookupSegment(segments,result->segment,2);
-             realsegment=result->segment;
-            }
-          resultway=LookupWay(ways,resultsegment->way,1);
+          resultway=LookupWay(ways,result->segment->way);
 
-          seg_distance+=DISTANCE(resultsegment->distance);
-          seg_duration+=Duration(resultsegment,resultway,profile);
+          seg_distance+=DISTANCE(result->segment->distance);
+          seg_duration+=Duration(result->segment,resultway,profile);
           junc_distance+=seg_distance;
           junc_duration+=seg_duration;
           cum_distance+=seg_distance;
@@ -403,31 +372,27 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
 
           /* Decide if this is an important junction */
 
-          if(result->node==results[point]->finish_node) /* Waypoint */
+          if(result->node==results[point]->finish)
              important=10;
-          else if(realsegment==nextrealsegment) /* U-turn */
-             important=5;
           else
             {
-             Segment *segment=FirstSegment(segments,nodes,result->node,3);
+             Segment *segment=FirstSegment(segments,nodes,result->node);
 
              do
                {
                 index_t othernode=OtherNode(segment,result->node);
 
-                if(othernode!=result->prev->node && IndexSegment(segments,segment)!=realsegment)
+                if(othernode!=result->prev && segment!=result->segment)
                    if(IsNormalSegment(segment) && (!profile->oneway || !IsOnewayTo(segment,result->node)))
                      {
-                      Way *way=LookupWay(ways,segment->way,2);
+                      Way *way=LookupWay(ways,segment->way);
 
-                      if(othernode==nextresult->node) /* the next segment that we follow */
+                      if(othernode==result->next) /* the next segment that we follow */
                         {
                          if(HIGHWAY(way->type)!=HIGHWAY(resultway->type))
                             if(important<2)
                                important=2;
                         }
-                      else if(IsFakeNode(nextresult->node))
-                         ;
                       else /* a segment that we don't follow */
                         {
                          if(junction_other_way[HIGHWAY(resultway->type)-1][HIGHWAY(way->type)-1])
@@ -461,7 +426,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
 
                 if(!waynameraw)
                   {
-                   waynameraw=WayName(ways,resultway);
+                   waynameraw=WayNameRaw(ways,resultway);
                    if(!*waynameraw)
                       waynameraw=translate_highway[HIGHWAY(resultway->type)];
                   }
@@ -478,21 +443,20 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                                   distance_to_km(cum_distance),duration_to_minutes(cum_duration));
                 fprintf(htmlfile,"</span>]\n");
 
-                fprintf(htmlfile,"<tr class='c'><td class='l'>%d:<td class='r'>%.6f %.6f\n",
-                                 ++point_count,
+                fprintf(htmlfile,"<tr class='c'><td class='l'><td class='r'>%.6f %.6f\n",
                                  radians_to_degrees(latitude),radians_to_degrees(longitude));
 
                 if(nextresult)
                   {
                    if(!turn_str)
                      {
-                      turn_int=(int)TurnAngle(nodes,resultsegment,nextresultsegment,result->node);
-                      turn_str=translate_turn[((202+turn_int)/45)%8];
+                      turn_int=turn_angle(nodes,result->segment,nextresult->segment,result->node);
+                      turn_str=translate_turn[(4+(22+turn_int)/45)%8];
                      }
 
                    if(!bearing_next_str)
                      {
-                      bearing_next_int=(int)BearingAngle(nodes,nextresultsegment,nextresult->node);
+                      bearing_next_int=bearing_angle(nodes,nextresult->segment,nextresult->node);
                       bearing_next_str=translate_heading[(4+(22+bearing_next_int)/45)%8];
                      }
 
@@ -520,7 +484,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                {
                 if(!waynameraw)
                   {
-                   waynameraw=WayName(ways,resultway);
+                   waynameraw=WayNameRaw(ways,resultway);
                    if(!*waynameraw)
                       waynameraw=translate_highway[HIGHWAY(resultway->type)];
                   }
@@ -530,7 +494,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
 
                 if(!bearing_str)
                   {
-                   bearing_int=(int)BearingAngle(nodes,resultsegment,result->node);
+                   bearing_int=bearing_angle(nodes,result->segment,result->node);
                    bearing_str=translate_heading[(4+(22+bearing_int)/45)%8];
                   }
 
@@ -571,23 +535,19 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                    type="Junct";
 
                 if(!wayname)
-                  {
-                   wayname=WayName(ways,resultway);
-                   if(!*wayname)
-                      wayname=HighwayName(HIGHWAY(resultway->type));
-                  }
+                   wayname=(char*)WayNameHighway(ways,resultway);
 
                 if(nextresult)
                   {
                    if(!turn_str)
                      {
-                      turn_int=(int)TurnAngle(nodes,resultsegment,nextresultsegment,result->node);
-                      turn_str=translate_turn[((202+turn_int)/45)%8];
+                      turn_int=turn_angle(nodes,result->segment,nextresult->segment,result->node);
+                      turn_str=translate_turn[(4+(22+turn_int)/45)%8];
                      }
 
                    if(!bearing_next_str)
                      {
-                      bearing_next_int=(int)BearingAngle(nodes,nextresultsegment,nextresult->node);
+                      bearing_next_int=bearing_angle(nodes,nextresult->segment,nextresult->node);
                       bearing_next_str=translate_heading[(4+(22+bearing_next_int)/45)%8];
                      }
 
@@ -629,22 +589,18 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                 type="Inter";
 
              if(!wayname)
-               {
-                wayname=WayName(ways,resultway);
-                if(!*wayname)
-                   wayname=HighwayName(HIGHWAY(resultway->type));
-               }
+                wayname=(char*)WayNameHighway(ways,resultway);
 
              if(!bearing_str)
                {
-                bearing_int=(int)BearingAngle(nodes,resultsegment,result->node);
+                bearing_int=bearing_angle(nodes,result->segment,result->node);
                 bearing_str=translate_heading[(4+(22+bearing_int)/45)%8];
                }
 
              fprintf(textallfile,"%10.6f\t%11.6f\t%8d%c\t%s\t%5.3f\t%5.2f\t%5.2f\t%5.1f\t%3d\t%4d\t%s\n",
                                  radians_to_degrees(latitude),radians_to_degrees(longitude),
-                                 IsFakeNode(result->node)?(NODE_FAKE-result->node):result->node,
-                                 (!IsFakeNode(result->node) && IsSuperNode(LookupNode(nodes,result->node,1)))?'*':' ',type,
+                                 IsFakeNode(result->node)?-(result->node&(~NODE_SUPER)):result->node,
+                                 (!IsFakeNode(result->node) && IsSuperNode(nodes,result->node))?'*':' ',type,
                                  distance_to_km(seg_distance),duration_to_minutes(seg_duration),
                                  distance_to_km(cum_distance),duration_to_minutes(cum_duration),
                                  profile->speed[HIGHWAY(resultway->type)],
@@ -657,15 +613,14 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
          }
        else if(!cum_distance)
          {
-          int   bearing_next_int=(int)BearingAngle(nodes,nextresultsegment,nextresult->node);
+          int   bearing_next_int=bearing_angle(nodes,nextresult->segment,nextresult->node);
           char *bearing_next_str=translate_heading[(4+(22+bearing_next_int)/45)%8];
 
           /* Print out the very first start point */
 
           if(htmlfile)
             {
-             fprintf(htmlfile,"<tr class='c'><td class='l'>%d:<td class='r'>%.6f %.6f\n",
-                              ++point_count,
+             fprintf(htmlfile,"<tr class='c'><td class='l'><td class='r'>%.6f %.6f\n",
                               radians_to_degrees(latitude),radians_to_degrees(longitude));
              fprintf(htmlfile,"<tr class='n'><td class='l'>%s:<td class='r'>",translate_html_start[0]);
              fprintf(htmlfile,translate_html_start[1],
@@ -689,8 +644,8 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
           if(textallfile)
              fprintf(textallfile,"%10.6f\t%11.6f\t%8d%c\t%s\t%5.3f\t%5.2f\t%5.2f\t%5.1f\t\t\t\n",
                                  radians_to_degrees(latitude),radians_to_degrees(longitude),
-                                 IsFakeNode(result->node)?(NODE_FAKE-result->node):result->node,
-                                 (!IsFakeNode(result->node) && IsSuperNode(LookupNode(nodes,result->node,1)))?'*':' ',"Waypt",
+                                 IsFakeNode(result->node)?-(result->node&(~NODE_SUPER)):result->node,
+                                 (!IsFakeNode(result->node) && IsSuperNode(nodes,result->node))?'*':' ',"Waypt",
                                  0.0,0.0,0.0,0.0);
          }
 
@@ -753,4 +708,109 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
     fclose(textfile);
  if(textallfile)
     fclose(textallfile);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Calculate the angle to turn at a junction from segment1 to segment2 at node.
+
+  int turn_angle Returns a value in the range -4 to +4 indicating the angle to turn.
+
+  Nodes *nodes The set of nodes.
+
+  Segment *segment1 The current segment.
+
+  Segment *segment2 The next segment.
+
+  index_t node The node at which they join.
+
+  Straight ahead is zero, turning to the right is positive (90 degrees) and turning to the left is negative.
+  Angles are calculated using flat Cartesian lat/long grid approximation (after scaling longitude due to latitude).
+  ++++++++++++++++++++++++++++++++++++++*/
+
+static int turn_angle(Nodes *nodes,Segment *segment1,Segment *segment2,index_t node)
+{
+ double lat1,latm,lat2;
+ double lon1,lonm,lon2;
+ double angle1,angle2,angle;
+ index_t node1,node2;
+
+ node1=OtherNode(segment1,node);
+ node2=OtherNode(segment2,node);
+
+ if(IsFakeNode(node1))
+    GetFakeLatLong(node1,&lat1,&lon1);
+ else
+    GetLatLong(nodes,node1,&lat1,&lon1);
+
+ if(IsFakeNode(node))
+    GetFakeLatLong(node,&latm,&lonm);
+ else
+    GetLatLong(nodes,node,&latm,&lonm);
+
+ if(IsFakeNode(node2))
+    GetFakeLatLong(node2,&lat2,&lon2);
+ else
+    GetLatLong(nodes,node2,&lat2,&lon2);
+
+ angle1=atan2((lonm-lon1)*cos(latm),(latm-lat1));
+ angle2=atan2((lon2-lonm)*cos(latm),(lat2-latm));
+
+ angle=angle2-angle1;
+
+ angle=radians_to_degrees(angle);
+
+ angle=round(angle);
+
+ if(angle<-180) angle+=360;
+ if(angle> 180) angle-=360;
+
+ return((int)angle);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Calculate the bearing of a segment from the given node.
+
+  int bearing_angle Returns a value in the range 0 to 359 indicating the bearing.
+
+  Nodes *nodes The set of nodes.
+
+  Segment *segment The segment.
+
+  index_t node The node to start.
+
+  Angles are calculated using flat Cartesian lat/long grid approximation (after scaling longitude due to latitude).
+  ++++++++++++++++++++++++++++++++++++++*/
+
+static int bearing_angle(Nodes *nodes,Segment *segment,index_t node)
+{
+ double lat1,lat2;
+ double lon1,lon2;
+ double angle;
+ index_t node1,node2;
+
+ node1=node;
+ node2=OtherNode(segment,node);
+
+ if(IsFakeNode(node1))
+    GetFakeLatLong(node1,&lat1,&lon1);
+ else
+    GetLatLong(nodes,node1,&lat1,&lon1);
+
+ if(IsFakeNode(node2))
+    GetFakeLatLong(node2,&lat2,&lon2);
+ else
+    GetLatLong(nodes,node2,&lat2,&lon2);
+
+ angle=atan2((lat2-lat1),(lon2-lon1)*cos(lat1));
+
+ angle=radians_to_degrees(angle);
+
+ angle=round(270-angle);
+
+ if(angle<  0) angle+=360;
+ if(angle>360) angle-=360;
+
+ return((int)angle);
 }
