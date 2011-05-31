@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/results.c,v 1.10 2009-04-08 16:54:34 amb Exp $
+
  Result data type functions.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -20,14 +22,28 @@
  ***************************************/
 
 
-#include <sys/types.h>
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "results.h"
 
-/*+ The size of the increment for the Results data structure. +*/
-#define RESULTS_INCREMENT 64
+
+#define RESULTS_INCREMENT    16
+#define QUEUE_INCREMENT   10240
+
+
+/*+ A queue of results. +*/
+typedef struct _Queue
+{
+ uint32_t  alloced;             /*+ The amount of space allocated for results in the array. +*/
+ uint32_t  number;              /*+ The number of occupied results in the array. +*/
+ Result  **xqueue;              /*+ An array of pointers to parts of the results structure. +*/
+}
+ Queue;
+
+/*+ The queue of nodes. +*/
+static Queue queue={0,0,NULL};
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -41,7 +57,7 @@
 Results *NewResultsList(int nbins)
 {
  Results *results;
- uint32_t i;
+ int i;
 
  results=(Results*)malloc(sizeof(Results));
 
@@ -72,12 +88,6 @@ Results *NewResultsList(int nbins)
  results->data=(Result**)malloc(1*sizeof(Result*));
  results->data[0]=(Result*)malloc(results->nbins*RESULTS_INCREMENT*sizeof(Result));
 
- results->start_node=NO_NODE;
- results->prev_segment=NO_SEGMENT;
-
- results->finish_node=NO_NODE;
- results->last_segment=NO_SEGMENT;
-
  return(results);
 }
 
@@ -90,7 +100,8 @@ Results *NewResultsList(int nbins)
 
 void FreeResultsList(Results *results)
 {
- int i,c=(results->number-1)/(results->nbins*RESULTS_INCREMENT);
+ int c=(results->number-1)/(results->nbins*RESULTS_INCREMENT);
+ int i;
 
  for(i=c;i>=0;i--)
     free(results->data[i]);
@@ -111,22 +122,19 @@ void FreeResultsList(Results *results)
 /*++++++++++++++++++++++++++++++++++++++
   Insert a new result into the results data structure in the right order.
 
-  Result *InsertResult Returns the result that has been inserted.
+  Result *insert_result Returns the result that has been inserted.
 
   Results *results The results structure to insert into.
 
   index_t node The node that is to be inserted into the results.
-
-  index_t segment The segment that is to be inserted into the results.
   ++++++++++++++++++++++++++++++++++++++*/
 
-Result *InsertResult(Results *results,index_t node,index_t segment)
+Result *InsertResult(Results *results,index_t node)
 {
- Result *result;
  int bin=node&results->mask;
- uint32_t i;
+ int i;
 
- /* Check that the arrays have enough space or allocate more. */
+ /* Check that the arrays have enough space. */
 
  if(results->count[bin]==results->alloced)
    {
@@ -152,72 +160,27 @@ Result *InsertResult(Results *results,index_t node,index_t segment)
 
  results->count[bin]++;
 
- /* Initialise the result */
-
- result=results->point[bin][results->count[bin]-1];
-
- result->node=node;
- result->segment=segment;
-
- result->prev=NULL;
- result->next=NULL;
-
- result->score=0;
- result->sortby=0;
-
- result->queued=NOT_QUEUED;
-
- return(result);
+ return(results->point[bin][results->count[bin]-1]);
 }
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Find a result; search by node only (don't care about the segment but find the shortest).
+  Find a result; search by node.
 
-  Result *FindResult1 Returns the result that has been found.
+  Result *insert_result Returns the result that has been found.
 
   Results *results The results structure to search.
 
   index_t node The node that is to be found.
   ++++++++++++++++++++++++++++++++++++++*/
 
-Result *FindResult1(Results *results,index_t node)
-{
- int bin=node&results->mask;
- score_t best_score=INF_SCORE;
- Result *best_result=NULL;
- int i;
-
- for(i=results->count[bin]-1;i>=0;i--)
-    if(results->point[bin][i]->node==node && results->point[bin][i]->score<best_score)
-      {
-       best_score=results->point[bin][i]->score;
-       best_result=results->point[bin][i];
-      }
-
- return(best_result);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Find a result; search by node and segment.
-
-  Result *FindResult Returns the result that has been found.
-
-  Results *results The results structure to search.
-
-  index_t node The node that is to be found.
-
-  index_t segment The segment that was used to reach this node.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-Result *FindResult(Results *results,index_t node,index_t segment)
+Result *FindResult(Results *results,index_t node)
 {
  int bin=node&results->mask;
  int i;
 
  for(i=results->count[bin]-1;i>=0;i--)
-    if(results->point[bin][i]->node==node && results->point[bin][i]->segment==segment)
+    if(results->point[bin][i]->node==node)
        return(results->point[bin][i]);
 
  return(NULL);
@@ -225,9 +188,9 @@ Result *FindResult(Results *results,index_t node,index_t segment)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Find the first result from a set of results.
+  Find a result from a set of results.
 
-  Result *FirstResult Returns the first result.
+  Result *FirstResult Returns the first results from a set of results.
 
   Results *results The set of results.
   ++++++++++++++++++++++++++++++++++++++*/
@@ -239,9 +202,9 @@ Result *FirstResult(Results *results)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Find the next result from a set of results.
+  Find a result from a set of results.
 
-  Result *NextResult Returns the next result.
+  Result *NextResult Returns the next result from a set of results.
 
   Results *results The set of results.
 
@@ -250,11 +213,12 @@ Result *FirstResult(Results *results)
 
 Result *NextResult(Results *results,Result *result)
 {
- int i,j=0,c=(results->number-1)/(results->nbins*RESULTS_INCREMENT);
+ int c=(results->number-1)/(results->nbins*RESULTS_INCREMENT);
+ int i,j=0;
 
  for(i=0;i<=c;i++)
    {
-    j=result-results->data[i];
+    j=(result-results->data[i]);
 
     if(j>=0 && j<(results->nbins*RESULTS_INCREMENT))
        break;
@@ -267,4 +231,108 @@ Result *NextResult(Results *results,Result *result)
     return(NULL);
 
  return(&results->data[i][j]);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Insert an item into the queue in the right order.
+
+  Result *result The result to insert into the queue.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+void insert_in_queue(Result *result)
+{
+ int start=0;
+ int end=queue.number-1;
+ int mid;
+ int insert=-1;
+
+ /* Check that the array is allocated. */
+
+ if(!queue.xqueue)
+   {
+    queue.alloced=QUEUE_INCREMENT;
+    queue.number=0;
+    queue.xqueue=(Result**)malloc(queue.alloced*sizeof(Result*));
+   }
+
+ /* Check that the arrays have enough space. */
+
+ if(queue.number==queue.alloced)
+   {
+    queue.alloced+=QUEUE_INCREMENT;
+    queue.xqueue=(Result**)realloc((void*)queue.xqueue,queue.alloced*sizeof(Result*));
+   }
+
+ /* Binary search - search key may not match, new insertion point required
+  *
+  *  # <- start  |  Check mid and move start or end if it doesn't match
+  *  #           |
+  *  #           |  Since there may not be an exact match we must set end=mid
+  *  # <- mid    |  or start=mid because we know that mid doesn't match.
+  *  #           |
+  *  #           |  Eventually end=start+1 and the insertion point is before
+  *  # <- end    |  end (since it cannot be before the initial start or end).
+  */
+
+ if(queue.number==0)                                 /* There is nothing in the queue */
+    insert=0;
+ else if(result->sortby>queue.xqueue[start]->sortby) /* Check key is not before start */
+    insert=start;
+ else if(result->sortby<queue.xqueue[end]->sortby)   /* Check key is not after end */
+    insert=end+1;
+ else if(queue.number==2)                            /* Must be between them */
+    insert=1;
+ else
+   {
+    do
+      {
+       mid=(start+end)/2;                                /* Choose mid point */
+
+       if(queue.xqueue[mid]->sortby>result->sortby)      /* Mid point is too low */
+          start=mid;
+       else if(queue.xqueue[mid]->sortby<result->sortby) /* Mid point is too high */
+          end=mid;
+       else                                              /* Mid point is correct */
+         {
+          if(queue.xqueue[mid]==result)
+             return;
+
+          insert=mid;
+          break;
+         }
+      }
+    while((end-start)>1);
+
+    if(insert==-1)
+       insert=end;
+   }
+
+ /* Shuffle the array up */
+
+ if(insert!=queue.number)
+    memmove(&queue.xqueue[insert+1],&queue.xqueue[insert],(queue.number-insert)*sizeof(Result*));
+
+ /* Insert the new entry */
+
+ queue.xqueue[insert]=result;
+
+ queue.number++;
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Pop an item from the end of the queue.
+
+  Result *pop_from_queue Returns the top item.
+
+  Results *results The set of results that the queue is processing.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+Result *pop_from_queue()
+{
+ if(queue.number)
+    return(queue.xqueue[--queue.number]);
+ else
+    return(NULL);
 }

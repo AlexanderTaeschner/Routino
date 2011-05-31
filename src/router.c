@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/router.c,v 1.44 2009-04-08 16:54:34 amb Exp $
+
  OSM router.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -23,353 +25,205 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 #include <ctype.h>
 
 #include "types.h"
+#include "functions.h"
+#include "profiles.h"
 #include "nodes.h"
 #include "segments.h"
 #include "ways.h"
-#include "relations.h"
 
-#include "files.h"
-#include "logging.h"
-#include "functions.h"
-#include "fakes.h"
-#include "translations.h"
-#include "profiles.h"
-
-
-/*+ The maximum distance from the specified point to search for a node or segment (in km). +*/
-#define MAXSEARCH  1
-
-
-/* Global variables */
 
 /*+ The option not to print any progress information. +*/
 int option_quiet=0;
 
-/*+ The options to select the format of the output. +*/
-int option_html=0,option_gpx_track=0,option_gpx_route=0,option_text=0,option_text_all=0,option_none=0;
-
 /*+ The option to calculate the quickest route insted of the shortest. +*/
 int option_quickest=0;
 
-
-/* Local functions */
-
-static void print_usage(int detail,const char *argerr,const char *err);
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  The main program for the router.
-  ++++++++++++++++++++++++++++++++++++++*/
 
 int main(int argc,char** argv)
 {
  Nodes    *OSMNodes;
  Segments *OSMSegments;
  Ways     *OSMWays;
- Relations*OSMRelations;
- Results  *results[NWAYPOINTS+1]={NULL};
- int       point_used[NWAYPOINTS+1]={0};
- double    point_lon[NWAYPOINTS+1],point_lat[NWAYPOINTS+1];
- double    heading=-999;
- int       help_profile=0,help_profile_xml=0,help_profile_json=0,help_profile_pl=0;
- char     *dirname=NULL,*prefix=NULL;
- char     *profiles=NULL,*profilename=NULL;
- char     *translations=NULL,*language=NULL;
- int       exactnodes=0;
+ index_t   start,finish;
+ float     lon_start=999,lat_start=999,lon_finish=999,lat_finish=999;
+ int       help_profile=0,help_profile_js=0,help_profile_pl=0,all=0,super=0,no_output=0;
+ char     *dirname=NULL,*prefix=NULL,*filename;
  Transport transport=Transport_None;
- Profile  *profile=NULL;
- index_t   start_node=NO_NODE,finish_node=NO_NODE;
- index_t   join_segment=NO_SEGMENT;
- int       arg,point;
+ Profile   profile;
+ int i;
 
  /* Parse the command line arguments */
 
  if(argc<2)
-    print_usage(0,NULL,NULL);
-
- /* Get the non-routing, general program options */
-
- for(arg=1;arg<argc;arg++)
    {
-    if(!strcmp(argv[arg],"--help"))
-       print_usage(1,NULL,NULL);
-    else if(!strcmp(argv[arg],"--help-profile"))
-       help_profile=1;
-    else if(!strcmp(argv[arg],"--help-profile-xml"))
-       help_profile_xml=1;
-    else if(!strcmp(argv[arg],"--help-profile-json"))
-       help_profile_json=1;
-    else if(!strcmp(argv[arg],"--help-profile-perl"))
-       help_profile_pl=1;
-    else if(!strncmp(argv[arg],"--dir=",6))
-       dirname=&argv[arg][6];
-    else if(!strncmp(argv[arg],"--prefix=",9))
-       prefix=&argv[arg][9];
-    else if(!strncmp(argv[arg],"--profiles=",11))
-       profiles=&argv[arg][11];
-    else if(!strncmp(argv[arg],"--translations=",15))
-       translations=&argv[arg][15];
-    else if(!strcmp(argv[arg],"--exact-nodes-only"))
-       exactnodes=1;
-    else if(!strcmp(argv[arg],"--quiet"))
-       option_quiet=1;
-    else if(!strcmp(argv[arg],"--loggable"))
-       option_loggable=1;
-    else if(!strcmp(argv[arg],"--output-html"))
-       option_html=1;
-    else if(!strcmp(argv[arg],"--output-gpx-track"))
-       option_gpx_track=1;
-    else if(!strcmp(argv[arg],"--output-gpx-route"))
-       option_gpx_route=1;
-    else if(!strcmp(argv[arg],"--output-text"))
-       option_text=1;
-    else if(!strcmp(argv[arg],"--output-text-all"))
-       option_text_all=1;
-    else if(!strcmp(argv[arg],"--output-none"))
-       option_none=1;
-    else if(!strncmp(argv[arg],"--profile=",10))
-       profilename=&argv[arg][10];
-    else if(!strncmp(argv[arg],"--language=",11))
-       language=&argv[arg][11];
-    else if(!strncmp(argv[arg],"--transport=",12))
-      {
-       transport=TransportType(&argv[arg][12]);
+   usage:
 
-       if(transport==Transport_None)
-          print_usage(0,argv[arg],NULL);
-      }
-    else
-       continue;
+    fprintf(stderr,"Usage: router [--lon1=]<start-lon>  [--lat1=]<start-lat>\n"
+                   "              [--lon2=]<finish-lon> [--lon2=]<finish-lat>\n"
+                   "              [--help | --help-profile | --help-profile-js | --help-profile-pl]\n"
+                   "              [--dir=<name>] [--prefix=<name>]\n"
+                   "              [--shortest | --quickest]\n"
+                   "              [--all | --super]\n"
+                   "              [--no-output] [--quiet]\n"
+                   "              [--transport=<transport>]\n"
+                   "              [--highway-<highway>=[0|1] ...]\n"
+                   "              [--speed-<highway>=<speed> ...]\n"
+                   "              [--oneway=[0|1]]\n"
+                   "              [--weight=<weight>]\n"
+                   "              [--height=<height>] [--width=<width>] [--length=<length>]\n"
+                   "\n"
+                   "<transport> defaults to motorcar but can be set to:\n"
+                   "%s"
+                   "\n"
+                   "<highway> can be selected from:\n"
+                   "%s"
+                   "\n"
+                   "<speed> is a speed in km/hour\n"
+                   "<weight> is a weight in tonnes\n"
+                   "<height>, <width>, <length> are dimensions in metres\n"
+                   "\n",
+                   TransportList(),HighwayList());
 
-    argv[arg]=NULL;
+    return(1);
    }
 
- /* Load in the profiles */
+ /* Get the transport type if specified and fill in the default profile */
+
+ for(i=1;i<argc;i++)
+    if(!strncmp(argv[i],"--transport=",12))
+      {
+       transport=TransportType(&argv[i][12]);
+
+       if(transport==Transport_None)
+          goto usage;
+      }
 
  if(transport==Transport_None)
     transport=Transport_Motorcar;
 
- if(profiles)
-   {
-    if(!ExistsFile(profiles))
-      {
-       fprintf(stderr,"Error: The '--profiles' option specifies a file that does not exist.\n");
-       return(1);
-      }
-   }
- else
-   {
-    if(ExistsFile(FileName(dirname,prefix,"profiles.xml")))
-       profiles=FileName(dirname,prefix,"profiles.xml");
-    else if(ExistsFile(FileName(DATADIR,NULL,"tagging.xml")))
-       profiles=FileName(DATADIR,NULL,"profiles.xml");
-    else
-      {
-       fprintf(stderr,"Error: The '--profiles' option was not used and the default 'profiles.xml' does not exist.\n");
-       return(1);
-      }
-   }
-
- if(ParseXMLProfiles(profiles))
-   {
-    fprintf(stderr,"Error: Cannot read the profiles in the file '%s'.\n",profiles);
-    return(1);
-   }
-
- /* Choose the selected profile. */
-
- if(profilename)
-   {
-    profile=GetProfile(profilename);
-
-    if(!profile)
-      {
-       fprintf(stderr,"Error: Cannot find a profile called '%s' in '%s'.\n",profilename,profiles);
-       return(1);
-      }
-   }
- else
-    profile=GetProfile(TransportName(transport));
-
- if(!profile)
-   {
-    profile=(Profile*)calloc(1,sizeof(Profile));
-    profile->transport=transport;
-   }
+ profile=*GetProfile(transport);
 
  /* Parse the other command line arguments */
 
- for(arg=1;arg<argc;arg++)
+ while(--argc>=1)
    {
-    if(!argv[arg])
-       continue;
-    else if(!strcmp(argv[arg],"--shortest"))
+    if(isdigit(argv[argc][0]) ||
+       ((argv[argc][0]=='-' || argv[argc][0]=='+') && isdigit(argv[argc][1])))
+      {
+       if(lon_finish==999)
+          lon_finish=(M_PI/180)*atof(argv[argc]);
+       else if(lat_finish==999)
+          lat_finish=(M_PI/180)*atof(argv[argc]);
+       else if(lon_start==999)
+          lon_start=(M_PI/180)*atof(argv[argc]);
+       else if(lat_start==999)
+          lat_start=(M_PI/180)*atof(argv[argc]);
+       else
+          goto usage;
+      }
+    else if(!strncmp(argv[argc],"--lat1=",7))
+       lat_start=(M_PI/180)*atof(&argv[argc][7]);
+    else if(!strncmp(argv[argc],"--lon1=",7))
+       lon_start=(M_PI/180)*atof(&argv[argc][7]);
+    else if(!strncmp(argv[argc],"--lat2=",7))
+       lat_finish=(M_PI/180)*atof(&argv[argc][7]);
+    else if(!strncmp(argv[argc],"--lon2=",7))
+       lon_finish=(M_PI/180)*atof(&argv[argc][7]);
+    else if(!strcmp(argv[argc],"--help"))
+       goto usage;
+    else if(!strcmp(argv[argc],"--help-profile"))
+       help_profile=1;
+    else if(!strcmp(argv[argc],"--help-profile-js"))
+       help_profile_js=1;
+    else if(!strcmp(argv[argc],"--help-profile-pl"))
+       help_profile_pl=1;
+    else if(!strncmp(argv[argc],"--dir=",6))
+       dirname=&argv[argc][6];
+    else if(!strncmp(argv[argc],"--prefix=",9))
+       prefix=&argv[argc][9];
+    else if(!strcmp(argv[argc],"--shortest"))
        option_quickest=0;
-    else if(!strcmp(argv[arg],"--quickest"))
+    else if(!strcmp(argv[argc],"--quickest"))
        option_quickest=1;
-    else if(isdigit(argv[arg][0]) ||
-       ((argv[arg][0]=='-' || argv[arg][0]=='+') && isdigit(argv[arg][1])))
-      {
-       for(point=1;point<=NWAYPOINTS;point++)
-          if(point_used[point]!=3)
-            {
-             if(point_used[point]==0)
-               {
-                point_lon[point]=degrees_to_radians(atof(argv[arg]));
-                point_used[point]=1;
-               }
-             else /* if(point_used[point]==1) */
-               {
-                point_lat[point]=degrees_to_radians(atof(argv[arg]));
-                point_used[point]=3;
-               }
-             break;
-            }
-      }
-     else if(!strncmp(argv[arg],"--lon",5) && isdigit(argv[arg][5]))
-       {
-        char *p=&argv[arg][6];
-        while(isdigit(*p)) p++;
-        if(*p++!='=')
-           print_usage(0,argv[arg],NULL);
- 
-        point=atoi(&argv[arg][5]);
-        if(point>NWAYPOINTS || point_used[point]&1)
-           print_usage(0,argv[arg],NULL);
- 
-       point_lon[point]=degrees_to_radians(atof(p));
-       point_used[point]+=1;
-      }
-     else if(!strncmp(argv[arg],"--lat",5) && isdigit(argv[arg][5]))
-       {
-        char *p=&argv[arg][6];
-        while(isdigit(*p)) p++;
-        if(*p++!='=')
-           print_usage(0,argv[arg],NULL);
- 
-        point=atoi(&argv[arg][5]);
-        if(point>NWAYPOINTS || point_used[point]&2)
-           print_usage(0,argv[arg],NULL);
- 
-       point_lat[point]=degrees_to_radians(atof(p));
-       point_used[point]+=2;
-      }
-    else if(!strncmp(argv[arg],"--heading=",10))
-      {
-       double h=atof(&argv[arg][10]);
-
-       if(h>=-360 && h<=360)
-         {
-          heading=h;
-
-          if(heading<0) heading+=360;
-         }
-      }
-    else if(!strncmp(argv[arg],"--transport=",12))
-       ; /* Done this already */
-    else if(!strncmp(argv[arg],"--highway-",10))
+    else if(!strcmp(argv[argc],"--all"))
+       all=1;
+    else if(!strcmp(argv[argc],"--super"))
+       super=1;
+    else if(!strcmp(argv[argc],"--no-output"))
+       no_output=1;
+    else if(!strcmp(argv[argc],"--quiet"))
+       option_quiet=1;
+    else if(!strncmp(argv[argc],"--transport=",12))
+       ; /* Done this already*/
+    else if(!strncmp(argv[argc],"--highway-",10))
       {
        Highway highway;
-       char *equal=strchr(argv[arg],'=');
+       char *equal=strchr(argv[argc],'=');
        char *string;
 
        if(!equal)
-           print_usage(0,argv[arg],NULL);
+          goto usage;
 
-       string=strcpy((char*)malloc(strlen(argv[arg])),argv[arg]+10);
-       string[equal-argv[arg]-10]=0;
+       string=strcpy((char*)malloc(strlen(argv[argc])),argv[argc]+10);
+       string[equal-argv[argc]-10]=0;
 
        highway=HighwayType(string);
 
-       if(highway==Way_Count)
-          print_usage(0,argv[arg],NULL);
-
-       profile->highway[highway]=atof(equal+1);
-
        free(string);
+
+       if(highway==Way_Unknown)
+          goto usage;
+
+       profile.highways[highway]=atoi(equal+1);
       }
-    else if(!strncmp(argv[arg],"--speed-",8))
+    else if(!strncmp(argv[argc],"--speed-",8))
       {
        Highway highway;
-       char *equal=strchr(argv[arg],'=');
+       char *equal=strchr(argv[argc],'=');
        char *string;
 
        if(!equal)
-          print_usage(0,argv[arg],NULL);
+          goto usage;
 
-       string=strcpy((char*)malloc(strlen(argv[arg])),argv[arg]+8);
-       string[equal-argv[arg]-8]=0;
+       string=strcpy((char*)malloc(strlen(argv[argc])),argv[argc]+8);
+       string[equal-argv[argc]-8]=0;
 
        highway=HighwayType(string);
 
-       if(highway==Way_Count)
-          print_usage(0,argv[arg],NULL);
-
-       profile->speed[highway]=kph_to_speed(atof(equal+1));
-
        free(string);
+
+       if(highway==Way_Unknown)
+          goto usage;
+
+       profile.speed[highway]=atoi(equal+1);
       }
-    else if(!strncmp(argv[arg],"--property-",11))
-      {
-       Property property;
-       char *equal=strchr(argv[arg],'=');
-       char *string;
-
-       if(!equal)
-          print_usage(0,argv[arg],NULL);
-
-       string=strcpy((char*)malloc(strlen(argv[arg])),argv[arg]+11);
-       string[equal-argv[arg]-11]=0;
-
-       property=PropertyType(string);
-
-       if(property==Property_Count)
-          print_usage(0,argv[arg],NULL);
-
-       profile->props_yes[property]=atof(equal+1);
-
-       free(string);
-      }
-    else if(!strncmp(argv[arg],"--oneway=",9))
-       profile->oneway=!!atoi(&argv[arg][9]);
-    else if(!strncmp(argv[arg],"--turns=",8))
-       profile->turns=!!atoi(&argv[arg][8]);
-    else if(!strncmp(argv[arg],"--weight=",9))
-       profile->weight=tonnes_to_weight(atof(&argv[arg][9]));
-    else if(!strncmp(argv[arg],"--height=",9))
-       profile->height=metres_to_height(atof(&argv[arg][9]));
-    else if(!strncmp(argv[arg],"--width=",8))
-       profile->width=metres_to_width(atof(&argv[arg][8]));
-    else if(!strncmp(argv[arg],"--length=",9))
-       profile->length=metres_to_length(atof(&argv[arg][9]));
+    else if(!strncmp(argv[argc],"--oneway=",9))
+       profile.oneway=atoi(&argv[argc][9]);
+    else if(!strncmp(argv[argc],"--weight=",9))
+       profile.weight=tonnes_to_weight(atof(&argv[argc][9]));
+    else if(!strncmp(argv[argc],"--height=",9))
+       profile.height=metres_to_height(atof(&argv[argc][9]));
+    else if(!strncmp(argv[argc],"--width=",8))
+       profile.width=metres_to_width(atof(&argv[argc][8]));
+    else if(!strncmp(argv[argc],"--length=",9))
+       profile.length=metres_to_length(atof(&argv[argc][9]));
     else
-       print_usage(0,argv[arg],NULL);
+       goto usage;
    }
-
- for(point=1;point<=NWAYPOINTS;point++)
-    if(point_used[point]==1 || point_used[point]==2)
-       print_usage(0,NULL,"All waypoints must have latitude and longitude.");
-
- /* Print one of the profiles if requested */
 
  if(help_profile)
    {
-    PrintProfile(profile);
+    PrintProfile(&profile);
 
     return(0);
    }
- else if(help_profile_xml)
+ else if(help_profile_js)
    {
-    PrintProfilesXML();
-
-    return(0);
-   }
- else if(help_profile_json)
-   {
-    PrintProfilesJSON();
+    PrintProfilesJS();
 
     return(0);
    }
@@ -380,336 +234,195 @@ int main(int argc,char** argv)
     return(0);
    }
 
- /* Load in the translations */
+ /* Load in the data */
 
- if(option_html==0 && option_gpx_track==0 && option_gpx_route==0 && option_text==0 && option_text_all==0 && option_none==0)
-    option_html=option_gpx_track=option_gpx_route=option_text=option_text_all=1;
+ filename=(char*)malloc((dirname?strlen(dirname):0)+(prefix?strlen(prefix):0)+16);
 
- if(option_html || option_gpx_route || option_gpx_track)
+ sprintf(filename,"%s%s%s%snodes.mem",dirname?dirname:"",dirname?"/":"",prefix?prefix:"",prefix?"-":"");
+ OSMNodes=LoadNodeList(filename);
+
+ if(!OSMNodes)
    {
-    if(translations)
-      {
-       if(!ExistsFile(translations))
-         {
-          fprintf(stderr,"Error: The '--translations' option specifies a file that does not exist.\n");
-          return(1);
-         }
-      }
-    else
-      {
-       if(ExistsFile(FileName(dirname,prefix,"translations.xml")))
-          translations=FileName(dirname,prefix,"translations.xml");
-       else if(ExistsFile(FileName(DATADIR,NULL,"translations.xml")))
-          translations=FileName(DATADIR,NULL,"translations.xml");
-       else
-         {
-          fprintf(stderr,"Error: The '--translations' option was not used and the default 'translations.xml' does not exist.\n");
-          return(1);
-         }
-      }
-
-    if(ParseXMLTranslations(translations,language))
-      {
-       fprintf(stderr,"Error: Cannot read the translations in the file '%s'.\n",translations);
-       return(1);
-      }
-   }
-
- /* Load in the data - Note: No error checking because Load*List() will call exit() in case of an error. */
-
- OSMNodes=LoadNodeList(FileName(dirname,prefix,"nodes.mem"));
-
- OSMSegments=LoadSegmentList(FileName(dirname,prefix,"segments.mem"));
-
- OSMWays=LoadWayList(FileName(dirname,prefix,"ways.mem"));
-
- OSMRelations=LoadRelationList(FileName(dirname,prefix,"relations.mem"));
-
- if(UpdateProfile(profile,OSMWays))
-   {
-    fprintf(stderr,"Error: Profile is invalid or not compatible with database.\n");
+    fprintf(stderr,"Cannot open nodes file '%s'.\n",filename);
     return(1);
    }
 
- /* Loop through all pairs of points */
+ sprintf(filename,"%s%s%s%ssegments.mem",dirname?dirname:"",dirname?"/":"",prefix?prefix:"",prefix?"-":"");
+ OSMSegments=LoadSegmentList(filename);
 
- for(point=1;point<=NWAYPOINTS;point++)
+ if(!OSMSegments)
    {
-    Results *begin,*end;
-    Result *finish_result;
-    distance_t distmax=km_to_distance(MAXSEARCH);
-    distance_t distmin;
-    index_t segment=NO_SEGMENT;
-    index_t node1,node2;
-    int     nsuper=0;
+    fprintf(stderr,"Cannot open segments file '%s'.\n",filename);
+    return(1);
+   }
 
-    if(point_used[point]!=3)
-       continue;
+ sprintf(filename,"%s%s%s%sways.mem",dirname?dirname:"",dirname?"/":"",prefix?prefix:"",prefix?"-":"");
+ OSMWays=LoadWayList(filename);
 
-    /* Find the closest point */
+ if(!OSMWays)
+   {
+    fprintf(stderr,"Cannot open ways file '%s'.\n",filename);
+    return(1);
+   }
 
-    start_node=finish_node;
+ /* Get the start and finish */
 
-    if(exactnodes)
+   {
+    distance_t dist_start=km_to_distance(10),dist_finish=km_to_distance(10);
+
+    Node *start_node =FindNode(OSMNodes,lat_start ,lon_start ,&dist_start );
+    Node *finish_node=FindNode(OSMNodes,lat_finish,lon_finish,&dist_finish);
+
+    if(!start_node)
       {
-       finish_node=FindClosestNode(OSMNodes,OSMSegments,OSMWays,point_lat[point],point_lon[point],distmax,profile,&distmin);
-      }
-    else
-      {
-       distance_t dist1,dist2;
-
-       segment=FindClosestSegment(OSMNodes,OSMSegments,OSMWays,point_lat[point],point_lon[point],distmax,profile,&distmin,&node1,&node2,&dist1,&dist2);
-
-       if(segment!=NO_SEGMENT)
-          finish_node=CreateFakes(OSMNodes,OSMSegments,point,LookupSegment(OSMSegments,segment,1),node1,node2,dist1,dist2);
-       else
-          finish_node=NO_NODE;
+       fprintf(stderr,"Cannot find start node.\n");
+       return(1);
       }
 
-    if(finish_node==NO_NODE)
+    if(!finish_node)
       {
-       fprintf(stderr,"Error: Cannot find node close to specified point %d.\n",point);
+       fprintf(stderr,"Cannot find finish node.\n");
        return(1);
       }
 
     if(!option_quiet)
       {
-       double lat,lon;
+       float lat,lon;
 
-       if(IsFakeNode(finish_node))
-          GetFakeLatLong(finish_node,&lat,&lon);
-       else
-          GetLatLong(OSMNodes,finish_node,&lat,&lon);
+       GetLatLong(OSMNodes,start_node,&lat,&lon);
 
-       if(IsFakeNode(finish_node))
-          printf("Point %d is segment %d (node %d -> %d): %3.6f %4.6f = %2.3f km\n",point,segment,node1,node2,
-                 radians_to_degrees(lon),radians_to_degrees(lat),distance_to_km(distmin));
-       else
-          printf("Point %d is node %d: %3.6f %4.6f = %2.3f km\n",point,finish_node,
-                 radians_to_degrees(lon),radians_to_degrees(lat),distance_to_km(distmin));
+       printf("Start node : %3.6f %4.6f = %2.3f km\n",(180.0/M_PI)*lat,(180.0/M_PI)*lon,distance_to_km(dist_start));
+
+       GetLatLong(OSMNodes,finish_node,&lat,&lon);
+
+       printf("Finish node: %3.6f %4.6f = %2.3f km\n",(180.0/M_PI)*lat,(180.0/M_PI)*lon,distance_to_km(dist_finish));
       }
 
-    if(start_node==NO_NODE)
-       continue;
+    start =IndexNode(OSMNodes,start_node );
+    finish=IndexNode(OSMNodes,finish_node);
 
-    if(start_node==finish_node)
-       continue;
+    if(super && !IsSuperNode(start_node) && !IsSuperNode(finish_node))
+      {
+       fprintf(stderr,"Start and/or finish nodes are not super-nodes.\n");
+       return(1);
+      }
+   }
 
-    if(heading!=-999 && join_segment==NO_SEGMENT)
-       join_segment=FindClosestSegmentHeading(OSMNodes,OSMSegments,OSMWays,start_node,heading,profile);
+ /* Calculate the route. */
+
+ if(all)
+   {
+    Results *results;
+
+    /* Calculate the route */
+
+    results=FindRoute(OSMNodes,OSMSegments,OSMWays,start,finish,&profile,all);
+
+    /* Print the route */
+
+    if(!results)
+      {
+       fprintf(stderr,"Cannot find route compatible with profile.\n");
+       return(1);
+      }
+    else if(!no_output)
+       PrintRoute(results,OSMNodes,OSMSegments,OSMWays,start,finish,&profile);
+   }
+ else
+   {
+    Results *begin,*end;
 
     /* Calculate the beginning of the route */
 
-    begin=FindStartRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,join_segment,finish_node,&nsuper);
-
-    if(!begin)
+    if(IsSuperNode(LookupNode(OSMNodes,start)))
       {
-       /* Try again but allow a U-turn at the start waypoint -
-          this solves the problem of facing a dead-end that contains no super-nodes. */
+       Result *result;
 
-       begin=FindStartRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,NO_SEGMENT,finish_node,&nsuper);
-      }
+       begin=NewResultsList(1);
 
-    if(!begin)
-      {
-       fprintf(stderr,"Error: Cannot find initial section of route compatible with profile.\n");
-       return(1);
-      }
+       result=InsertResult(begin,start);
 
-    if(nsuper==0 && (finish_result=FindResult1(begin,finish_node)))
-      {
-       FixForwardRoute(begin,finish_result);
-
-       results[point]=begin;
-
-       if(!option_quiet)
-         {
-          printf("Routed: Super-Nodes Checked = 0\n");
-          fflush(stdout);
-         }
+       result->node=start;
+       result->prev=0;
+       result->next=0;
+       result->distance=0;
+       result->duration=0;
       }
     else
       {
-       Results *middle;
+       begin=FindStartRoutes(OSMNodes,OSMSegments,OSMWays,start,&profile);
+
+       if(!begin)
+         {
+          fprintf(stderr,"Cannot find initial section of route compatible with profile.\n");
+          return(1);
+         }
+      }
+
+    if(FindResult(begin,finish))
+      {
+       /* Print the route */
+
+       if(!no_output)
+          PrintRoute(begin,OSMNodes,OSMSegments,OSMWays,start,finish,&profile);
+      }
+    else
+      {
+       Results *superresults;
 
        /* Calculate the end of the route */
 
-       end=FindFinishRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,finish_node);
-
-       if(!end)
+       if(IsSuperNode(LookupNode(OSMNodes,finish)))
          {
-          fprintf(stderr,"Error: Cannot find final section of route compatible with profile.\n");
-          return(1);
+          Result *result;
+
+          end=NewResultsList(1);
+
+          result=InsertResult(end,finish);
+
+          result->node=finish;
+          result->prev=0;
+          result->next=0;
+          result->distance=0;
+          result->duration=0;
+         }
+       else
+         {
+          end=FindFinishRoutes(OSMNodes,OSMSegments,OSMWays,finish,&profile);
+
+          if(!end)
+            {
+             fprintf(stderr,"Cannot find final section of route compatible with profile.\n");
+             return(1);
+            }
          }
 
        /* Calculate the middle of the route */
 
-       middle=FindMiddleRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,begin,end);
+       superresults=FindRoute3(OSMNodes,OSMSegments,OSMWays,start,finish,begin,end,&profile);
 
-       if(!middle)
+       /* Print the route */
+
+       if(!superresults)
          {
-          /* Try again but allow a U-turn at the start waypoint -
-             this solves the problem of facing a dead-end that contains some super-nodes. */
-
-          FreeResultsList(begin);
-
-          begin=FindStartRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,NO_SEGMENT,finish_node,&nsuper);
-
-          middle=FindMiddleRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,begin,end);
-         }
-
-       FreeResultsList(end);
-
-       if(!middle)
-         {
-          fprintf(stderr,"Error: Cannot find super-route compatible with profile.\n");
+          fprintf(stderr,"Cannot find route compatible with profile.\n");
           return(1);
          }
-
-       results[point]=CombineRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,begin,middle);
-
-       FreeResultsList(begin);
-
-       if(!results[point])
+       else if(!no_output)
          {
-          fprintf(stderr,"Error: Cannot find route compatible with profile.\n");
-          return(1);
-         }
+          if(super)
+            {
+             PrintRoute(superresults,OSMNodes,OSMSegments,OSMWays,start,finish,&profile);
+            }
+          else
+            {
+             Results *results=CombineRoutes(superresults,OSMNodes,OSMSegments,OSMWays,start,finish,&profile);
 
-       FreeResultsList(middle);
+             PrintRoute(results,OSMNodes,OSMSegments,OSMWays,start,finish,&profile);
+            }
+         }
       }
-
-    join_segment=results[point]->last_segment;
    }
-
- if(!option_quiet)
-   {
-    printf("Routed OK\n");
-    fflush(stdout);
-   }
-
- /* Print out the combined route */
-
- if(!option_none)
-    PrintRoute(results,NWAYPOINTS,OSMNodes,OSMSegments,OSMWays,profile);
 
  return(0);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Print out the usage information.
-
-  int detail The level of detail to use - 0 = low, 1 = high.
-
-  const char *argerr The argument that gave the error (if there is one).
-
-  const char *err Other error message (if there is one).
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static void print_usage(int detail,const char *argerr,const char *err)
-{
- fprintf(stderr,
-         "Usage: router [--help | --help-profile | --help-profile-xml |\n"
-         "                        --help-profile-json | --help-profile-perl ]\n"
-         "              [--dir=<dirname>] [--prefix=<name>]\n"
-         "              [--profiles=<filename>] [--translations=<filename>]\n"
-         "              [--exact-nodes-only]\n"
-         "              [--loggable | --quiet]\n"
-         "              [--language=<lang>]\n"
-         "              [--output-html]\n"
-         "              [--output-gpx-track] [--output-gpx-route]\n"
-         "              [--output-text] [--output-text-all]\n"
-         "              [--output-none]\n"
-         "              [--profile=<name>]\n"
-         "              [--transport=<transport>]\n"
-         "              [--shortest | --quickest]\n"
-         "              --lon1=<longitude> --lat1=<latitude>\n"
-         "              --lon2=<longitude> --lon2=<latitude>\n"
-         "              [ ... --lon99=<longitude> --lon99=<latitude>]\n"
-         "              [--highway-<highway>=<preference> ...]\n"
-         "              [--speed-<highway>=<speed> ...]\n"
-         "              [--property-<property>=<preference> ...]\n"
-         "              [--oneway=(0|1)] [--turns=(0|1)]\n"
-         "              [--weight=<weight>]\n"
-         "              [--height=<height>] [--width=<width>] [--length=<length>]\n");
-
- if(argerr)
-    fprintf(stderr,
-            "\n"
-            "Error with command line parameter: %s\n",argerr);
-
- if(err)
-    fprintf(stderr,
-            "\n"
-            "Error: %s\n",err);
-
- if(detail)
-    fprintf(stderr,
-            "\n"
-            "--help                  Prints this information.\n"
-            "--help-profile          Prints the information about the selected profile.\n"
-            "--help-profile-xml      Prints all loaded profiles in XML format.\n"
-            "--help-profile-json     Prints all loaded profiles in JSON format.\n"
-            "--help-profile-perl     Prints all loaded profiles in Perl format.\n"
-            "\n"
-            "--dir=<dirname>         The directory containing the routing database.\n"
-            "--prefix=<name>         The filename prefix for the routing database.\n"
-            "--profiles=<filename>   The name of the XML file containing the profiles\n"
-            "                        (defaults to 'profiles.xml' with '--dir' and\n"
-            "                         '--prefix' options or the file installed in\n"
-            "                         '" DATADIR "').\n"
-            "--translations=<fname>  The name of the XML file containing the translations\n"
-            "                        (defaults to 'translations.xml' with '--dir' and\n"
-            "                         '--prefix' options or the file installed in\n"
-            "                         '" DATADIR "').\n"
-            "\n"
-            "--exact-nodes-only      Only route between nodes (don't find closest segment).\n"
-            "\n"
-            "--loggable              Print progress messages suitable for logging to file.\n"
-            "--quiet                 Don't print any screen output when running.\n"
-            "\n"
-            "--language=<lang>       Use the translations for specified language.\n"
-            "--output-html           Write an HTML description of the route.\n"
-            "--output-gpx-track      Write a GPX track file with all route points.\n"
-            "--output-gpx-route      Write a GPX route file with interesting junctions.\n"
-            "--output-text           Write a plain text file with interesting junctions.\n"
-            "--output-text-all       Write a plain test file with all route points.\n"
-            "--output-none           Don't write any output files or read any translations.\n"
-            "                        (If no output option is given then all are written.)\n"
-            "\n"
-            "--profile=<name>        Select the loaded profile with this name.\n"
-            "--transport=<transport> Select the transport to use (selects the profile\n"
-            "                        named after the transport if '--profile' is not used.)\n"
-            "\n"
-            "--shortest              Find the shortest route between the waypoints.\n"
-            "--quickest              Find the quickest route between the waypoints.\n"
-            "\n"
-            "--lon<n>=<longitude>    Specify the longitude of the n'th waypoint.\n"
-            "--lat<n>=<latitude>     Specify the latitude of the n'th waypoint.\n"
-            "\n"
-            "--heading=<bearing>     Initial compass bearing at lowest numbered waypoint.\n"
-            "\n"
-            "                                   Routing preference options\n"
-            "--highway-<highway>=<preference>   * preference for highway type (%%).\n"
-            "--speed-<highway>=<speed>          * speed for highway type (km/h).\n"
-            "--property-<property>=<preference> * preference for proprty type (%%).\n"
-            "--oneway=(0|1)                     * oneway restrictions are to be obeyed.\n"
-            "--turns=(0|1)                      * turn restrictions are to be obeyed.\n"
-            "--weight=<weight>                  * maximum weight limit (tonnes).\n"
-            "--height=<height>                  * maximum height limit (metres).\n"
-            "--width=<width>                    * maximum width limit (metres).\n"
-            "--length=<length>                  * maximum length limit (metres).\n"
-            "\n"
-            "<transport> defaults to motorcar but can be set to:\n"
-            "%s"
-            "\n"
-            "<highway> can be selected from:\n"
-            "%s"
-            "\n"
-            "<property> can be selected from:\n"
-            "%s",
-            TransportList(),HighwayList(),PropertyList());
-
- exit(!detail);
 }

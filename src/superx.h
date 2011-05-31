@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/superx.h,v 1.2 2009-04-08 16:54:34 amb Exp $
+
  Header for super-node and super-segment functions.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -23,16 +25,20 @@
 #ifndef SUPERX_H
 #define SUPERX_H    /*+ To stop multiple inclusions. +*/
 
-#include "typesx.h"
+#include "types.h"
+#include "results.h"
+#include "nodesx.h"
+#include "segmentsx.h"
+#include "waysx.h"
 
 
-/* Functions in superx.c */
+void ChooseSuperNodes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,int iteration);
 
-void ChooseSuperNodes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx);
+SegmentsX *CreateSuperSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,int iteration);
 
-SegmentsX *CreateSuperSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx);
+void MergeSuperSegments(SegmentsX* segmentsx,SegmentsX* supersegmentsx);
 
-SegmentsX *MergeSuperSegments(SegmentsX *segmentsx,SegmentsX *supersegmentsx);
+Results *FindRoutesWay(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,node_t start,WayX *match,int iteration);
 
 
 #endif /* SUPERX_H */

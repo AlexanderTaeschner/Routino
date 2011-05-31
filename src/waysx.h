@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/waysx.h,v 1.3 2009-04-08 16:54:34 amb Exp $
+
  A header file for the extended Ways structure.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -26,11 +28,7 @@
 #include <stdint.h>
 
 #include "types.h"
-
-#include "typesx.h"
 #include "ways.h"
-
-#include "files.h"
 
 
 /* Data structures */
@@ -39,9 +37,7 @@
 /*+ An extended structure containing a single way. +*/
 struct _WayX
 {
- way_t    id;                   /*+ The way identifier; the OSM value. +*/
-
- index_t  prop;                 /*+ The index of the properties of the way in the compacted list. +*/
+ char    *name;                 /*+ The name of the way. +*/
 
  Way      way;                  /*+ The real Way data. +*/
 };
@@ -50,104 +46,36 @@ struct _WayX
 /*+ A structure containing a set of ways (memory format). +*/
 struct _WaysX
 {
- char    *filename;             /*+ The name of the temporary file (for the WaysX). +*/
- int      fd;                   /*+ The file descriptor of the temporary file (for the WaysX). +*/
+ uint32_t sorted;               /*+ Is the data sorted? +*/
+ uint32_t alloced;              /*+ How many entries are allocated? +*/
+ uint32_t number;               /*+ How many entries are used? +*/
+ uint32_t length;               /*+ How long is the string of name entries? +*/
 
- index_t  number;               /*+ The number of extended ways still being considered. +*/
-
-#if !SLIM
-
- WayX    *data;                 /*+ The extended ways data (when mapped into memory). +*/
-
-#else
-
- WayX     cached[2];            /*+ Two cached ways read from the file in slim mode. +*/
-
-#endif
-
- index_t  cnumber;              /*+ The number of entries after compacting. +*/
-
- index_t *idata;                /*+ The index of the extended data for the Ways (sorted by ID). +*/
-
- char    *nfilename;            /*+ The name of the temporary file (for the names). +*/
- int      nfd;                  /*+ The file descriptor of the temporary file (for the names). +*/
-
- uint32_t nlength;              /*+ The length of the string of name entries. +*/
+ WayX    *idata;                /*+ The extended data for the Ways (sorted by index). +*/
+ WayX   **ndata;                /*+ The extended data for the Ways (sorted by name). +*/
+ char    *names;                /*+ The array containing all the names. +*/
 };
 
 
-/* Functions in waysx.c */
+/* Macros */
 
 
-WaysX *NewWayList(int append);
-void FreeWayList(WaysX *waysx,int keep);
+#define LookupWayX(xxx,yyy) (&(xxx)->idata[yyy])
+
+#define IndexWayX(xxx,yyy)  ((yyy)-&(xxx)->idata[0])
+
+
+/* Functions */
+
+
+WaysX *NewWayList(void);
 
 void SaveWayList(WaysX *waysx,const char *filename);
 
-index_t IndexWayX(WaysX *waysx,way_t id);
-
-void AppendWay(WaysX *waysx,way_t id,Way *way,const char *name);
+Way *AppendWay(WaysX* waysx,const char *name);
 
 void SortWayList(WaysX *waysx);
 
-void CompactWayList(WaysX *waysx);
-
-
-/* Macros / inline functions */
-
-#if !SLIM
-
-#define LookupWayX(waysx,index,position)  &(waysx)->data[index]
-  
-#define PutBackWayX(waysx,index,position) /* nop */
-
-#else
-
-static WayX *LookupWayX(WaysX *waysx,index_t index,int position);
-
-static void PutBackWayX(WaysX *waysx,index_t index,int position);
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Lookup a particular extended way with the specified id from the file on disk.
-
-  WayX *LookupWayX Returns a pointer to a cached copy of the extended way.
-
-  WaysX *waysx The set of ways to use.
-
-  index_t index The way index to look for.
-
-  int position The position in the cache to use.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static inline WayX *LookupWayX(WaysX *waysx,index_t index,int position)
-{
- SeekFile(waysx->fd,(off_t)index*sizeof(WayX));
-
- ReadFile(waysx->fd,&waysx->cached[position-1],sizeof(WayX));
-
- return(&waysx->cached[position-1]);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Put back an extended way's data into the file on disk.
-
-  WaysX *waysx The set of ways to use.
-
-  index_t index The way index to put back.
-
-  int position The position in the cache to use.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static inline void PutBackWayX(WaysX *waysx,index_t index,int position)
-{
- SeekFile(waysx->fd,(off_t)index*sizeof(WayX));
-
- WriteFile(waysx->fd,&waysx->cached[position-1],sizeof(WayX));
-}
-
-#endif /* SLIM */
-
+int WaysSame(Way *way1,Way *way2);
 
 #endif /* WAYSX_H */
