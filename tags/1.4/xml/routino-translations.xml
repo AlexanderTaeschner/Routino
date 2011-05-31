@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- ============================================================
+     $Header: /home/amb/CVS/routino/xml/routino-translations.xml,v 1.3 2010-05-29 13:54:43 amb Exp $
+
+     An XML format file containing Routino output translations.
+
+     Part of the Routino routing software.
+     ============================================================
+     This file Copyright 2010 Andrew M. Bishop
+
+     This program is free software: you can redistribute it and/or modify
+     it under the terms of the GNU Affero General Public License as published by
+     the Free Software Foundation, either version 3 of the License, or
+     (at your option) any later version.
+     ============================================================ -->
+
+<routino-translations xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="routino-translations.xsd">
+
+  <language lang="en">
+
+    <!-- Copyright of the data being routed, not of this file  -->
+    <copyright>
+      <creator string="Creator" text="Routino - http://www.gedanken.org.uk/mapping/routino/" />
+      <source  string="Source"  text="Based on OpenStreetMap data from http://www.openstreetmap.org/" />
+      <license string="License" text="http://creativecommons.org/licenses/by-sa/2.0/" />
+    </copyright>
+
+    <!-- Turn directions, 0 = ahead, -2 = left, +/-4 = behind, +2 = right -->
+    <turn direction="-4" string="Very sharp left" />
+    <turn direction="-3" string="Sharp left" />
+    <turn direction="-2" string="Left" />
+    <turn direction="-1" string="Slight left" />
+    <turn direction="0"  string="Straight on" />
+    <turn direction="1"  string="Slight right" />
+    <turn direction="2"  string="Right" />
+    <turn direction="3"  string="Sharp right" />
+    <turn direction="4"  string="Very sharp right" />
+
+    <!-- Heading directions, 0 = North, -2 = West, +/-4 = South, +2 = East -->
+    <heading direction="-4" string="South" />
+    <heading direction="-3" string="South-West" />
+    <heading direction="-2" string="West" />
+    <heading direction="-1" string="North-West" />
+    <heading direction="0"  string="North" />
+    <heading direction="1"  string="North-East" />
+    <heading direction="2"  string="East" />
+    <heading direction="3"  string="South-East" />
+    <heading direction="4"  string="South" />
+
+    <!-- Highway names -->
+    <highway type="motorway"     string="motorway" />
+    <highway type="trunk"        string="trunk road" />
+    <highway type="primary"      string="primary road" />
+    <highway type="secondary"    string="secondary road" />
+    <highway type="tertiary"     string="tertiary road" />
+    <highway type="unclassified" string="unclassified road" />
+    <highway type="residential"  string="residential road" />
+    <highway type="service"      string="service road" />
+    <highway type="track"        string="track" />
+    <highway type="cycleway"     string="cycleway" />
+    <highway type="path"         string="path" />
+    <highway type="steps"        string="steps" />
+
+    <!-- The type of route -->
+    <route type="shortest" string="Shortest" /> <!-- For the description and route name -->
+    <route type="quickest" string="Quickest" /> <!-- For the description and route name -->
+
+    <!-- HTML output -->
+    <output-html>
+      <waypoint type="waypoint"  string="Waypoint" /> <!-- For the chosen waypoints -->
+      <waypoint type="junction"  string="Junction" /> <!-- For the interesting junctions -->
+
+      <title text="%s Route" /> <!-- %s = [shortest|quickest] -->
+
+      <start   string="Start"  text="At %s, head %s" />           <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
+      <node    string="At"     text="%s, go %s heading %s" />     <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
+      <segment string="Follow" text="%s for %.3f km, %.1f min" /> <!-- 1st %s = street name -->
+      <stop    string="Stop"   text="At %s" />                    <!-- 1st %s = [waypoint|junction] -->
+      <total   string="Total"  text="%.1f km, %.0f minutes" />
+    </output-html>
+
+    <!-- GPX output -->
+    <output-gpx>
+      <waypoint type="start"  string="START" /> <!-- For the first route waypoint -->
+      <waypoint type="inter"  string="INTER" /> <!-- For the intermediate route waypoints -->
+      <waypoint type="trip"   string="TRIP"  /> <!-- For the other route points -->
+      <waypoint type="finish" string="FINISH"/> <!-- For the last route waypoint -->
+
+      <desc  text="%s route between 'start' and 'finish' waypoints" /> <!-- %s = [shortest|quickest] -->
+      <name  text="%s route" />                                        <!-- %s = [shortest|quickest] -->
+      <step  text="%s on '%s' for %.3f km, %.1f min" />                <!-- 1st %s = [turn], 2nd %s = street name -->
+      <final text="Total Journey %.1f km, %.0f minutes" />
+    </output-gpx>
+
+  </language>
+
+</routino-translations>
