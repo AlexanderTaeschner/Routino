@@ -1,10 +1,10 @@
-# $Header: /home/amb/CVS/routino/Makefile,v 1.5 2010-09-05 18:26:57 amb Exp $
+# $Header: /home/amb/CVS/routino/Makefile,v 1.1 2009-04-08 18:58:33 amb Exp $
 #
 # Makefile
 #
 # Part of the Routino routing software.
 #
-# This file Copyright 2009-2010 Andrew M. Bishop
+# This file Copyright 2009 Andrew M. Bishop
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -20,43 +20,26 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# Installation locations
-
-prefix=/usr/local
-bindir=$(prefix)/bin
-docdir=$(prefix)/doc/routino
-datadir=$(prefix)/share/routino
-
-# Sub-directories and sub-makefiles
-
-TOPFILES=$(wildcard */Makefile)
-TOPDIRS=$(foreach f,$(TOPFILES),$(dir $f))
+MAKEFILES=$(wildcard */Makefile)
+DIRS=$(foreach f,$(MAKEFILES),$(dir $f))
 
 ########
 
-all$(top):
-	for dir in $(TOPDIRS); do \
-	   ( cd $$dir && $(MAKE) $@ ); \
+all:
+	for dir in $(DIRS); do \
+	   make -C $$dir $@; \
 	done
 
 ########
 
-install$(top): all$(top)
-	for dir in $(TOPDIRS); do \
-	   ( cd $$dir && $(MAKE) $@ ); \
-	done
-	@echo "Note: web directory is not installed automatically"
-
-########
-
-clean$(top):
-	for dir in $(TOPDIRS); do \
-	   ( cd $$dir && $(MAKE) $@ ); \
+clean:
+	for dir in $(DIRS); do \
+	   make -C $$dir $@; \
 	done
 
 ########
 
-distclean$(top): clean$(top)
-	for dir in $(TOPDIRS); do \
-	   ( cd $$dir && $(MAKE) $@ ); \
+distclean: clean
+	for dir in $(DIRS); do \
+	   make -C $$dir $@; \
 	done

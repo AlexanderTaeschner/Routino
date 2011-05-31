@@ -1,8 +1,10 @@
-# Source code Makefile
+# $Header: /home/amb/CVS/routino/src/Makefile,v 1.26 2009-12-12 11:09:16 amb Exp $
+#
+# Makefile
 #
 # Part of the Routino routing software.
 #
-# This file Copyright 2008-2011 Andrew M. Bishop
+# This file Copyright 2008,2009 Andrew M. Bishop
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -18,18 +20,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# Web file paths
-
-WEBDIR=../web/bin
-
-# Compilation programs
+# Programs
 
 CC=gcc
 LD=gcc
 
-LEX=flex
-
-# Compilation program options
+# Program options
 
 CFLAGS=-Wall -Wmissing-prototypes
 #CFLAGS+= -Wextra -pedantic -std=c99
@@ -44,146 +40,58 @@ LDFLAGS+=
 #LDFLAGS+= -pg -static
 #LDFLAGS+= --coverage
 
-LEXFLAGS=
-
-# Required to use stdio with files > 2GiB on 32-bit system.
-
-FLAGS64=-D_FILE_OFFSET_BITS=64
-
 # Compilation targets
 
 C=$(wildcard *.c)
 D=$(foreach f,$(C),$(addprefix .deps/,$(addsuffix .d,$(basename $f))))
 
-EXE=planetsplitter planetsplitter-slim router router-slim filedumper filedumper-slim tagmodifier
-
 ########
 
+EXE=planetsplitter filedumper router
+
 all : $(EXE)
-	-@[ -d $(WEBDIR) ] && \
-	  for file in $(EXE); do \
-	     if [ ! -f $(WEBDIR)/$$file ] || [ $$file -nt $(WEBDIR)/$$file ]; then \
-	        echo cp $$file $(WEBDIR) ;\
-	        cp -f $$file $(WEBDIR) ;\
-	     fi ;\
-	  done
-	@cd xml  && $(MAKE) CC="$(CC)" LD="$(LD)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
-	@cd test && $(MAKE) CC="$(CC)" LD="$(LD)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
+	-[ -d ../web/bin ] && cp $(EXE) ../web/bin
 
 ########
 
 PLANETSPLITTER_OBJ=planetsplitter.o \
-	           nodesx.o segmentsx.o waysx.o relationsx.o superx.o \
-	           ways.o types.o \
-	           files.o logging.o \
-	           results.o queue.o sorting.o \
-	           xmlparse.o tagging.o osmparser.o
+	           nodesx.o segmentsx.o waysx.o superx.o \
+	           ways.o \
+	           files.o profiles.o results.o queue.o sorting.o \
+	           osmparser.o
 
 planetsplitter : $(PLANETSPLITTER_OBJ)
 	$(LD) $(PLANETSPLITTER_OBJ) -o $@ $(LDFLAGS)
 
 ########
 
-PLANETSPLITTER_SLIM_OBJ=planetsplitter-slim.o \
-	                nodesx-slim.o segmentsx-slim.o waysx-slim.o relationsx-slim.o superx-slim.o \
-	                ways.o types.o \
-	                files.o logging.o \
-	                results.o queue.o sorting.o \
-	                xmlparse.o tagging.o osmparser.o
-
-planetsplitter-slim : $(PLANETSPLITTER_SLIM_OBJ)
-	$(LD) $(PLANETSPLITTER_SLIM_OBJ) -o $@ $(LDFLAGS)
-
-########
-
-ROUTER_OBJ=router.o \
-	   nodes.o segments.o ways.o relations.o types.o fakes.o \
-	   optimiser.o output.o \
-	   files.o logging.o profiles.o xmlparse.o \
-	   results.o queue.o translations.o
-
-router : $(ROUTER_OBJ)
-	$(LD) $(ROUTER_OBJ) -o $@ $(LDFLAGS)
-
-########
-
-ROUTER_SLIM_OBJ=router-slim.o \
-	        nodes-slim.o segments-slim.o ways-slim.o relations-slim.o types.o fakes-slim.o \
-	        optimiser-slim.o output-slim.o \
-	        files.o logging.o profiles.o xmlparse.o \
-	        results.o queue.o translations.o
-
-router-slim : $(ROUTER_SLIM_OBJ)
-	$(LD) $(ROUTER_SLIM_OBJ) -o $@ $(LDFLAGS)
-
-########
-
 FILEDUMPER_OBJ=filedumper.o \
-	       nodes.o segments.o ways.o relations.o types.o fakes.o \
-               visualiser.o \
-	       files.o logging.o xmlparse.o
+	       nodes.o segments.o ways.o \
+	       files.o \
+               visualiser.o
 
 filedumper : $(FILEDUMPER_OBJ)
 	$(LD) $(FILEDUMPER_OBJ) -o $@ $(LDFLAGS)
 
 ########
 
-FILEDUMPER_SLIM_OBJ=filedumper-slim.o \
-	       nodes-slim.o segments-slim.o ways-slim.o relations-slim.o types.o fakes-slim.o \
-               visualiser-slim.o \
-	       files.o logging.o xmlparse.o
+ROUTER_OBJ=router.o \
+	   nodes.o segments.o ways.o \
+	   files.o profiles.o optimiser.o output.o results.o queue.o
 
-filedumper-slim : $(FILEDUMPER_SLIM_OBJ)
-	$(LD) $(FILEDUMPER_SLIM_OBJ) -o $@ $(LDFLAGS)
-
-########
-
-TAGMODIFIER_OBJ=tagmodifier.o \
-	        files.o logging.o \
-                xmlparse.o tagging.o
-
-tagmodifier : $(TAGMODIFIER_OBJ)
-	$(LD) $(TAGMODIFIER_OBJ) -o $@ $(LDFLAGS)
-
-########
-
-xmlparse.c : xmlparse.l
-	$(LEX) $(LEXFLAGS)  $<
-	-@mv lex.yy.c xmlparse.c
-	@echo Created xmlparse.c
+router : $(ROUTER_OBJ)
+	$(LD) $(ROUTER_OBJ) -o $@ $(LDFLAGS)
 
 ########
 
 %.o : %.c
-	$(CC) -c $(CFLAGS) $(FLAGS64) -DSLIM=0 -DDATADIR=\"$(datadir)\" $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
-
-%-slim.o : %.c
-	$(CC) -c $(CFLAGS) $(FLAGS64) -DSLIM=1 -DDATADIR=\"$(datadir)\" $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
-
-########
-
-install: all
-	-[ -d $(DESTDIR)$(bindir) ] || mkdir -p $(DESTDIR)$(bindir)
-	@[ -d $(DESTDIR)$(bindir) ] && \
-	  for file in $(EXE); do \
-	     echo cp $$file $(DESTDIR)$(bindir) ;\
-	     cp -f $$file $(DESTDIR)$(bindir) ;\
-	  done
-
-########
-
-test: .FORCE
-	cd xml  && $(MAKE) test
-	cd test && $(MAKE) test
+	$(CC) -c $(CFLAGS) $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $<)))
 
 ########
 
 clean:
 	rm -f *.o
 	rm -f *~
-	rm -f xmlparse.c
-	cd xml  && $(MAKE) clean
-	cd test && $(MAKE) clean
 
 ########
 
@@ -192,15 +100,13 @@ distclean: clean
 	-rm -f $(EXE)
 	-rm -f $(D)
 	-rm -fr .deps
-	cd xml  && $(MAKE) distclean
-	cd test && $(MAKE) distclean
 
 ########
 
 .deps : .FORCE
 	@[ -d .deps ] || mkdir $@
 
-$(D) : .deps
+$(D) : .FORCE .deps
 	@touch $@
 
 include $(D)
@@ -208,8 +114,3 @@ include $(D)
 ########
 
 .FORCE :
-
-########
-
-top=-top
-include ../Makefile

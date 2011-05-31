@@ -1,11 +1,11 @@
 /***************************************
- $Header: /home/amb/CVS/routino/src/segments.h,v 1.38 2010-12-21 17:18:41 amb Exp $
+ $Header: /home/amb/CVS/routino/src/segments.h,v 1.34 2009-11-14 19:39:20 amb Exp $
 
  A header file for the segments.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -28,8 +28,6 @@
 #include <stdint.h>
 
 #include "types.h"
-
-#include "files.h"
 #include "profiles.h"
 
 
@@ -50,56 +48,27 @@ struct _Segment
 };
 
 
-/*+ A structure containing the header from the file. +*/
-typedef struct _SegmentsFile
-{
- index_t   number;              /*+ The number of segments in total. +*/
- index_t   snumber;             /*+ The number of super-segments. +*/
- index_t   nnumber;             /*+ The number of normal segments. +*/
-}
- SegmentsFile;
-
-
-/*+ A structure containing a set of segments (and pointers to mmap file). +*/
+/*+ A structure containing a set of segments (mmap format). +*/
 struct _Segments
 {
- SegmentsFile file;             /*+ The header data from the file. +*/
+ uint32_t  number;              /*+ How many segments in total? +*/
+ uint32_t  snumber;             /*+ How many super-segments? +*/
+ uint32_t  nnumber;             /*+ How many normal segments? +*/
 
-#if !SLIM
+ Segment  *segments;            /*+ An array of segments. +*/
 
- void        *data;             /*+ The memory mapped data. +*/
-
- Segment     *segments;         /*+ An array of segments. +*/
-
-#else
-
- int          fd;               /*+ The file descriptor for the file. +*/
-
- Segment      cached[3];        /*+ Three cached segments read from the file in slim mode. +*/
- index_t      incache[3];       /*+ The indexes of the cached segments. +*/
-
-#endif
+ void     *data;                /*+ The memory mapped data. +*/
 };
 
 
-/* Functions in segments.c */
-
-Segments *LoadSegmentList(const char *filename);
-
-index_t FindClosestSegmentHeading(Nodes *nodes,Segments *segments,Ways *ways,index_t node1,double heading,Profile *profile);
-
-distance_t Distance(double lat1,double lon1,double lat2,double lon2);
-
-duration_t Duration(Segment *segment,Way *way,Profile *profile);
-
-double TurnAngle(Nodes *nodes,Segment *segment1,Segment *segment2,index_t node);
-double BearingAngle(Nodes *nodes,Segment *segment,index_t node);
+/* Macros */
 
 
-static inline Segment *NextSegment(Segments *segments,Segment *segment,index_t node);
+/*+ Return a segment pointer given a set of segments and an index. +*/
+#define LookupSegment(xxx,yyy) (&(xxx)->segments[yyy])
 
-
-/* Macros and inline functions */
+/*+ Return a segment index given a set of segments and a pointer. +*/
+#define IndexSegment(xxx,yyy)  ((yyy)-&(xxx)->segments[0])
 
 /*+ Return true if this is a normal segment. +*/
 #define IsNormalSegment(xxx)   (((xxx)->distance)&SEGMENT_NORMAL)
@@ -116,141 +85,17 @@ static inline Segment *NextSegment(Segments *segments,Segment *segment,index_t n
 /*+ Return the other node in the segment that is not the specified node. +*/
 #define OtherNode(xxx,yyy)     ((xxx)->node1==(yyy)?(xxx)->node2:(xxx)->node1)
 
-#if !SLIM
 
-/*+ Return a segment pointer given a set of segments and an index. +*/
-#define LookupSegment(xxx,yyy,ppp) (&(xxx)->segments[yyy])
-
-/*+ Return a segment index given a set of segments and a pointer. +*/
-#define IndexSegment(xxx,yyy)      ((yyy)-&(xxx)->segments[0])
+/* Functions */
 
 
-/*++++++++++++++++++++++++++++++++++++++
-  Find the next segment with a particular starting node.
+Segments *LoadSegmentList(const char *filename);
 
-  Segment *NextSegment Returns a pointer to the next segment.
+Segment *NextSegment(Segments* segments,Segment *segment,index_t node);
 
-  Segments *segments The set of segments to use.
+distance_t Distance(double lat1,double lon1,double lat2,double lon2);
 
-  Segment *segment The current segment.
-
-  index_t node The wanted node.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static inline Segment *NextSegment(Segments *segments,Segment *segment,index_t node)
-{
- if(segment->node1==node)
-   {
-    segment++;
-
-    if(IndexSegment(segments,segment)>=segments->file.number || segment->node1!=node)
-       return(NULL);
-    else
-       return(segment);
-   }
- else
-   {
-    if(segment->next2==NO_SEGMENT)
-       return(NULL);
-    else
-       return(LookupSegment(segments,segment->next2,1));
-   }
-}
-
-#else
-
-static Segment *LookupSegment(Segments *segments,index_t index,int position);
-
-static index_t IndexSegment(Segments *segments,Segment *segment);
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Find the Segment information for a particular segment.
-
-  Segment *LookupSegment Returns a pointer to the cached segment information.
-
-  Segments *segments The set of segments to use.
-
-  index_t index The index of the segment.
-
-  int position The position in the cache to store the value.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static inline Segment *LookupSegment(Segments *segments,index_t index,int position)
-{
- if(segments->incache[position-1]!=index)
-   {
-    SeekFile(segments->fd,sizeof(SegmentsFile)+(off_t)index*sizeof(Segment));
-
-    ReadFile(segments->fd,&segments->cached[position-1],sizeof(Segment));
-
-    segments->incache[position-1]=index;
-   }
-
- return(&segments->cached[position-1]);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Find the segment index for a particular segment pointer.
-
-  index_t IndexSegment Returns the index of the segment in the list.
-
-  Segments *segments The set of segments to use.
-
-  Segment *segment The segment whose index is to be found.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static inline index_t IndexSegment(Segments *segments,Segment *segment)
-{
- int position1=segment-&segments->cached[0];
-
- return(segments->incache[position1]);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Find the next segment with a particular starting node.
-
-  Segment *NextSegment Returns a pointer to the next segment.
-
-  Segments *segments The set of segments to use.
-
-  Segment *segment The current segment.
-
-  index_t node The wanted node.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static inline Segment *NextSegment(Segments *segments,Segment *segment,index_t node)
-{
- int position=segment-&segments->cached[-1];
-
- if(segment->node1==node)
-   {
-    index_t index=IndexSegment(segments,segment);
-
-    index++;
-
-    if(index>=segments->file.number)
-       return(NULL);
-
-    segment=LookupSegment(segments,index,position);
-
-    if(segment->node1!=node)
-       return(NULL);
-    else
-       return(segment);
-   }
- else
-   {
-    if(segment->next2==NO_SEGMENT)
-       return(NULL);
-    else
-       return(LookupSegment(segments,segment->next2,position));
-   }
-}
-
-#endif
+duration_t Duration(Segment *segment,Way *way,Profile *profile);
 
 
 #endif /* SEGMENTS_H */

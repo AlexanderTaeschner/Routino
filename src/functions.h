@@ -1,9 +1,11 @@
 /***************************************
- Header file for miscellaneous function prototypes
+ $Header: /home/amb/CVS/routino/src/functions.h,v 1.48 2010-01-15 19:48:39 amb Exp $
+
+ Header file for function prototypes
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -23,30 +25,77 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H    /*+ To stop multiple inclusions. +*/
 
-#include "types.h"
+#include <stdio.h>
 
+#include "types.h"
 #include "profiles.h"
 #include "results.h"
 
 
-/* Functions in optimiser.c */
+/* In router.c */
 
-Results *FindNormalRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t start_node,index_t prev_segment,index_t finish_node);
+/*+ Return true if this is a fake node. +*/
+#define IsFakeNode(xxx)  ((xxx)&NODE_SUPER)
 
-Results *FindMiddleRoute(Nodes *supernodes,Segments *supersegments,Ways *superways,Relations *relations,Profile *profile,Results *begin,Results *end);
+index_t CreateFakes(Nodes *nodes,int point,Segment *segment,index_t node1,index_t node2,distance_t dist1,distance_t dist2);
 
-Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t start_node,index_t prev_segment,index_t finish_node,int *nsuper);
+void GetFakeLatLong(index_t node, double *latitude,double *longitude);
 
-Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t finish_node);
-
-Results *CombineRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,Results *begin,Results *middle);
-
-void FixForwardRoute(Results *results,Result *finish_result);
+Segment *FirstFakeSegment(index_t node);
+Segment *NextFakeSegment(Segment *segment,index_t node);
+Segment *ExtraFakeSegment(index_t node,index_t fakenode);
 
 
-/* Functions in output.c */
+/* In files.c */
 
+char *FileName(const char *dirname,const char *prefix, const char *name);
+
+void *MapFile(const char *filename);
+void *UnmapFile(const char *filename);
+
+int OpenFile(const char *filename);
+int ReOpenFile(const char *filename);
+
+int WriteFile(int fd,const void *address,size_t length);
+int ReadFile(int fd,void *address,size_t length);
+int SeekFile(int fd,size_t position);
+
+void CloseFile(int fd);
+
+int DeleteFile(char *filename);
+
+
+/* In optimiser.c */
+
+Results *FindNormalRoute(Nodes *nodes,Segments *segments,Ways *ways,index_t start,index_t finish,Profile *profile);
+Results *FindMiddleRoute(Nodes *supernodes,Segments *supersegments,Ways *superways,Results *begin,Results *end,Profile *profile);
+
+Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,index_t start,Profile *profile);
+Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,index_t finish,Profile *profile);
+
+Results *CombineRoutes(Results *results,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile);
+
+void FixForwardRoute(Results *results,index_t finish);
+
+
+/* In output.c */
+
+void PrintRouteHead(const char *copyright);
 void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile);
+void PrintRouteTail(void);
+
+
+/* In sorting.c */
+
+/*+ The type and size of variable to store the variable length +*/
+#define FILESORT_VARINT   unsigned short
+#define FILESORT_VARSIZE  sizeof(FILESORT_VARINT)
+
+void filesort_fixed(int fd_in,int fd_out,size_t itemsize,int (*compare)(const void*,const void*),int (*buildindex)(void*,index_t));
+
+void filesort_vary(int fd_in,int fd_out,int (*compare)(const void*,const void*),int (*buildindex)(void*,index_t));
+
+void heapsort(void **datap,size_t nitems,int(*compare)(const void*, const void*));
 
 
 #endif /* FUNCTIONS_H */

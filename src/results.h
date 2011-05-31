@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/results.h,v 1.17 2009-11-13 19:24:11 amb Exp $
+
  A header file for the results.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -36,22 +38,22 @@
 
 /* Data structures */
 
-typedef struct _Result Result;
-
 /*+ The result for a node. +*/
-struct _Result
+typedef struct _Result
 {
  index_t   node;                /*+ The node for which this result applies. +*/
- index_t   segment;             /*+ The segmemt used to get to the node for which this result applies. +*/
 
- Result   *prev;                /*+ The previous result following the best path to get to this node via the segment. +*/
- Result   *next;                /*+ The next result following the best path from this node that was reached via the segment. +*/
+ index_t   prev;                /*+ The previous node following the best path. +*/
+ index_t   next;                /*+ The next node following the best path. +*/
 
  score_t   score;               /*+ The best actual weighted distance or duration score from the start to the node. +*/
- score_t   sortby;              /*+ The best possible weighted distance or duration score from the start to the finish. +*/
 
+ score_t   sortby;              /*+ The best possible weighted distance or duration score from the start to the finish. +*/
  uint32_t  queued;              /*+ The position of this result in the queue. +*/
-};
+
+ Segment  *segment;             /*+ The segment for the path to here (from prev). +*/
+}
+ Result;
 
 /*+ A list of results. +*/
 typedef struct _Results
@@ -73,35 +75,32 @@ typedef struct _Results
                                     Most importantly pointers into the real data don't change
                                     as more space is allocated (since realloc is not being used). +*/
 
- index_t start_node;            /*+ The start node. +*/
- index_t prev_segment;          /*+ The previous segment to get to the start node (if any). +*/
-
- index_t finish_node;           /*+ The finish node. +*/
- index_t last_segment;          /*+ The last segment (to arrive at the finish node). +*/
+ index_t start;                 /*+ The start node. +*/
+ index_t finish;                /*+ The finish node. +*/
 }
  Results;
 
 
-/* Forward definition for opaque type */
+/* Forward definitions for opaque type */
 
 typedef struct _Queue Queue;
 
 
-/* Results functions in results.c */
+/* Results Functions */
 
 Results *NewResultsList(int nbins);
 void FreeResultsList(Results *results);
 
-Result *InsertResult(Results *results,index_t node,index_t segment);
+Result *InsertResult(Results *results,index_t node);
+void ZeroResult(Result *result);
 
-Result *FindResult1(Results *results,index_t node);
-Result *FindResult(Results *results,index_t node,index_t segment);
+Result *FindResult(Results *results,index_t node);
 
 Result *FirstResult(Results *results);
 Result *NextResult(Results *results,Result *result);
 
 
-/* Queue functions in queue.c */
+/* Queue Functions */
 
 Queue *NewQueueList(void);
 void FreeQueueList(Queue *queue);
