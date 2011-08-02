@@ -354,9 +354,14 @@ Results *FindMiddleRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
 
  if(begin->number==1)
    {
-    index_t superseg=FindSuperSegment(nodes,segments,ways,relations,profile,begin->start_node,begin->prev_segment);
+    if(begin->prev_segment==NO_SEGMENT)
+       results->prev_segment=NO_SEGMENT;
+    else
+      {
+       index_t superseg=FindSuperSegment(nodes,segments,ways,relations,profile,begin->start_node,begin->prev_segment);
 
-    results->prev_segment=superseg;
+       results->prev_segment=superseg;
+      }
    }
 
  result1=InsertResult(results,results->start_node,results->prev_segment);
