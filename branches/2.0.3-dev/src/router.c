@@ -516,16 +516,24 @@ int main(int argc,char** argv)
        return(1);
       }
 
-    if(nsuper==0 && (finish_result=FindResult1(begin,finish_node)))
+    if(nsuper==0)
       {
-       FixForwardRoute(begin,finish_result);
-
-       results[point]=begin;
-
-       if(!option_quiet)
+       if((finish_result=FindResult1(begin,finish_node)))
          {
-          printf("Routed: Super-Nodes Checked = 0\n");
-          fflush(stdout);
+          FixForwardRoute(begin,finish_result);
+
+          results[point]=begin;
+
+          if(!option_quiet)
+            {
+             printf("Routed: Super-Nodes Checked = 0\n");
+             fflush(stdout);
+            }
+         }
+       else
+         {
+          fprintf(stderr,"Error: Cannot find route compatible with profile.\n");
+          return(1);
          }
       }
     else
@@ -572,7 +580,7 @@ int main(int argc,char** argv)
 
        if(!results[point])
          {
-          fprintf(stderr,"Error: Cannot find route compatible with profile.\n");
+          fprintf(stderr,"Error: Failed to combine route sections into complete route.\n");
           return(1);
          }
 
