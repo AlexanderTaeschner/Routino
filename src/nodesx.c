@@ -257,12 +257,8 @@ static int deduplicate_and_index_by_id(NodeX *nodex,index_t index)
 
     return(1);
    }
- else
-   {
-    logerror("Node %"Pnode_t" is duplicated\n",nodex->id);
 
-    return(0);
-   }
+ return(0);
 }
 
 

@@ -186,8 +186,8 @@ void AppendRouteRelation(RelationsX* relationsx,relation_t id,
 {
  RouteRelX relationx;
  FILESORT_VARINT size;
- way_t noway=NO_WAY;
- relation_t norelation=NO_RELATION;
+ way_t zeroway=0;
+ relation_t zerorelation=0;
 
  relationx.id=id;
  relationx.routes=routes;
@@ -197,11 +197,11 @@ void AppendRouteRelation(RelationsX* relationsx,relation_t id,
  WriteFile(relationsx->rfd,&size,FILESORT_VARSIZE);
  WriteFile(relationsx->rfd,&relationx,sizeof(RouteRelX));
 
- WriteFile(relationsx->rfd,ways  ,nways*sizeof(way_t));
- WriteFile(relationsx->rfd,&noway,      sizeof(way_t));
+ WriteFile(relationsx->rfd,ways    ,nways*sizeof(way_t));
+ WriteFile(relationsx->rfd,&zeroway,      sizeof(way_t));
 
- WriteFile(relationsx->rfd,relations  ,nrelations*sizeof(relation_t));
- WriteFile(relationsx->rfd,&norelation,           sizeof(relation_t));
+ WriteFile(relationsx->rfd,relations    ,nrelations*sizeof(relation_t));
+ WriteFile(relationsx->rfd,&zerorelation,           sizeof(relation_t));
 
  relationsx->rnumber++;
 
@@ -352,12 +352,8 @@ static int deduplicate_by_id(TurnRestrictRelX *relationx,index_t index)
 
     return(1);
    }
- else
-   {
-    logerror("Relation %"Prelation_t" is duplicated.\n",relationx->id);
 
-    return(0);
-   }
+ return(0);
 }
 
 
@@ -519,7 +515,6 @@ void ProcessRouteRelations(RelationsX *relationsx,WaysX *waysx)
                    routes=0; /* Nothing new to add */
                 else
                    routes=lastunmatched[j].routes;
-
                 break;
                }
          }
@@ -532,10 +527,7 @@ void ProcessRouteRelations(RelationsX *relationsx,WaysX *waysx)
 
           /* Update the ways that are listed for the relation */
 
-          if(wayid==NO_WAY)
-             continue;
-
-          if(routes)
+          if(wayid && routes)
             {
              index_t way=IndexWayX(waysx,wayid);
 
@@ -553,11 +545,9 @@ void ProcessRouteRelations(RelationsX *relationsx,WaysX *waysx)
 
                 ways++;
                }
-             else
-                logerror("Route Relation %"Prelation_t" contains way %"Pway_t" but it does not exist.\n",relationx.id,wayid);
             }
          }
-       while(wayid!=NO_WAY);
+       while(wayid);
 
        /* Loop through the relations */
 
@@ -567,12 +557,7 @@ void ProcessRouteRelations(RelationsX *relationsx,WaysX *waysx)
 
           /* Add the relations that are listed for this relation to the list for next time */
 
-          if(relationid==NO_RELATION)
-             continue;
-
-          if(relationid==relationx.id)
-             logerror("Relation %"Prelation_t" contains itself.\n",relationx.id);
-          else if(routes)
+          if(relationid && routes && relationid!=relationx.id)
             {
              if(nunmatched%256==0)
                 unmatched=(RouteRelX*)realloc((void*)unmatched,(nunmatched+256)*sizeof(RouteRelX));
@@ -583,7 +568,7 @@ void ProcessRouteRelations(RelationsX *relationsx,WaysX *waysx)
              nunmatched++;
             }
          }
-       while(relationid!=NO_RELATION);
+       while(relationid);
 
        if(!((i+1)%1000))
           printf_middle("Processing Route Relations (%d): Relations=%"Pindex_t" Modified Ways=%"Pindex_t,iteration,relations,ways);
@@ -602,7 +587,7 @@ void ProcessRouteRelations(RelationsX *relationsx,WaysX *waysx)
 
     printf_last("Processed Route Relations (%d): Relations=%"Pindex_t" Modified Ways=%"Pindex_t,iteration,relations,ways);
    }
- while(lastnunmatched && iteration++<8);
+ while(lastnunmatched && iteration++<5);
 
  if(lastunmatched)
     free(lastunmatched);
@@ -653,27 +638,12 @@ void ProcessTurnRelations1(RelationsX *relationsx,NodesX *nodesx,WaysX *waysx)
  for(i=0;i<relationsx->trnumber;i++)
    {
     TurnRestrictRelX relationx;
-    node_t via;
-    way_t from,to;
 
     ReadFile(relationsx->trfd,&relationx,sizeof(TurnRestrictRelX));
 
-    via =IndexNodeX(nodesx,relationx.via);
-    from=IndexWayX(waysx,relationx.from);
-    to  =IndexWayX(waysx,relationx.to);
-
-    if(via==NO_NODE)
-       logerror("Turn Relation %"Prelation_t" contains node %"Pnode_t" but it does not exist.\n",relationx.id,relationx.via);
-
-    if(from==NO_WAY)
-       logerror("Turn Relation %"Prelation_t" contains way %"Pway_t" but it does not exist.\n",relationx.id,relationx.from);
-
-    if(to==NO_WAY)
-       logerror("Turn Relation %"Prelation_t" contains way %"Pway_t" but it does not exist.\n",relationx.id,relationx.to);
-
-    relationx.via =via;
-    relationx.from=from;
-    relationx.to  =to;
+    relationx.via =IndexNodeX(nodesx,relationx.via);
+    relationx.from=IndexWayX(waysx,relationx.from);
+    relationx.to  =IndexWayX(waysx,relationx.to);
 
     if(relationx.via==NO_NODE || relationx.from==NO_WAY || relationx.to==NO_WAY)
        deleted++;
@@ -727,11 +697,9 @@ void ProcessTurnRelations2(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segm
 #if !SLIM
  nodesx->data=MapFileWriteable(nodesx->filename);
  segmentsx->data=MapFile(segmentsx->filename);
- waysx->data=MapFile(waysx->filename);
 #else
  nodesx->fd=ReOpenFileWriteable(nodesx->filename);
  segmentsx->fd=ReOpenFile(segmentsx->filename);
- waysx->fd=ReOpenFile(waysx->filename);
 #endif
 
  /* Re-open the file read-only and a new file writeable */
@@ -755,7 +723,6 @@ void ProcessTurnRelations2(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segm
        relationx.restriction==TurnRestrict_no_straight_on)
       {
        index_t node_from=NO_NODE,node_to=NO_NODE;
-       int oneway_from=0,oneway_to=0,vehicles_from=1,vehicles_to=1;
 
        /* Find the segments that join the node 'via' */
 
@@ -765,66 +732,33 @@ void ProcessTurnRelations2(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segm
          {
           if(segmentx->way==relationx.from)
             {
-             WayX *wayx=LookupWayX(waysx,segmentx->way,1);
-
              if(node_from!=NO_NODE) /* Only one segment can be on the 'from' way */
                {
-                logerror("Turn Relation %"Prelation_t" is not at the end of the 'from' way.\n",relationx.id);
                 deleted++;
                 goto endloop;
                }
 
              node_from=OtherNode(segmentx,relationx.via);
-
-             if(IsOnewayFrom(segmentx,relationx.via))
-                oneway_from=1;  /* not allowed */
-
-             if(!(wayx->way.allow&(Transports_Moped|Transports_Motorbike|Transports_Motorcar|Transports_Goods|Transports_HGV|Transports_PSV)))
-                vehicles_from=0;  /* not allowed */
             }
 
           if(segmentx->way==relationx.to)
             {
-             WayX *wayx=LookupWayX(waysx,segmentx->way,1);
-
              if(node_to!=NO_NODE) /* Only one segment can be on the 'to' way */
                {
-                logerror("Turn Relation %"Prelation_t" is not at the end of 'to' way.\n",relationx.id);
                 deleted++;
                 goto endloop;
                }
 
-             node_to=OtherNode(segmentx,relationx.via);
+             /* Don't bother with restrictions banning going the wrong way down a one-way road */
 
-             if(IsOnewayTo(segmentx,relationx.via))
-                oneway_to=1;  /* not allowed */
-
-             if(!(wayx->way.allow&(Transports_Moped|Transports_Motorbike|Transports_Motorcar|Transports_Goods|Transports_HGV|Transports_PSV)))
-                vehicles_to=0;  /* not allowed */
+             if(!IsOnewayTo(segmentx,relationx.via))
+                node_to=OtherNode(segmentx,relationx.via);
             }
 
           segmentx=NextSegmentX(segmentsx,segmentx,relationx.via,1);
          }
 
-       if(node_from==NO_NODE)
-          logerror("Turn Relation %"Prelation_t" is not connected to 'from' way at 'via' node.\n",relationx.id);
-
-       if(node_to==NO_NODE)
-          logerror("Turn Relation %"Prelation_t" is not connected to 'to' way at 'via' node.\n",relationx.id);
-
-       if(oneway_from)
-          logerror("Turn Relation %"Prelation_t" is not stored because the 'from' way is oneway away from the 'via' node.\n",relationx.id);
-
-       if(oneway_to)
-          logerror("Turn Relation %"Prelation_t" is not needed because the 'to' way is oneway towards the 'via' node.\n",relationx.id);
-
-       if(!vehicles_from)
-          logerror("Turn Relation %"Prelation_t" is not stored because the 'from' way does not allow motor vehicles.\n",relationx.id);
-
-       if(!vehicles_to)
-          logerror("Turn Relation %"Prelation_t" is not needed because the 'to' way does not allow motor vehicles.\n",relationx.id);
-
-       if(oneway_from || oneway_to || !vehicles_from || !vehicles_to || node_from==NO_NODE || node_to==NO_NODE)
+       if(node_to==NO_NODE || node_from==NO_NODE) /* Not enough segments for the selected ways */
          {
           deleted++;
           goto endloop;
@@ -844,9 +778,8 @@ void ProcessTurnRelations2(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segm
       }
     else
       {
-       index_t node_from=NO_NODE,node_to=NO_NODE,node_other[MAX_SEG_PER_NODE];
-       int nnodes_other=0,i;
-       int oneway_from=0,vehicles_from=1;
+       index_t node_from=NO_NODE,node_to[MAX_SEG_PER_NODE];
+       int nnodes_to=0,i;
 
        /* Find the segments that join the node 'via' */
 
@@ -856,71 +789,29 @@ void ProcessTurnRelations2(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segm
          {
           if(segmentx->way==relationx.from)
             {
-             WayX *wayx=LookupWayX(waysx,segmentx->way,1);
-
              if(node_from!=NO_NODE) /* Only one segment can be on the 'from' way */
                {
-                logerror("Turn Relation %"Prelation_t" is not at the end of 'from' way.\n",relationx.id);
                 deleted++;
                 goto endloop;
                }
 
              node_from=OtherNode(segmentx,relationx.via);
-
-             if(IsOnewayFrom(segmentx,relationx.via))
-                oneway_from=1;  /* not allowed */
-
-             if(!(wayx->way.allow&(Transports_Moped|Transports_Motorbike|Transports_Motorcar|Transports_Goods|Transports_HGV|Transports_PSV)))
-                vehicles_from=0;  /* not allowed */
             }
 
-          if(segmentx->way==relationx.to)
+          if(segmentx->way!=relationx.to)
             {
-             if(node_to!=NO_NODE) /* Only one segment can be on the 'to' way */
-               {
-                logerror("Turn Relation %"Prelation_t" is not at the end of 'to' way.\n",relationx.id);
-                deleted++;
-                goto endloop;
-               }
+             assert(nnodes_to<MAX_SEG_PER_NODE); /* Only a limited amount of information stored. */
 
-             node_to=OtherNode(segmentx,relationx.via);
-            }
+             /* Don't bother with restrictions banning going the wrong way down a one-way road */
 
-          if(segmentx->way!=relationx.from && segmentx->way!=relationx.to)
-            {
-             WayX *wayx=LookupWayX(waysx,segmentx->way,1);
-
-             if(IsOnewayTo(segmentx,relationx.via))
-                ;  /* not allowed */
-             else if(!(wayx->way.allow&(Transports_Moped|Transports_Motorbike|Transports_Motorcar|Transports_Goods|Transports_HGV|Transports_PSV)))
-                ;  /* not allowed */
-             else
-               {
-                assert(nnodes_other<MAX_SEG_PER_NODE); /* Only a limited amount of information stored. */
-
-                node_other[nnodes_other++]=OtherNode(segmentx,relationx.via);
-               }
+             if(!IsOnewayTo(segmentx,relationx.via))
+                node_to[nnodes_to++]=OtherNode(segmentx,relationx.via);
             }
 
           segmentx=NextSegmentX(segmentsx,segmentx,relationx.via,1);
          }
 
-       if(node_from==NO_NODE)
-          logerror("Turn Relation %"Prelation_t" is not connected to 'from' way at 'via' node.\n",relationx.id);
-
-       if(node_to==NO_NODE)
-          logerror("Turn Relation %"Prelation_t" is not connected to 'yo' way at 'via' node.\n",relationx.id);
-
-       if(nnodes_other==0)
-          logerror("Turn Relation %"Prelation_t" is not needed because the only allowed exit from the 'via' node is the 'to' way.\n",relationx.id);
-
-       if(oneway_from)
-          logerror("Turn Relation %"Prelation_t" is not stored because the 'from' way is oneway away from the 'via' node.\n",relationx.id);
-
-       if(!vehicles_from)
-          logerror("Turn Relation %"Prelation_t" is not stored because the 'from' way does not allow motor vehicles.\n",relationx.id);
-
-       if(oneway_from || !vehicles_from || node_from==NO_NODE || node_to==NO_NODE || nnodes_other==0)
+       if(nnodes_to==0 || node_from==NO_NODE) /* Not enough segments for the selected ways */
          {
           deleted++;
           goto endloop;
@@ -928,10 +819,13 @@ void ProcessTurnRelations2(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segm
 
        /* Write the results */
 
-       for(i=0;i<nnodes_other;i++)
+       for(i=0;i<nnodes_to;i++)
          {
+          if(node_to[i]==node_from)
+             continue;
+
           relationx.from=node_from;
-          relationx.to  =node_other[i];
+          relationx.to  =node_to[i];
 
           WriteFile(trfd,&relationx,sizeof(TurnRestrictRelX));
 
@@ -974,11 +868,9 @@ void ProcessTurnRelations2(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segm
 #if !SLIM
  nodesx->data=UnmapFile(nodesx->filename);
  segmentsx->data=UnmapFile(segmentsx->filename);
- waysx->data=UnmapFile(waysx->filename);
 #else
  nodesx->fd=CloseFile(nodesx->fd);
  segmentsx->fd=CloseFile(segmentsx->fd);
- waysx->fd=CloseFile(waysx->fd);
 #endif
 
  /* Print the final message */

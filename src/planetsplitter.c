@@ -68,7 +68,7 @@ int main(int argc,char** argv)
  RelationsX *Relations;
  int         iteration=0,quit=0;
  int         max_iterations=10;
- char       *dirname=NULL,*prefix=NULL,*tagging=NULL,*errorlog=NULL;
+ char       *dirname=NULL,*prefix=NULL,*tagging=NULL;
  int         option_parse_only=0,option_process_only=0;
  int         option_filenames=0;
  int         arg;
@@ -93,10 +93,6 @@ int main(int argc,char** argv)
        option_process_only=1;
     else if(!strcmp(argv[arg],"--loggable"))
        option_loggable=1;
-    else if(!strcmp(argv[arg],"--errorlog"))
-       errorlog="error.log";
-    else if(!strncmp(argv[arg],"--errorlog=",11))
-       errorlog=&argv[arg][11];
     else if(!strncmp(argv[arg],"--max-iterations=",17))
        max_iterations=atoi(&argv[arg][17]);
     else if(!strncmp(argv[arg],"--tagging=",10))
@@ -170,11 +166,6 @@ int main(int argc,char** argv)
  Ways=NewWayList(option_parse_only||option_process_only);
 
  Relations=NewRelationList(option_parse_only||option_process_only);
-
- /* Create the error log file */
-
- if(errorlog)
-    open_errorlog(FileName(dirname,prefix,errorlog),option_parse_only||option_process_only);
 
  /* Parse the file */
 
@@ -412,11 +403,6 @@ int main(int argc,char** argv)
 
  FreeRelationList(Relations,0);
 
- /* Close the error log file */
-
- if(errorlog)
-    close_errorlog();
-
  return(0);
 }
 
@@ -439,7 +425,7 @@ static void print_usage(int detail,const char *argerr,const char *err)
          "                      [--sort-ram-size=<size>]\n"
          "                      [--tmpdir=<dirname>]\n"
          "                      [--parse-only | --process-only]\n"
-         "                      [--loggable] [--errorlog[=<name>]]\n"
+         "                      [--loggable]\n"
          "                      [--max-iterations=<number>]\n"
          "                      [--tagging=<filename>]\n"
          "                      [<filename.osm> ...]\n");
@@ -475,8 +461,6 @@ static void print_usage(int detail,const char *argerr,const char *err)
             "--process-only            Process the stored results from previous option.\n"
             "\n"
             "--loggable                Print progress messages suitable for logging to file.\n"
-            "--errorlog[=<name>]       Log parsing errors to 'error.log' or the given name\n"
-            "                          (the '--dir' and '--prefix' options are applied).\n"
             "\n"
             "--max-iterations=<number> The number of iterations for finding super-nodes.\n"
             "\n"
