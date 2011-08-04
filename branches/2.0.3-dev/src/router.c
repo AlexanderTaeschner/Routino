@@ -576,13 +576,28 @@ int main(int argc,char** argv)
                }
             }
 
+          if(results[point] && finish_result)
+            {
+             /* If the direct route without passing super-nodes is shorter than
+                the route that does pass super-nodes then fall back to it */
+
+             Result *last_result=FindResult(results[point],results[point]->finish_node,results[point]->last_segment);
+
+             if(last_result->score>finish_result->score)
+               {
+                FreeResultsList(results[point]);
+                results[point]=NULL;
+               }
+            }
+
           FreeResultsList(middle);
          }
       }
 
-    if(finish_result)
+    if(finish_result && !results[point])
       {
-       /* Use the direct route without passing any super-nodes */
+       /* Use the direct route without passing any super-nodes if there was no
+          other route. */
 
        FixForwardRoute(begin,finish_result);
 
