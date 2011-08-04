@@ -502,12 +502,14 @@ int main(int argc,char** argv)
 
     begin=FindStartRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,join_segment,finish_node,&nsuper);
 
-    if(!begin)
+    if(!begin && join_segment!=NO_SEGMENT)
       {
        /* Try again but allow a U-turn at the start waypoint -
           this solves the problem of facing a dead-end that contains no super-nodes. */
 
-       begin=FindStartRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,NO_SEGMENT,finish_node,&nsuper);
+       join_segment=NO_SEGMENT;
+
+       begin=FindStartRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,join_segment,finish_node,&nsuper);
       }
 
     if(!begin)
@@ -516,25 +518,13 @@ int main(int argc,char** argv)
        return(1);
       }
 
-    if((finish_result=FindResult1(begin,finish_node)))
-      {
-       FixForwardRoute(begin,finish_result);
+    finish_result=FindResult1(begin,finish_node);
 
-       results[point]=begin;
+    if(nsuper || !finish_result)
+      {
+       /* The route may include super-nodes but there may also be a route
+          without passing any super-nodes to fall back on */
 
-       if(!option_quiet)
-         {
-          printf("Routed: Super-Nodes Checked = %d\n",nsuper);
-          fflush(stdout);
-         }
-      }
-    else if(nsuper==0)
-      {
-       fprintf(stderr,"Error: Cannot find route compatible with profile.\n");
-       return(1);
-      }
-    else
-      {
        Results *middle;
 
        /* Calculate the end of the route */
@@ -551,7 +541,7 @@ int main(int argc,char** argv)
 
        middle=FindMiddleRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,begin,end);
 
-       if(!middle)
+       if(!middle && join_segment!=NO_SEGMENT && !finish_result)
          {
           /* Try again but allow a U-turn at the start waypoint -
              this solves the problem of facing a dead-end that contains some super-nodes. */
@@ -567,22 +557,45 @@ int main(int argc,char** argv)
 
        if(!middle)
          {
-          fprintf(stderr,"Error: Cannot find super-route compatible with profile.\n");
-          return(1);
+          if(!finish_result)
+            {
+             fprintf(stderr,"Error: Cannot find super-route compatible with profile.\n");
+             return(1);
+            }
          }
-
-       results[point]=CombineRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,begin,middle);
-
-       FreeResultsList(begin);
-
-       if(!results[point])
+       else
          {
-          fprintf(stderr,"Error: Failed to combine route sections into complete route.\n");
-          return(1);
-         }
+          results[point]=CombineRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,begin,middle);
 
-       FreeResultsList(middle);
+          if(!results[point])
+            {
+             if(!finish_result)
+               {
+                fprintf(stderr,"Error: Cannot find route compatible with profile.\n");
+                return(1);
+               }
+            }
+
+          FreeResultsList(middle);
+         }
       }
+
+    if(finish_result)
+      {
+       /* Use the direct route without passing any super-nodes */
+
+       FixForwardRoute(begin,finish_result);
+
+       results[point]=begin;
+
+       if(!option_quiet)
+         {
+          printf("Routed: Super-Nodes Checked = %d\n",nsuper);
+          fflush(stdout);
+         }
+      }
+    else
+       FreeResultsList(begin);
 
     join_segment=results[point]->last_segment;
    }
