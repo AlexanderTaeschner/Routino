@@ -711,6 +711,7 @@ Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
  Results *results;
  Queue   *queue;
  Result  *result1,*result2;
+ int     found_finish=0;
 
  /* Create the results and insert the start node */
 
@@ -858,6 +859,9 @@ Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
              result2->sortby=result2->score;
              InsertInQueue(queue,result2);
             }
+
+          if(node2==finish_node)
+             found_finish=1;
          }
        else if(cumulative_score<result2->score) /* New end node/segment combination is better */
          {
@@ -891,7 +895,7 @@ Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
 
  /* Check it worked */
 
- if(results->number==1)
+ if(results->number==1 || (*nsuper==0 && found_finish==0))
    {
     FreeResultsList(results);
     return(NULL);
