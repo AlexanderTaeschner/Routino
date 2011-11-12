@@ -93,7 +93,8 @@ RelationsX *NewRelationList(int append)
       {
        FILESORT_VARINT relationsize;
 
-       SeekReadFile(relationsx->rfd,&relationsize,FILESORT_VARSIZE,position);
+       SeekFile(relationsx->rfd,position);
+       ReadFile(relationsx->rfd,&relationsize,FILESORT_VARSIZE);
 
        relationsx->rnumber++;
        position+=relationsize+FILESORT_VARSIZE;
@@ -274,7 +275,7 @@ void SortRelationList(RelationsX* relationsx)
 
     /* Print the start message */
 
-    printf_first("Sorting Turn Relations");
+    printf_first("Sorting Turn Restriction Relations");
 
     /* Re-open the file read-only and a new file writeable */
 
@@ -300,7 +301,7 @@ void SortRelationList(RelationsX* relationsx)
 
     /* Print the final message */
 
-    printf_last("Sorted Turn Relations: Relations=%"Pindex_t" Duplicates=%"Pindex_t,trxnumber,trxnumber-relationsx->trnumber);
+    printf_last("Sorted Relations: Relations=%"Pindex_t" Duplicates=%"Pindex_t,trxnumber,trxnumber-relationsx->trnumber);
    }
 }
 
@@ -375,7 +376,7 @@ void SortTurnRelationList(RelationsX* relationsx)
 
  /* Print the start message */
 
- printf_first("Sorting Turn Relations");
+ printf_first("Sorting Turn Restriction Relations");
 
  /* Re-open the file read-only and a new file writeable */
 
@@ -396,7 +397,7 @@ void SortTurnRelationList(RelationsX* relationsx)
 
  /* Print the final message */
 
- printf_last("Sorted Turn Relations: Relations=%"Pindex_t,relationsx->trnumber);
+ printf_last("Sorted Relations: Relations=%"Pindex_t,relationsx->trnumber);
 }
 
 

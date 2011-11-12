@@ -120,12 +120,11 @@ void OutputJunctions(Nodes *nodes,Segments *segments,Ways *ways,Relations *relat
 
 static void output_junctions(index_t node,double latitude,double longitude)
 {
- Node *nodep=LookupNode(OSMNodes,node,1);
  Segment *segment;
  Way *firstway;
  int count=0,difference=0;
 
- segment=FirstSegment(OSMSegments,nodep,1);
+ segment=FirstSegment(OSMSegments,OSMNodes,node,1);
  firstway=LookupWay(OSMWays,segment->way,1);
 
  do
@@ -199,15 +198,14 @@ void OutputSuper(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations
 
 static void output_super(index_t node,double latitude,double longitude)
 {
- Node *nodep=LookupNode(OSMNodes,node,1);
  Segment *segment;
 
- if(!IsSuperNode(nodep))
+ if(!IsSuperNode(LookupNode(OSMNodes,node,1)))
     return;
 
  printf("%.6f %.6f n\n",radians_to_degrees(latitude),radians_to_degrees(longitude));
 
- segment=FirstSegment(OSMSegments,nodep,1);
+ segment=FirstSegment(OSMSegments,OSMNodes,node,1);
 
  do
    {
@@ -280,10 +278,9 @@ void OutputOneway(Nodes *nodes,Segments *segments,Ways *ways,Relations *relation
 
 static void output_oneway(index_t node,double latitude,double longitude)
 {
- Node *nodep=LookupNode(OSMNodes,node,1);
  Segment *segment;
 
- segment=FirstSegment(OSMSegments,nodep,1);
+ segment=FirstSegment(OSMSegments,OSMNodes,node,1);
 
  do
    {
@@ -362,10 +359,9 @@ void OutputTurnRestrictions(Nodes *nodes,Segments *segments,Ways *ways,Relations
 
 static void output_turnrestriction(index_t node,double latitude,double longitude)
 {
- Node *nodep=LookupNode(OSMNodes,node,1);
  index_t turnrelation=NO_RELATION;
 
- if(!IsTurnRestrictedNode(nodep))
+ if(!IsTurnRestrictedNode(LookupNode(OSMNodes,node,1)))
     return;
 
  turnrelation=FindFirstTurnRelation1(OSMRelations,node);
@@ -621,14 +617,13 @@ void OutputLengthLimits(Nodes *nodes,Segments *segments,Ways *ways,Relations *re
 static void output_limits(index_t node,double latitude,double longitude)
 {
 #define MAX_STORED 32
- Node *nodep=LookupNode(OSMNodes,node,1);
  Segment *segment,*segments[MAX_STORED];
  Way *ways[MAX_STORED];
  int limits[MAX_STORED];
  int count=0;
  int i,j,same=0;
 
- segment=FirstSegment(OSMSegments,nodep,1);
+ segment=FirstSegment(OSMSegments,OSMNodes,node,1);
 
  do
    {

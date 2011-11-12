@@ -78,13 +78,10 @@ struct _Nodes
 #else
 
  int       fd;                  /*+ The file descriptor for the file. +*/
-
- index_t  *offsets;             /*+ An allocated array with a copy of the file offsets. +*/
-
  off_t     nodesoffset;         /*+ The offset of the nodes within the file. +*/
 
- Node      cached[6];           /*+ Some cached nodes read from the file in slim mode. +*/
- index_t   incache[6];          /*+ The indexes of the cached nodes. +*/
+ Node      cached[4];           /*+ Four cached nodes read from the file in slim mode. +*/
+ index_t   incache[4];          /*+ The indexes of the cached nodes. +*/
 
 #endif
 };
@@ -112,21 +109,28 @@ void GetLatLong(Nodes *nodes,index_t index,double *latitude,double *longitude);
 /*+ Return true if this is a turn restricted node. +*/
 #define IsTurnRestrictedNode(xxx)   (((xxx)->flags)&NODE_TURNRSTRCT)
 
-/*+ Return a Segment index given a Node pointer and a set of segments. +*/
-#define FirstSegment(xxx,yyy,ppp)   LookupSegment((xxx),(yyy)->firstseg,ppp)
-
-/*+ Return the offset of a geographical region given a set of nodes. +*/
-#define LookupNodeOffset(xxx,yyy)   ((xxx)->offsets[yyy])
-
 
 #if !SLIM
 
 /*+ Return a Node pointer given a set of nodes and an index. +*/
-#define LookupNode(xxx,yyy,ppp)     (&(xxx)->nodes[yyy])
+#define LookupNode(xxx,yyy,ppp)       (&(xxx)->nodes[yyy])
+
+/*+ Return a Segment index given a Node pointer and a set of segments. +*/
+#define FirstSegment(xxx,yyy,zzz,ppp) LookupSegment((xxx),(yyy)->nodes[zzz].firstseg,1)
+
+/*+ Return the offset of a geographical region given a set of nodes. +*/
+#define LookupNodeOffset(xxx,yyy)     ((xxx)->offsets[yyy])
 
 #else
 
 static Node *LookupNode(Nodes *nodes,index_t index,int position);
+
+/*+ Return a Segment index given a Node pointer and a set of segments. +*/
+#define FirstSegment(xxx,yyy,zzz,ppp) LookupSegment((xxx),FirstSegment_internal(yyy,zzz),ppp)
+
+static index_t FirstSegment_internal(Nodes *nodes,index_t index);
+
+static index_t LookupNodeOffset(Nodes *nodes,index_t index);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -145,12 +149,56 @@ static inline Node *LookupNode(Nodes *nodes,index_t index,int position)
 {
  if(nodes->incache[position-1]!=index)
    {
-    SeekReadFile(nodes->fd,&nodes->cached[position-1],sizeof(Node),nodes->nodesoffset+(off_t)index*sizeof(Node));
+    SeekFile(nodes->fd,nodes->nodesoffset+(off_t)index*sizeof(Node));
+
+    ReadFile(nodes->fd,&nodes->cached[position-1],sizeof(Node));
 
     nodes->incache[position-1]=index;
    }
 
  return(&nodes->cached[position-1]);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Find the index of the first segment of a node (called by FirstSegment() macro).
+
+  index_t FirstSegment_internal Returns the index of the first segment.
+
+  Nodes *nodes The set of nodes to use.
+
+  index_t index The index of the node.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+static inline index_t FirstSegment_internal(Nodes *nodes,index_t index)
+{
+ Node *node;
+
+ node=LookupNode(nodes,index,4);
+
+ return(node->firstseg);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Find the offset of nodes in a geographical region.
+
+  index_t LookupNodeOffset Returns the index offset.
+
+  Nodes *nodes The set of nodes to use.
+
+  index_t index The index of the offset.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+static inline index_t LookupNodeOffset(Nodes *nodes,index_t index)
+{
+ index_t offset;
+
+ SeekFile(nodes->fd,sizeof(NodesFile)+(off_t)index*sizeof(index_t));
+
+ ReadFile(nodes->fd,&offset,sizeof(index_t));
+
+ return(offset);
 }
 
 #endif

@@ -170,31 +170,32 @@ Version 2.0.2 of Routino was released on 26th June 2011.
 Version 2.0.3 of Routino was released on 4th August 2011.
 <br>
 Version 2.1 of Routino was released on 3rd October 2011.
-<br>
-Version 2.1.1 of Routino was released on 23rd October 2011.
-<br>
-Version 2.1.2 of Routino was released on 12 November 2011.
 
 <p>
 
 The full version history is available in the NEWS file.
 
 
-<h3><a name="H_1_5_1" title="Changes"></a>Changes in Version 2.1.2</h3>
+<h3><a name="H_1_5_1" title="Changes"></a>Changes in Version 2.1</h3>
 
 <dl>
   <dt>Bug fixes:
-  <dd>Speed up the routing by a factor of 3 for slim mode by copying data to RAM.
-  <br>Speed up routing & reduce memory use by a factor of 2.5 by stopping earlier.
-  <br>Delete profiles.js and profiles.pl when cleaning up (make clean).
-  <br>Improve output for translated versions (highway type names and text files).
-  <br>Fix the summarise-log.pl script for segments which are loops.
-  <br>Fix invalid XML syntax in tagging.xml file.
+  <dd>Fix bug in pathological cases with binary search (don't crash).
+  <br>Make stricter checks for closest nodes just like in v2.0.3 for segments.
+  <br>Fix routing bug where start node is a super-node and finish is close by.
+
+  <dt>OSM tagging
+  <dd>More testing of turn relations; invalid or useless ones are discarded.
+  <br>An error log file can be generated to record parsing and processing errors.
+
   <dt>Configuration Files:
-  <dd>Add extra tagging rules to handle problems found in the error log for UK.
-  <br>Added Russian translations for output files.
-  <dt>Documentation:
-  <dd>Improve the documentation for the tagging rule configuration file.
+  <dd>Add new options in the tagging rules XML file.
+  <br>Add extra tagging rules to handle many problems found in the error log for UK.
+  <br>Create special-use tagging rule files for walking, riding and driving.
+
+  <dt>Test cases:
+  <dd>Create new test case for bug fixed in v2.0.3.
+  <br>Save expected results to allow future regressions to be found.
 </dl>
 
 

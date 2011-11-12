@@ -134,7 +134,9 @@ static inline Way *LookupWay(Ways *ways,index_t index,int position)
 {
  if(ways->incache[position-1]!=index)
    {
-    SeekReadFile(ways->fd,&ways->cached[position-1],sizeof(Way),sizeof(WaysFile)+(off_t)index*sizeof(Way));
+    SeekFile(ways->fd,sizeof(WaysFile)+(off_t)index*sizeof(Way));
+
+    ReadFile(ways->fd,&ways->cached[position-1],sizeof(Way));
 
     ways->incache[position-1]=index;
    }

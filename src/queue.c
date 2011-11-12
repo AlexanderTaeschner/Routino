@@ -1,9 +1,11 @@
 /***************************************
+ $Header: /home/amb/CVS/routino/src/queue.c,v 1.7 2009-11-13 19:24:11 amb Exp $
+
  Queue data type functions.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2011 Andrew M. Bishop
+ This file Copyright 2008,2009 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -30,8 +32,8 @@
 /*+ A queue of results. +*/
 struct _Queue
 {
- int      nallocated;           /*+ The number of entries allocated. +*/
- int      noccupied;            /*+ The number of entries occupied. +*/
+ uint32_t nallocated;           /*+ The number of entries allocated. +*/
+ uint32_t noccupied;            /*+ The number of entries occupied. +*/
 
  Result **data;                 /*+ The queue of pointers to results. +*/
 };
@@ -49,7 +51,7 @@ Queue *NewQueueList(void)
 
  queue=(Queue*)malloc(sizeof(Queue));
 
- queue->nallocated=1024;
+ queue->nallocated=1023;
  queue->noccupied=0;
 
  queue->data=(Result**)malloc(queue->nallocated*sizeof(Result*));
@@ -85,18 +87,18 @@ void FreeQueueList(Queue *queue)
 
 void InsertInQueue(Queue *queue,Result *result)
 {
- int index;
+ uint32_t index;
 
  if(result->queued==NOT_QUEUED)
    {
-    queue->noccupied++;
-    index=queue->noccupied;
-
     if(queue->noccupied==queue->nallocated)
       {
-       queue->nallocated=2*queue->nallocated;
+       queue->nallocated=2*queue->nallocated+1;
        queue->data=(Result**)realloc((void*)queue->data,queue->nallocated*sizeof(Result*));
       }
+
+    index=queue->noccupied;
+    queue->noccupied++;
 
     queue->data[index]=result;
     queue->data[index]->queued=index;
@@ -108,15 +110,13 @@ void InsertInQueue(Queue *queue,Result *result)
 
  /* Bubble up the new value */
 
- while(index>1)
+ while(index>0 &&
+       queue->data[index]->sortby<queue->data[(index-1)/2]->sortby)
    {
-    int newindex;
+    uint32_t newindex;
     Result *temp;
 
-    newindex=index/2;
-
-    if(queue->data[index]->sortby>=queue->data[newindex]->sortby)
-       break;
+    newindex=(index-1)/2;
 
     temp=queue->data[index];
     queue->data[index]=queue->data[newindex];
@@ -143,34 +143,33 @@ void InsertInQueue(Queue *queue,Result *result)
 
 Result *PopFromQueue(Queue *queue)
 {
- int index;
+ uint32_t index;
  Result *retval;
 
  if(queue->noccupied==0)
     return(NULL);
 
- retval=queue->data[1];
+ retval=queue->data[0];
  retval->queued=NOT_QUEUED;
 
- index=1;
+ index=0;
+ queue->noccupied--;
 
  queue->data[index]=queue->data[queue->noccupied];
- queue->noccupied--;
 
  /* Bubble down the newly promoted value */
 
- while((2*index)<queue->noccupied)
+ while((2*index+2)<queue->noccupied &&
+       (queue->data[index]->sortby>queue->data[2*index+1]->sortby ||
+        queue->data[index]->sortby>queue->data[2*index+2]->sortby))
    {
-    int newindex;
+    uint32_t newindex;
     Result *temp;
 
-    newindex=2*index;
-
-    if(queue->data[newindex]->sortby>queue->data[newindex+1]->sortby)
-       newindex=newindex+1;
-
-    if(queue->data[index]->sortby<=queue->data[newindex]->sortby)
-       break;
+    if(queue->data[2*index+1]->sortby<queue->data[2*index+2]->sortby)
+       newindex=2*index+1;
+    else
+       newindex=2*index+2;
 
     temp=queue->data[newindex];
     queue->data[newindex]=queue->data[index];
@@ -182,24 +181,20 @@ Result *PopFromQueue(Queue *queue)
     index=newindex;
    }
 
- if((2*index)==queue->noccupied)
+ if((2*index+2)==queue->noccupied &&
+    queue->data[index]->sortby>queue->data[2*index+1]->sortby)
    {
-    int newindex;
+    uint32_t newindex;
     Result *temp;
 
-    newindex=2*index;
+    newindex=2*index+1;
 
-    if(queue->data[index]->sortby<=queue->data[newindex]->sortby)
-       ; /* break */
-    else
-      {
-       temp=queue->data[newindex];
-       queue->data[newindex]=queue->data[index];
-       queue->data[index]=temp;
+    temp=queue->data[newindex];
+    queue->data[newindex]=queue->data[index];
+    queue->data[index]=temp;
 
-       queue->data[index]->queued=index;
-       queue->data[newindex]->queued=newindex;
-      }
+    queue->data[index]->queued=index;
+    queue->data[newindex]->queued=newindex;
    }
 
  return(retval);

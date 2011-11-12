@@ -107,11 +107,7 @@ index_t FindClosestSegmentHeading(Nodes *nodes,Segments *segments,Ways *ways,ind
  if(IsFakeNode(node1))
     segment=FirstFakeSegment(node1);
  else
-   {
-    Node *node=LookupNode(nodes,node1,3);
-
-    segment=FirstSegment(segments,node,1);
-   }
+    segment=FirstSegment(segments,nodes,node1,1);
 
  while(segment)
    {

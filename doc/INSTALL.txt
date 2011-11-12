@@ -149,7 +149,6 @@ Configuration of web files
    The directory www/routino/documentation contains the HTML version of
    the Routino documentation.
 
-
 Configuration of web server
 ---------------------------
 
@@ -163,4 +162,4 @@ Configuration of web server
 
 --------
 
-Copyright 2008-2011 Andrew M. Bishop.
+Copyright 2008-2010 Andrew M. Bishop.

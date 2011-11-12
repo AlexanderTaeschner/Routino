@@ -30,7 +30,8 @@ use Time::HiRes qw(gettimeofday tv_interval);
 
 $t0 = [gettimeofday];
 
-# EDIT THIS to set the filename prefix for the routing database files.
+# Filename prefix
+
 $data_prefix="";
 
 #

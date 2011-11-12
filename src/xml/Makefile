@@ -25,14 +25,12 @@ LD=gcc
 
 # Program options
 
-CFLAGS=-Wall -Wmissing-prototypes -std=c99
-#CFLAGS+=-Wextra -pedantic
+CFLAGS=-Wall -Wmissing-prototypes -O0 -g
 LDFLAGS=-lm -lc
 
-CFLAGS+=-O3
-
 # Required to use stdio with files > 2GiB on 32-bit system.
-CFLAGS+=-D_FILE_OFFSET_BITS=64
+
+FLAGS64=-D_FILE_OFFSET_BITS=64
 
 # Compilation targets
 
@@ -40,7 +38,7 @@ XMLDIR=../../xml
 
 X=$(notdir $(wildcard $(XMLDIR)/*.xsd))
 C=$(foreach f,$(X),$(addsuffix -skeleton.c,$(basename $f)))
-D=$(wildcard .deps/*.d)
+D=$(foreach f,$(C),$(addprefix .deps/,$(addsuffix .d,$(basename $f))))
 O=$(foreach f,$(C),$(addsuffix .o,$(basename $f)))
 E=$(foreach f,$(C),$(basename $f))
 
@@ -48,7 +46,7 @@ EXE=xsd-to-xmlparser
 
 ########
 
-all: $(EXE) $(C) $(E)
+all : $(EXE) $(C) $(E)
 	@true
 
 ########
@@ -77,8 +75,8 @@ xsd-to-xmlparser : xsd-to-xmlparser.o ../xmlparse.o
 
 ########
 
-%.o : %.c .deps
-	$(CC) -c $(CFLAGS) -I.. $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
+%.o : %.c
+	$(CC) -c $(CFLAGS) $(FLAGS64) -I.. $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
 
 ########
 
@@ -106,14 +104,9 @@ test-skeleton.c : test/test.xsd xsd-to-xmlparser
 
 ########
 
-install:
-
-########
-
 clean:
 	rm -f *.o
 	rm -f *~
-	rm -f *.gcda *.gcno *.gcov gmon.out
 
 ########
 
@@ -126,11 +119,14 @@ distclean: clean
 
 ########
 
-.deps: .FORCE
+.deps : .FORCE
 	@[ -d .deps ] || mkdir $@
+
+$(D) : .deps
+	@touch $@
 
 include $(D)
 
 ########
 
-.FORCE:
+.FORCE :

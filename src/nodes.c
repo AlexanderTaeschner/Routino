@@ -49,7 +49,6 @@ Nodes *LoadNodeList(const char *filename)
 {
  Nodes *nodes;
 #if SLIM
- size_t sizeoffsets;
  int i;
 #endif
 
@@ -76,13 +75,7 @@ Nodes *LoadNodeList(const char *filename)
 
  ReadFile(nodes->fd,&nodes->file,sizeof(NodesFile));
 
- sizeoffsets=(nodes->file.latbins*nodes->file.lonbins+1)*sizeof(index_t);
-
- nodes->offsets=(index_t*)malloc(sizeoffsets);
-
- ReadFile(nodes->fd,nodes->offsets,sizeoffsets);
-
- nodes->nodesoffset=sizeof(NodesFile)+sizeoffsets;
+ nodes->nodesoffset=sizeof(NodesFile)+(nodes->file.latbins*nodes->file.lonbins+1)*sizeof(index_t);
 
  for(i=0;i<sizeof(nodes->cached)/sizeof(nodes->cached[0]);i++)
     nodes->incache[i]=NO_NODE;
@@ -194,7 +187,7 @@ index_t FindClosestNode(Nodes *nodes,Segments *segments,Ways *ways,double latitu
 
           for(i=index1;i<index2;i++)
             {
-             Node *node=LookupNode(nodes,i,3);
+             Node *node=LookupNode(nodes,i,1);
              double lat=latlong_to_radians(bin_to_latlong(nodes->file.latzero+latb)+off_to_latlong(node->latoffset));
              double lon=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonb)+off_to_latlong(node->lonoffset));
 
@@ -206,7 +199,7 @@ index_t FindClosestNode(Nodes *nodes,Segments *segments,Ways *ways,double latitu
 
                 /* Check that at least one segment is valid for the profile */
 
-                segment=FirstSegment(segments,node,1);
+                segment=FirstSegment(segments,nodes,i,1);
 
                 do
                   {
@@ -350,7 +343,7 @@ index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double lat
 
           for(i=index1;i<index2;i++)
             {
-             Node *node=LookupNode(nodes,i,3);
+             Node *node=LookupNode(nodes,i,1);
              double lat1=latlong_to_radians(bin_to_latlong(nodes->file.latzero+latb)+off_to_latlong(node->latoffset));
              double lon1=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonb)+off_to_latlong(node->lonoffset));
              distance_t dist1;
@@ -363,7 +356,7 @@ index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double lat
 
                 /* Check each segment for closeness and if valid for the profile */
 
-                segment=FirstSegment(segments,node,1);
+                segment=FirstSegment(segments,nodes,i,1);
 
                 do
                   {
@@ -517,7 +510,7 @@ static int valid_segment_for_profile(Ways *ways,Segment *segment,Profile *profil
 
 void GetLatLong(Nodes *nodes,index_t index,double *latitude,double *longitude)
 {
- Node *node=LookupNode(nodes,index,4);
+ Node *node=LookupNode(nodes,index,2);
  ll_bin_t latbin=-1,lonbin=-1;
  ll_bin_t start,end,mid;
  index_t offset;
