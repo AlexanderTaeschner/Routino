@@ -122,7 +122,9 @@ static void PutBackWayX(WaysX *waysx,index_t index,int position);
 
 static inline WayX *LookupWayX(WaysX *waysx,index_t index,int position)
 {
- SeekReadFile(waysx->fd,&waysx->cached[position-1],sizeof(WayX),(off_t)index*sizeof(WayX));
+ SeekFile(waysx->fd,(off_t)index*sizeof(WayX));
+
+ ReadFile(waysx->fd,&waysx->cached[position-1],sizeof(WayX));
 
  return(&waysx->cached[position-1]);
 }
@@ -140,7 +142,9 @@ static inline WayX *LookupWayX(WaysX *waysx,index_t index,int position)
 
 static inline void PutBackWayX(WaysX *waysx,index_t index,int position)
 {
- SeekWriteFile(waysx->fd,&waysx->cached[position-1],sizeof(WayX),(off_t)index*sizeof(WayX));
+ SeekFile(waysx->fd,(off_t)index*sizeof(WayX));
+
+ WriteFile(waysx->fd,&waysx->cached[position-1],sizeof(WayX));
 }
 
 #endif /* SLIM */

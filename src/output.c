@@ -160,15 +160,15 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
    {
     fprintf(htmlfile,"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n");
     fprintf(htmlfile,"<HTML>\n");
-    if(translate_xml_copyright_creator[0] && translate_xml_copyright_creator[1])
-       fprintf(htmlfile,"<!-- %s : %s -->\n",translate_xml_copyright_creator[0],translate_xml_copyright_creator[1]);
-    if(translate_xml_copyright_source[0] && translate_xml_copyright_source[1])
-       fprintf(htmlfile,"<!-- %s : %s -->\n",translate_xml_copyright_source[0],translate_xml_copyright_source[1]);
-    if(translate_xml_copyright_license[0] && translate_xml_copyright_license[1])
-       fprintf(htmlfile,"<!-- %s : %s -->\n",translate_xml_copyright_license[0],translate_xml_copyright_license[1]);
+    if(translate_copyright_creator[0] && translate_copyright_creator[1])
+       fprintf(htmlfile,"<!-- %s : %s -->\n",translate_copyright_creator[0],translate_copyright_creator[1]);
+    if(translate_copyright_source[0] && translate_copyright_source[1])
+       fprintf(htmlfile,"<!-- %s : %s -->\n",translate_copyright_source[0],translate_copyright_source[1]);
+    if(translate_copyright_license[0] && translate_copyright_license[1])
+       fprintf(htmlfile,"<!-- %s : %s -->\n",translate_copyright_license[0],translate_copyright_license[1]);
     fprintf(htmlfile,"<HEAD>\n");
     fprintf(htmlfile,"<TITLE>");
-    fprintf(htmlfile,translate_html_title,option_quickest?translate_xml_route_quickest:translate_xml_route_shortest);
+    fprintf(htmlfile,translate_html_title,option_quickest?translate_route_quickest:translate_route_shortest);
     fprintf(htmlfile,"</TITLE>\n");
     fprintf(htmlfile,"<META http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n");
     fprintf(htmlfile,"<STYLE type=\"text/css\">\n");
@@ -193,7 +193,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
     fprintf(htmlfile,"</HEAD>\n");
     fprintf(htmlfile,"<BODY>\n");
     fprintf(htmlfile,"<H1>");
-    fprintf(htmlfile,translate_html_title,option_quickest?translate_xml_route_quickest:translate_xml_route_shortest);
+    fprintf(htmlfile,translate_html_title,option_quickest?translate_route_quickest:translate_route_shortest);
     fprintf(htmlfile,"</H1>\n");
     fprintf(htmlfile,"<table>\n");
    }
@@ -204,13 +204,13 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
     fprintf(gpxtrackfile,"<gpx version=\"1.1\" creator=\"Routino\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.topografix.com/GPX/1/1\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">\n");
 
     fprintf(gpxtrackfile,"<metadata>\n");
-    fprintf(gpxtrackfile,"<desc>%s : %s</desc>\n",translate_xml_copyright_creator[0],translate_xml_copyright_creator[1]);
-    if(translate_xml_copyright_source[1])
+    fprintf(gpxtrackfile,"<desc>%s : %s</desc>\n",translate_copyright_creator[0],translate_copyright_creator[1]);
+    if(translate_copyright_source[1])
       {
-       fprintf(gpxtrackfile,"<copyright author=\"%s\">\n",translate_xml_copyright_source[1]);
+       fprintf(gpxtrackfile,"<copyright author=\"%s\">\n",translate_copyright_source[1]);
 
-       if(translate_xml_copyright_license[1])
-          fprintf(gpxtrackfile,"<license>%s</license>\n",translate_xml_copyright_license[1]);
+       if(translate_copyright_license[1])
+          fprintf(gpxtrackfile,"<license>%s</license>\n",translate_copyright_license[1]);
 
        fprintf(gpxtrackfile,"</copyright>\n");
       }
@@ -218,10 +218,10 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
 
     fprintf(gpxtrackfile,"<trk>\n");
     fprintf(gpxtrackfile,"<name>");
-    fprintf(gpxtrackfile,translate_gpx_name,option_quickest?translate_xml_route_quickest:translate_xml_route_shortest);
+    fprintf(gpxtrackfile,translate_gpx_name,option_quickest?translate_route_quickest:translate_route_shortest);
     fprintf(gpxtrackfile,"</name>\n");
     fprintf(gpxtrackfile,"<desc>");
-    fprintf(gpxtrackfile,translate_gpx_desc,option_quickest?translate_xml_route_quickest:translate_xml_route_shortest);
+    fprintf(gpxtrackfile,translate_gpx_desc,option_quickest?translate_route_quickest:translate_route_shortest);
     fprintf(gpxtrackfile,"</desc>\n");
    }
 
@@ -231,13 +231,13 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
     fprintf(gpxroutefile,"<gpx version=\"1.1\" creator=\"Routino\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.topografix.com/GPX/1/1\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">\n");
 
     fprintf(gpxroutefile,"<metadata>\n");
-    fprintf(gpxroutefile,"<desc>%s : %s</desc>\n",translate_xml_copyright_creator[0],translate_xml_copyright_creator[1]);
-    if(translate_xml_copyright_source[1])
+    fprintf(gpxroutefile,"<desc>%s : %s</desc>\n",translate_copyright_creator[0],translate_copyright_creator[1]);
+    if(translate_copyright_source[1])
       {
-       fprintf(gpxroutefile,"<copyright author=\"%s\">\n",translate_xml_copyright_source[1]);
+       fprintf(gpxroutefile,"<copyright author=\"%s\">\n",translate_copyright_source[1]);
 
-       if(translate_xml_copyright_license[1])
-          fprintf(gpxroutefile,"<license>%s</license>\n",translate_xml_copyright_license[1]);
+       if(translate_copyright_license[1])
+          fprintf(gpxroutefile,"<license>%s</license>\n",translate_copyright_license[1]);
 
        fprintf(gpxroutefile,"</copyright>\n");
       }
@@ -245,24 +245,24 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
 
     fprintf(gpxroutefile,"<rte>\n");
     fprintf(gpxroutefile,"<name>");
-    fprintf(gpxroutefile,translate_gpx_name,option_quickest?translate_xml_route_quickest:translate_xml_route_shortest);
+    fprintf(gpxroutefile,translate_gpx_name,option_quickest?translate_route_quickest:translate_route_shortest);
     fprintf(gpxroutefile,"</name>\n");
     fprintf(gpxroutefile,"<desc>");
-    fprintf(gpxroutefile,translate_gpx_desc,option_quickest?translate_xml_route_quickest:translate_xml_route_shortest);
+    fprintf(gpxroutefile,translate_gpx_desc,option_quickest?translate_route_quickest:translate_route_shortest);
     fprintf(gpxroutefile,"</desc>\n");
    }
 
  if(textfile)
    {
-    if(translate_raw_copyright_creator[0] && translate_raw_copyright_creator[1])
-       fprintf(textfile,"# %s : %s\n",translate_raw_copyright_creator[0],translate_raw_copyright_creator[1]);
-    if(translate_raw_copyright_source[0] && translate_raw_copyright_source[1])
-       fprintf(textfile,"# %s : %s\n",translate_raw_copyright_source[0],translate_raw_copyright_source[1]);
-    if(translate_raw_copyright_license[0] && translate_raw_copyright_license[1])
-       fprintf(textfile,"# %s : %s\n",translate_raw_copyright_license[0],translate_raw_copyright_license[1]);
-    if((translate_raw_copyright_creator[0] && translate_raw_copyright_creator[1]) ||
-       (translate_raw_copyright_source[0]  && translate_raw_copyright_source[1]) ||
-       (translate_raw_copyright_license[0] && translate_raw_copyright_license[1]))
+    if(translate_copyright_creator[0] && translate_copyright_creator[1])
+       fprintf(textfile,"# %s : %s\n",translate_copyright_creator[0],translate_copyright_creator[1]);
+    if(translate_copyright_source[0] && translate_copyright_source[1])
+       fprintf(textfile,"# %s : %s\n",translate_copyright_source[0],translate_copyright_source[1]);
+    if(translate_copyright_license[0] && translate_copyright_license[1])
+       fprintf(textfile,"# %s : %s\n",translate_copyright_license[0],translate_copyright_license[1]);
+    if((translate_copyright_creator[0] && translate_copyright_creator[1]) ||
+       (translate_copyright_source[0]  && translate_copyright_source[1]) ||
+       (translate_copyright_license[0] && translate_copyright_license[1]))
        fprintf(textfile,"#\n");
 
     fprintf(textfile,"#Latitude\tLongitude\tSection \tSection \tTotal   \tTotal   \tPoint\tTurn\tBearing\tHighway\n");
@@ -272,15 +272,15 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
 
  if(textallfile)
    {
-    if(translate_raw_copyright_creator[0] && translate_raw_copyright_creator[1])
-       fprintf(textallfile,"# %s : %s\n",translate_raw_copyright_creator[0],translate_raw_copyright_creator[1]);
-    if(translate_raw_copyright_source[0] && translate_raw_copyright_source[1])
-       fprintf(textallfile,"# %s : %s\n",translate_raw_copyright_source[0],translate_raw_copyright_source[1]);
-    if(translate_raw_copyright_license[0] && translate_raw_copyright_license[1])
-       fprintf(textallfile,"# %s : %s\n",translate_raw_copyright_license[0],translate_raw_copyright_license[1]);
-    if((translate_raw_copyright_creator[0] && translate_raw_copyright_creator[1]) ||
-       (translate_raw_copyright_source[0]  && translate_raw_copyright_source[1]) ||
-       (translate_raw_copyright_license[0] && translate_raw_copyright_license[1]))
+    if(translate_copyright_creator[0] && translate_copyright_creator[1])
+       fprintf(textallfile,"# %s : %s\n",translate_copyright_creator[0],translate_copyright_creator[1]);
+    if(translate_copyright_source[0] && translate_copyright_source[1])
+       fprintf(textallfile,"# %s : %s\n",translate_copyright_source[0],translate_copyright_source[1]);
+    if(translate_copyright_license[0] && translate_copyright_license[1])
+       fprintf(textallfile,"# %s : %s\n",translate_copyright_license[0],translate_copyright_license[1]);
+    if((translate_copyright_creator[0] && translate_copyright_creator[1]) ||
+       (translate_copyright_source[0]  && translate_copyright_source[1]) ||
+       (translate_copyright_license[0] && translate_copyright_license[1]))
        fprintf(textallfile,"#\n");
 
     fprintf(textallfile,"#Latitude\tLongitude\t    Node\tType\tSegment\tSegment\tTotal\tTotal  \tSpeed\tBearing\tHighway\n");
@@ -319,7 +319,6 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
     do
       {
        double latitude,longitude;
-       Node *resultnode=NULL;
        Result *nextresult;
        index_t nextrealsegment;
        Segment *nextresultsegment;
@@ -365,9 +364,6 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
           nextrealsegment=NO_SEGMENT;
          }
 
-       if(!IsFakeNode(result->node))
-          resultnode=LookupNode(nodes,result->node,6);
-
        if(result->node!=results[point]->start_node)
          {
           distance_t seg_distance=0;
@@ -379,7 +375,8 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
 
           /* Cache the values to be printed rather than calculating them repeatedly for each output format */
 
-          char *waynameraw=NULL,*wayname=NULL;
+          char *waynameraw=NULL,*waynamexml=NULL;
+          const char *wayname=NULL;
           int bearing_int=0,bearing_next_int=0,turn_int=0;
           char *bearing_str=NULL,*bearing_next_str=NULL,*turn_str=NULL;
 
@@ -412,7 +409,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
              important=5;
           else
             {
-             Segment *segment=FirstSegment(segments,resultnode,3);
+             Segment *segment=FirstSegment(segments,nodes,result->node,3);
 
              do
                {
@@ -466,15 +463,15 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                   {
                    waynameraw=WayName(ways,resultway);
                    if(!*waynameraw)
-                      waynameraw=translate_raw_highway[HIGHWAY(resultway->type)];
+                      waynameraw=translate_highway[HIGHWAY(resultway->type)];
                   }
 
-                if(!wayname)
-                   wayname=ParseXML_Encode_Safe_XML(waynameraw);
+                if(!waynamexml)
+                   waynamexml=ParseXML_Encode_Safe_XML(waynameraw);
 
                 fprintf(htmlfile,"<tr class='s'><td class='l'>%s:<td class='r'>",translate_html_segment[0]);
                 fprintf(htmlfile,translate_html_segment[1],
-                                  wayname,
+                                  waynamexml,
                                   distance_to_km(junc_distance),duration_to_minutes(junc_duration));
                 fprintf(htmlfile," [<span class='j'>");
                 fprintf(htmlfile,translate_html_total[1],
@@ -490,13 +487,13 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                    if(!turn_str)
                      {
                       turn_int=(int)TurnAngle(nodes,resultsegment,nextresultsegment,result->node);
-                      turn_str=translate_xml_turn[((202+turn_int)/45)%8];
+                      turn_str=translate_turn[((202+turn_int)/45)%8];
                      }
 
                    if(!bearing_next_str)
                      {
                       bearing_next_int=(int)BearingAngle(nodes,nextresultsegment,nextresult->node);
-                      bearing_next_str=translate_xml_heading[(4+(22+bearing_next_int)/45)%8];
+                      bearing_next_str=translate_heading[(4+(22+bearing_next_int)/45)%8];
                      }
 
                    fprintf(htmlfile,"<tr class='n'><td class='l'>%s:<td class='r'>",translate_html_node[0]);
@@ -525,22 +522,22 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                   {
                    waynameraw=WayName(ways,resultway);
                    if(!*waynameraw)
-                      waynameraw=translate_raw_highway[HIGHWAY(resultway->type)];
+                      waynameraw=translate_highway[HIGHWAY(resultway->type)];
                   }
 
-                if(!wayname)
-                   wayname=ParseXML_Encode_Safe_XML(waynameraw);
+                if(!waynamexml)
+                   waynamexml=ParseXML_Encode_Safe_XML(waynameraw);
 
                 if(!bearing_str)
                   {
                    bearing_int=(int)BearingAngle(nodes,resultsegment,result->node);
-                   bearing_str=translate_xml_heading[(4+(22+bearing_int)/45)%8];
+                   bearing_str=translate_heading[(4+(22+bearing_int)/45)%8];
                   }
 
                 fprintf(gpxroutefile,"<desc>");
                 fprintf(gpxroutefile,translate_gpx_step,
                                      bearing_str,
-                                     wayname,
+                                     waynamexml,
                                      distance_to_km(junc_distance),duration_to_minutes(junc_duration));
                 fprintf(gpxroutefile,"</desc></rtept>\n");
 
@@ -573,11 +570,11 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                 else
                    type="Junct";
 
-                if(!waynameraw)
+                if(!wayname)
                   {
-                   waynameraw=WayName(ways,resultway);
-                   if(!*waynameraw)
-                      waynameraw=translate_raw_highway[HIGHWAY(resultway->type)];
+                   wayname=WayName(ways,resultway);
+                   if(!*wayname)
+                      wayname=HighwayName(HIGHWAY(resultway->type));
                   }
 
                 if(nextresult)
@@ -585,13 +582,13 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                    if(!turn_str)
                      {
                       turn_int=(int)TurnAngle(nodes,resultsegment,nextresultsegment,result->node);
-                      turn_str=translate_xml_turn[((202+turn_int)/45)%8];
+                      turn_str=translate_turn[((202+turn_int)/45)%8];
                      }
 
                    if(!bearing_next_str)
                      {
                       bearing_next_int=(int)BearingAngle(nodes,nextresultsegment,nextresult->node);
-                      bearing_next_str=translate_xml_heading[(4+(22+bearing_next_int)/45)%8];
+                      bearing_next_str=translate_heading[(4+(22+bearing_next_int)/45)%8];
                      }
 
                    fprintf(textfile,"%10.6f\t%11.6f\t%6.3f km\t%4.1f min\t%5.1f km\t%4.0f min\t%s\t %+d\t %+d\t%s\n",
@@ -601,7 +598,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                                     type,
                                     (22+turn_int)/45,
                                     ((22+bearing_next_int)/45+4)%8-4,
-                                    waynameraw);
+                                    wayname);
                   }
                 else
                    fprintf(textfile,"%10.6f\t%11.6f\t%6.3f km\t%4.1f min\t%5.1f km\t%4.0f min\t%s\t\t\t%s\n",
@@ -609,7 +606,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                                     distance_to_km(junc_distance),duration_to_minutes(junc_duration),
                                     distance_to_km(cum_distance),duration_to_minutes(cum_duration),
                                     type,
-                                    waynameraw);
+                                    wayname);
                }
 
              junc_distance=0;
@@ -631,37 +628,37 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
              else
                 type="Inter";
 
-             if(!waynameraw)
+             if(!wayname)
                {
-                waynameraw=WayName(ways,resultway);
-                if(!*waynameraw)
-                   waynameraw=translate_raw_highway[HIGHWAY(resultway->type)];
+                wayname=WayName(ways,resultway);
+                if(!*wayname)
+                   wayname=HighwayName(HIGHWAY(resultway->type));
                }
 
              if(!bearing_str)
                {
                 bearing_int=(int)BearingAngle(nodes,resultsegment,result->node);
-                bearing_str=translate_xml_heading[(4+(22+bearing_int)/45)%8];
+                bearing_str=translate_heading[(4+(22+bearing_int)/45)%8];
                }
 
              fprintf(textallfile,"%10.6f\t%11.6f\t%8d%c\t%s\t%5.3f\t%5.2f\t%5.2f\t%5.1f\t%3d\t%4d\t%s\n",
                                  radians_to_degrees(latitude),radians_to_degrees(longitude),
                                  IsFakeNode(result->node)?(NODE_FAKE-result->node):result->node,
-                                 (resultnode && IsSuperNode(resultnode))?'*':' ',type,
+                                 (!IsFakeNode(result->node) && IsSuperNode(LookupNode(nodes,result->node,1)))?'*':' ',type,
                                  distance_to_km(seg_distance),duration_to_minutes(seg_duration),
                                  distance_to_km(cum_distance),duration_to_minutes(cum_duration),
                                  profile->speed[HIGHWAY(resultway->type)],
                                  bearing_int,
-                                 waynameraw);
+                                 wayname);
             }
 
-          if(wayname && wayname!=waynameraw)
-             free(wayname);
+          if(waynamexml && waynamexml!=waynameraw)
+             free(waynamexml);
          }
        else if(!cum_distance)
          {
           int   bearing_next_int=(int)BearingAngle(nodes,nextresultsegment,nextresult->node);
-          char *bearing_next_str=translate_xml_heading[(4+(22+bearing_next_int)/45)%8];
+          char *bearing_next_str=translate_heading[(4+(22+bearing_next_int)/45)%8];
 
           /* Print out the very first start point */
 
@@ -693,7 +690,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
              fprintf(textallfile,"%10.6f\t%11.6f\t%8d%c\t%s\t%5.3f\t%5.2f\t%5.2f\t%5.1f\t\t\t\n",
                                  radians_to_degrees(latitude),radians_to_degrees(longitude),
                                  IsFakeNode(result->node)?(NODE_FAKE-result->node):result->node,
-                                 (resultnode && IsSuperNode(resultnode))?'*':' ',"Waypt",
+                                 (!IsFakeNode(result->node) && IsSuperNode(LookupNode(nodes,result->node,1)))?'*':' ',"Waypt",
                                  0.0,0.0,0.0,0.0);
          }
 
@@ -713,18 +710,18 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
    {
     fprintf(htmlfile,"</table>\n");
 
-    if((translate_xml_copyright_creator[0] && translate_xml_copyright_creator[1]) ||
-       (translate_xml_copyright_source[0]  && translate_xml_copyright_source[1]) ||
-       (translate_xml_copyright_license[0] && translate_xml_copyright_license[1]))
+    if((translate_copyright_creator[0] && translate_copyright_creator[1]) ||
+       (translate_copyright_source[0]  && translate_copyright_source[1]) ||
+       (translate_copyright_license[0] && translate_copyright_license[1]))
       {
        fprintf(htmlfile,"<p>\n");
        fprintf(htmlfile,"<table class='c'>\n");
-       if(translate_xml_copyright_creator[0] && translate_xml_copyright_creator[1])
-          fprintf(htmlfile,"<tr><td class='l'>%s:<td class='r'>%s\n",translate_xml_copyright_creator[0],translate_xml_copyright_creator[1]);
-       if(translate_xml_copyright_source[0] && translate_xml_copyright_source[1])
-          fprintf(htmlfile,"<tr><td class='l'>%s:<td class='r'>%s\n",translate_xml_copyright_source[0],translate_xml_copyright_source[1]);
-       if(translate_xml_copyright_license[0] && translate_xml_copyright_license[1])
-          fprintf(htmlfile,"<tr><td class='l'>%s:<td class='r'>%s\n",translate_xml_copyright_license[0],translate_xml_copyright_license[1]);
+       if(translate_copyright_creator[0] && translate_copyright_creator[1])
+          fprintf(htmlfile,"<tr><td class='l'>%s:<td class='r'>%s\n",translate_copyright_creator[0],translate_copyright_creator[1]);
+       if(translate_copyright_source[0] && translate_copyright_source[1])
+          fprintf(htmlfile,"<tr><td class='l'>%s:<td class='r'>%s\n",translate_copyright_source[0],translate_copyright_source[1]);
+       if(translate_copyright_license[0] && translate_copyright_license[1])
+          fprintf(htmlfile,"<tr><td class='l'>%s:<td class='r'>%s\n",translate_copyright_license[0],translate_copyright_license[1]);
        fprintf(htmlfile,"</table>\n");
       }
 

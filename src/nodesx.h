@@ -130,7 +130,9 @@ static void PutBackNodeX(NodesX *nodesx,index_t index,int position);
 
 static inline NodeX *LookupNodeX(NodesX *nodesx,index_t index,int position)
 {
- SeekReadFile(nodesx->fd,&nodesx->cached[position-1],sizeof(NodeX),(off_t)index*sizeof(NodeX));
+ SeekFile(nodesx->fd,(off_t)index*sizeof(NodeX));
+
+ ReadFile(nodesx->fd,&nodesx->cached[position-1],sizeof(NodeX));
 
  return(&nodesx->cached[position-1]);
 }
@@ -148,7 +150,9 @@ static inline NodeX *LookupNodeX(NodesX *nodesx,index_t index,int position)
 
 static inline void PutBackNodeX(NodesX *nodesx,index_t index,int position)
 {
- SeekWriteFile(nodesx->fd,&nodesx->cached[position-1],sizeof(NodeX),(off_t)index*sizeof(NodeX));
+ SeekFile(nodesx->fd,(off_t)index*sizeof(NodeX));
+
+ WriteFile(nodesx->fd,&nodesx->cached[position-1],sizeof(NodeX));
 }
 
 #endif /* SLIM */

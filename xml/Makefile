@@ -33,9 +33,6 @@ SPECIAL_FILES=tagging-drive.xml \
 	      tagging-ride.xml \
               tagging-walk.xml
 
-PROFILE_FILES=$(WEBWWWDIR)/profiles.pl \
-	      $(WEBWWWDIR)/profiles.js
-
 ########
 
 all: $(SPECIAL_FILES)
@@ -96,7 +93,6 @@ clean:
 distclean: clean
 	rm -f $(WEBDATADIR)/*.xml
 	rm -f $(SPECIAL_FILES)
-	rm -f $(PROFILE_FILES)
 
 ########
 
