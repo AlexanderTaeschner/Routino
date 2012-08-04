@@ -3,7 +3,7 @@
 #
 # Part of the Routino routing software.
 #
-# This file Copyright 2008-2012 Andrew M. Bishop
+# This file Copyright 2008-2011 Andrew M. Bishop
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,8 @@ use Time::HiRes qw(gettimeofday tv_interval);
 
 $t0 = [gettimeofday];
 
+# EDIT THIS to set the filename prefix for the routing database files.
+$data_prefix="";
 
 #
 # Fill in the default parameters using the ones above (don't use executable compiled in defaults)
@@ -41,12 +43,12 @@ sub FillInDefaults
 
    $params{transport}=$routino->{transport} if(!defined $params{transport});
 
-   my $transport=$params{transport};
+   my($transport)=$params{transport};
 
-   foreach my $highway (keys %{$routino->{highways}})
+   foreach $highway (keys %{$routino->{highways}})
      {
-      my $key="highway-$highway";
-      my $value=$routino->{profile_highway}->{$highway}->{$transport};
+      $key="highway-$highway";
+      $value=$routino->{profile_highway}->{$highway}->{$transport};
       $params{$key}=$value if(!defined $params{$key});
 
       $key="speed-$highway";
@@ -54,10 +56,10 @@ sub FillInDefaults
       $params{$key}=$value if(!defined $params{$key});
      }
 
-   foreach my $property (keys %{$routino->{properties}})
+   foreach $property (keys %{$routino->{properties}})
      {
-      my $key="property-$property";
-      my $value=$routino->{profile_property}->{$property}->{$transport};
+      $key="property-$property";
+      $value=$routino->{profile_property}->{$property}->{$transport};
       $params{$key}=$value if(!defined $params{$key});
      }
 
@@ -67,10 +69,10 @@ sub FillInDefaults
    $params{turns} =~ s/(true|on)/1/;
    $params{turns} =~ s/(false|off)/0/;
 
-   foreach my $restriction (keys %{$routino->{restrictions}})
+   foreach $restriction (keys %{$routino->{restrictions}})
      {
-      my $key="$restriction";
-      my $value=$routino->{profile_restrictions}->{$restriction}->{$transport};
+      $key="$restriction";
+      $value=$routino->{profile_restrictions}->{$restriction}->{$transport};
       $params{$key}=$value if(!defined $params{$key});
      }
 
@@ -88,9 +90,9 @@ sub RunRouter
 
    # Combine all of the parameters together
 
-   my $params="--$optimise";
+   my($params)="--$optimise";
 
-   foreach my $key (keys %params)
+   foreach $key (keys %params)
      {
       $params.=" --$key=$params{$key}";
      }
@@ -102,16 +104,7 @@ sub RunRouter
 
    # Create a unique output directory
 
-   my $uuid;
-
-   if($^O eq "darwin")
-     {
-      chomp($uuid=`echo '$params' $$ | md5    | cut -f1 '-d '`);
-     }
-   else
-     {
-      chomp($uuid=`echo '$params' $$ | md5sum | cut -f1 '-d '`);
-     }
+   chomp($uuid=`echo '$params' $$ | md5sum | cut -f1 '-d '`);
 
    mkdir $uuid;
    chmod 0775, $uuid;
@@ -125,22 +118,22 @@ sub RunRouter
 
    system "$bin_dir/$router_exe $params > router.log 2>&1";
 
-   my(undef,undef,$cuser,$csystem) = times;
-   my $time=sprintf "time: %.3f CPU / %.3f elapsed",$cuser+$csystem,tv_interval($t0);
+   (undef,undef,$cuser,$csystem) = times;
+   $time=sprintf "time: %.3f CPU / %.3f elapsed",$cuser+$csystem,tv_interval($t0);
 
-   my $message="";
+   $message="";
 
    if($? != 0)
      {
       $message=`tail -1 router.log`;
      }
 
-   my $result="";
+   $result="";
 
    if(-f "$optimise.txt")
      {
       $result=`tail -1 $optimise.txt`;
-      my @result=split(/\t/,$result);
+      @result=split(/\t/,$result);
       $result = $result[4]." , ".$result[5];
      }
 
@@ -182,10 +175,10 @@ sub ReturnOutput
 
    if($type eq "router") { $format="log" }
 
-   my $suffix=$suffixes{$format};
-   my $mime  =$mimetypes{$format};
+   $suffix=$suffixes{$format};
+   $mime  =$mimetypes{$format};
 
-   my $file="$results_dir/$uuid/$type$suffix";
+   $file="$results_dir/$uuid/$type$suffix";
 
    # Return the output
 

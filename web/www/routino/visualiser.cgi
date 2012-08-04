@@ -4,7 +4,7 @@
 #
 # Part of the Routino routing software.
 #
-# This file Copyright 2008-2012 Andrew M. Bishop
+# This file Copyright 2008-2011 Andrew M. Bishop
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ require "paths.pl";
 # Use the perl CGI module
 use CGI ':cgi';
 
-
 # Create the query and get the parameters
 
 $query=new CGI;
@@ -40,18 +39,18 @@ $query=new CGI;
               "latmax" => "[-0-9.]+",
               "lonmin" => "[-0-9.]+",
               "lonmax" => "[-0-9.]+",
-              "data"   => "(junctions|super|oneway|highway-.*|transport-.*|turns|speed|weight|height|width|length)"
+              "data"   => "(junctions|super|oneway|turns|speed|weight|height|width|length)"
              );
 
 # Validate the CGI parameters, ignore invalid ones
 
-foreach my $key (@rawparams)
+foreach $key (@rawparams)
   {
-   foreach my $test (keys (%legalparams))
+   foreach $test (keys (%legalparams))
      {
       if($key =~ m%^$test$%)
         {
-         my $value=$query->param($key);
+         $value=$query->param($key);
 
          if($value =~ m%^$legalparams{$test}$%)
            {
@@ -65,12 +64,10 @@ foreach my $key (@rawparams)
 # Parameters to limit range selected
 
 %limits=(
-         "junctions" => 0.2,
+         "junctions" => 0.1,
          "speed"     => 0.2,
          "super"     => 0.2,
          "oneway"    => 0.2,
-         "highway"   => 0.2,
-         "transport" => 0.2,
          "turns"     => 0.3,
          "weight"    => 0.3,
          "height"    => 0.3,
@@ -92,11 +89,7 @@ if($latmin eq "" || $latmax eq "" || $lonmin eq "" || $lonmax eq "" || $data eq 
    exit;
   }
 
-$subdata=$data;
-$subdata="highway" if($data =~ m%highway-%);
-$subdata="transport" if($data =~ m%transport-%);
-
-if(($latmax-$latmin)>$limits{$subdata} || ($lonmax-$lonmin)>$limits{$subdata})
+if(($latmax-$latmin)>$limits{$data} || ($lonmax-$lonmin)>$limits{$data})
   {
    print header(-status => '500 Selected area too large');
    exit;

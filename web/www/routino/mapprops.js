@@ -22,8 +22,7 @@ var mapprops={ // contains all properties for the map to be displayed.
 
  // EDIT THIS above to change the visible map limits
 
-
- // EDIT THIS below to change the map URL(s)
+ // EDIT THIS below to change the map URL(s) 
 
     mapdata: [
         {
@@ -31,16 +30,8 @@ var mapprops={ // contains all properties for the map to be displayed.
             baseurl:  "http://tile.openstreetmap.org/",
             errorurl: "http://openstreetmap.org/openlayers/img/404.png"
         }
-    ],
+    ]
 
- // EDIT THIS above to change the map URL(s)
-
-
- // EDIT THIS below to change the maximum number of markers
-
- // The number of waypoints to include in the HTML
-    maxmarkers: 9
-
- // EDIT THIS above to change the maximum number of markers
+ // EDIT THIS above to change the map URL(s) 
 
 }; // end of map properties

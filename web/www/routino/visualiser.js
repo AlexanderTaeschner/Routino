@@ -3,7 +3,7 @@
 //
 // Part of the Routino routing software.
 //
-// This file Copyright 2008-2012 Andrew M. Bishop
+// This file Copyright 2008-2011 Andrew M. Bishop
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -28,8 +28,6 @@ var data_types=[
                 "junctions",
                 "super",
                 "oneway",
-                "highway",
-                "transport",
                 "turns",
                 "speed",
                 "weight",
@@ -77,48 +75,13 @@ var turn_restriction_style;
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////// Initialisation /////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-// Process the URL query string and extract the arguments
-
-var legal={"^lon"  : "^[-0-9.]+$",
-           "^lat"  : "^[-0-9.]+$",
-           "^zoom" : "^[0-9]+$"};
-
-var args={};
-
-if(location.search.length>1)
-  {
-   var query,queries;
-
-   query=location.search.replace(/^\?/,"");
-   query=query.replace(/;/g,'&');
-   queries=query.split('&');
-
-   for(var i=0;i<queries.length;i++)
-     {
-      queries[i].match(/^([^=]+)(=(.*))?$/);
-
-      k=RegExp.$1;
-      v=unescape(RegExp.$3);
-
-      for(var l in legal)
-        {
-         if(k.match(RegExp(l)) && v.match(RegExp(legal[l])))
-            args[k]=v;
-        }
-     }
-  }
-
-
-////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////// Map handling /////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 var map;
 var layerMap=[], layerVectors, layerBoxes;
 var epsg4326, epsg900913;
+var map_args;
 
 var box;
 
@@ -126,12 +89,8 @@ var box;
 // Initialise the 'map' object
 //
 
-function map_init()             // called from visualiser.html
+function map_init(lat,lon,zoom)
 {
- lon =args["lon"];
- lat =args["lat"];
- zoom=args["zoom"];
-
  // Map properties (North/South and East/West limits and zoom in/out limits) are now in mapprops.js
  // Map URLs are now in mapprops.js
 
@@ -156,14 +115,15 @@ function map_init()             // called from visualiser.html
 
                             minZoomLevel: mapprops.zoomout,
                             numZoomLevels: mapprops.zoomin-mapprops.zoomout+1,
-                            maxResolution: 156543.03390625 / Math.pow(2,mapprops.zoomout),
+                            maxResolution: 156543.0339 / Math.pow(2,mapprops.zoomout),
 
-                            // These two lines are not needed with OpenLayers 2.12
-                            units: "m",
                             maxExtent:        new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
+                            restrictedExtent: new OpenLayers.Bounds(mapprops.westedge,mapprops.southedge,mapprops.eastedge,mapprops.northedge).transform(epsg4326,epsg900913),
 
-                            restrictedExtent: new OpenLayers.Bounds(mapprops.westedge,mapprops.southedge,mapprops.eastedge,mapprops.northedge).transform(epsg4326,epsg900913)
+                            units: "m"
                            });
+
+ map.events.register("moveend", map, mapMoved);
 
  // Add map tile layers
 
@@ -233,7 +193,7 @@ function map_init()             // called from visualiser.html
 
  // Move the map
 
- if(lon != undefined && lat != undefined && zoom != undefined)
+ if(lon != 'lon' && lat != 'lat' && zoom != 'zoom')
    {
     if(lon<mapprops.westedge) lon=mapprops.westedge;
     if(lon>mapprops.eastedge) lon=mapprops.eastedge;
@@ -244,8 +204,7 @@ function map_init()             // called from visualiser.html
     if(zoom<mapprops.zoomout) zoom=mapprops.zoomout;
     if(zoom>mapprops.zoomin)  zoom=mapprops.zoomin;
 
-    var lonlat = new OpenLayers.LonLat(lon,lat);
-    lonlat.transform(epsg4326,epsg900913);
+    var lonlat = new OpenLayers.LonLat(lon,lat).transform(epsg4326,map.getProjectionObject());
 
     map.moveTo(lonlat,zoom-map.minZoomLevel);
    }
@@ -253,61 +212,36 @@ function map_init()             // called from visualiser.html
 
 
 //
-// Format a number in printf("%.5f") format.
+// Map has moved
 //
 
-function format5f(number)
+function mapMoved()
 {
- var newnumber=Math.floor(number*100000+0.5);
- var delta=0;
+ var centre = map.getCenter().clone();
 
- if(newnumber>=0 && newnumber<100000) delta= 100000;
- if(newnumber<0 && newnumber>-100000) delta=-100000;
+ var lonlat = centre.transform(map.getProjectionObject(),epsg4326);
 
- var string=String(newnumber+delta);
+ var zoom = this.getZoom() + map.minZoomLevel;
 
- var intpart =string.substring(0,string.length-5);
- var fracpart=string.substring(string.length-5,string.length);
+ map_args="lat=" + lonlat.lat + ";lon=" + lonlat.lon + ";zoom=" + zoom;
 
- if(delta>0) intpart="0";
- if(delta<0) intpart="-0";
-
- return(intpart + "." + fracpart);
+ updateCustomURL();
 }
 
 
 //
-// Build a set of URL arguments for the map location
+// Update custom URL
 //
 
-function buildMapArguments()
+function updateCustomURL()
 {
- var lonlat = map.getCenter().clone();
- lonlat.transform(epsg900913,epsg4326);
+ var router_url=document.getElementById("router_url");
+ var link_url  =document.getElementById("link_url");
+ var edit_url  =document.getElementById("edit_url");
 
- var zoom = map.getZoom() + map.minZoomLevel;
-
- return "lat=" + format5f(lonlat.lat) + ";lon=" + format5f(lonlat.lon) + ";zoom=" + zoom;
-}
-
-
-//
-// Update a URL
-//
-
-function updateURL(element)     // called from visualiser.html
-{
- if(element.id == "permalink_url")
-    element.href=location.pathname + "?" + buildMapArguments();
-
- if(element.id == "router_url")
-    element.href="router.html" + "?" + buildMapArguments();
-
- if(element.id == "edit_url")
-    element.href="http://www.openstreetmap.org/edit" + "?" + buildMapArguments();
-
- if(element.id.match(/^lang_([a-zA-Z-]+)_url$/))
-    element.href="visualiser.html" + "." + RegExp.$1 + "?" + buildMapArguments();
+ router_url.href="customrouter.cgi?" + map_args;
+ link_url.href="customvisualiser.cgi?" + map_args;
+ edit_url.href="http://www.openstreetmap.org/edit?" + map_args;
 }
 
 
@@ -321,7 +255,9 @@ function updateURL(element)     // called from visualiser.html
 
 function displayStatus(type,subtype,content)
 {
- var child=document.getElementById("result_status").firstChild;
+ var div_status=document.getElementById("result_status");
+
+ var child=div_status.firstChild;
 
  do
    {
@@ -353,7 +289,7 @@ function displayStatistics()
 {
  // Use AJAX to get the statistics
 
- OpenLayers.Request.GET({url: "statistics.cgi", success: runStatisticsSuccess});
+ OpenLayers.loadURL("statistics.cgi",null,null,runStatisticsSuccess);
 }
 
 
@@ -363,8 +299,12 @@ function displayStatistics()
 
 function runStatisticsSuccess(response)
 {
- document.getElementById("statistics_data").innerHTML="<pre>" + response.responseText + "</pre>";
- document.getElementById("statistics_link").style.display="none";
+ var statistics_data=document.getElementById("statistics_data");
+ var statistics_link=document.getElementById("statistics_link");
+
+ statistics_data.innerHTML="<pre>" + response.responseText + "</pre>";
+
+ statistics_link.style.display="none";
 }
 
 
@@ -372,7 +312,7 @@ function runStatisticsSuccess(response)
 // Get the requested data
 //
 
-function displayData(datatype)  // called from visualiser.html
+function displayData(datatype)
 {
  for(var data in data_types)
     hideshow_hide(data_types[data]);
@@ -415,39 +355,23 @@ function displayData(datatype)  // called from visualiser.html
  switch(datatype)
    {
    case 'junctions':
-    OpenLayers.Request.GET({url: url, success: runJunctionsSuccess, failure: runFailure});
+    OpenLayers.loadURL(url,null,null,runJunctionsSuccess,runFailure);
     break;
    case 'super':
-    OpenLayers.Request.GET({url: url, success: runSuperSuccess, faliure: runFailure});
+    OpenLayers.loadURL(url,null,null,runSuperSuccess,runFailure);
     break;
    case 'oneway':
-    OpenLayers.Request.GET({url: url, success: runOnewaySuccess, failure: runFailure});
-    break;
-   case 'highway':
-    var highways=document.forms["highways"].elements["highway"];
-    for(var h in highways)
-       if(highways[h].checked)
-          highway=highways[h].value;
-    url+="-" + highway;
-    OpenLayers.Request.GET({url: url, success: runHighwaySuccess, falure: runFailure});
-    break;
-   case 'transport':
-    var transports=document.forms["transports"].elements["transport"];
-    for(var t in transports)
-       if(transports[t].checked)
-          transport=transports[t].value;
-    url+="-" + transport;
-    OpenLayers.Request.GET({url: url, success: runTransportSuccess, failure: runFailure});
+    OpenLayers.loadURL(url,null,null,runOnewaySuccess,runFailure);
     break;
    case 'turns':
-    OpenLayers.Request.GET({url: url, success: runTurnsSuccess, failure: runFailure});
+    OpenLayers.loadURL(url,null,null,runTurnsSuccess,runFailure);
     break;
    case 'speed':
    case 'weight':
    case 'height':
    case 'width':
    case 'length':
-    OpenLayers.Request.GET({url: url, success: runLimitSuccess, failure: runFailure});
+    OpenLayers.loadURL(url,null,null,runLimitSuccess,runFailure);
     break;
    }
 }
@@ -474,7 +398,7 @@ function runJunctionsSuccess(response)
        var lat2=words[2];
        var lon2=words[3];
 
-       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,epsg900913);
+       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,map.getProjectionObject());
 
        box = new OpenLayers.Marker.Box(bounds);
 
@@ -523,7 +447,7 @@ function runSuperSuccess(response)
        var lat2=words[2];
        var lon2=words[3];
 
-       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,epsg900913);
+       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,map.getProjectionObject());
 
        box = new OpenLayers.Marker.Box(bounds);
 
@@ -581,7 +505,7 @@ function runOnewaySuccess(response)
        var lat2=words[2];
        var lon2=words[3];
 
-       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,epsg900913);
+       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,map.getProjectionObject());
 
        box = new OpenLayers.Marker.Box(bounds);
 
@@ -628,110 +552,6 @@ function runOnewaySuccess(response)
 
 
 //
-// Success in getting the highway data
-//
-
-function runHighwaySuccess(response)
-{
- var lines=response.responseText.split('\n');
-
- var features=[];
-
- for(var line=0;line<lines.length;line++)
-   {
-    var words=lines[line].split(' ');
-
-    if(line == 0)
-      {
-       var lat1=words[0];
-       var lon1=words[1];
-       var lat2=words[2];
-       var lon2=words[3];
-
-       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,epsg900913);
-
-       box = new OpenLayers.Marker.Box(bounds);
-
-       layerBoxes.addMarker(box);
-      }
-    else if(words[0] != "")
-      {
-       var lat1=words[0];
-       var lon1=words[1];
-       var lat2=words[2];
-       var lon2=words[3];
-
-       var lonlat1= new OpenLayers.LonLat(lon1,lat1).transform(epsg4326,epsg900913);
-       var lonlat2= new OpenLayers.LonLat(lon2,lat2).transform(epsg4326,epsg900913);
-
-       var point1 = new OpenLayers.Geometry.Point(lonlat1.lon,lonlat1.lat);
-       var point2 = new OpenLayers.Geometry.Point(lonlat2.lon,lonlat2.lat);
-
-       var segment = new OpenLayers.Geometry.LineString([point1,point2]);
-
-       features.push(new OpenLayers.Feature.Vector(segment,{},super_segment_style));
-      }
-   }
-
- layerVectors.addFeatures(features);
-
- displayStatus("data","highway",lines.length-2);
-}
-
-
-//
-// Success in getting the transport data
-//
-
-function runTransportSuccess(response)
-{
- var lines=response.responseText.split('\n');
-
- var features=[];
-
- for(var line=0;line<lines.length;line++)
-   {
-    var words=lines[line].split(' ');
-
-    if(line == 0)
-      {
-       var lat1=words[0];
-       var lon1=words[1];
-       var lat2=words[2];
-       var lon2=words[3];
-
-       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,epsg900913);
-
-       box = new OpenLayers.Marker.Box(bounds);
-
-       layerBoxes.addMarker(box);
-      }
-    else if(words[0] != "")
-      {
-       var lat1=words[0];
-       var lon1=words[1];
-       var lat2=words[2];
-       var lon2=words[3];
-
-       var lonlat1= new OpenLayers.LonLat(lon1,lat1).transform(epsg4326,epsg900913);
-       var lonlat2= new OpenLayers.LonLat(lon2,lat2).transform(epsg4326,epsg900913);
-
-       var point1 = new OpenLayers.Geometry.Point(lonlat1.lon,lonlat1.lat);
-       var point2 = new OpenLayers.Geometry.Point(lonlat2.lon,lonlat2.lat);
-
-       var segment = new OpenLayers.Geometry.LineString([point1,point2]);
-
-       features.push(new OpenLayers.Feature.Vector(segment,{},super_segment_style));
-      }
-   }
-
- layerVectors.addFeatures(features);
-
- displayStatus("data","transport",lines.length-2);
-}
-
-
-//
 // Success in getting the turn restrictions data
 //
 
@@ -752,7 +572,7 @@ function runTurnsSuccess(response)
        var lat2=words[2];
        var lon2=words[3];
 
-       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,epsg900913);
+       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,map.getProjectionObject());
 
        box = new OpenLayers.Marker.Box(bounds);
 
@@ -810,7 +630,7 @@ function runLimitSuccess(response)
        var lat2=words[2];
        var lon2=words[3];
 
-       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,epsg900913);
+       var bounds = new OpenLayers.Bounds(lon1,lat1,lon2,lat2).transform(epsg4326,map.getProjectionObject());
 
        box = new OpenLayers.Marker.Box(bounds);
 

@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/time.h>
 
 #include "types.h"
 #include "ways.h"
@@ -52,9 +51,6 @@ char *option_tmpdirname=NULL;
 /*+ The amount of RAM to use for filesorting. +*/
 size_t option_filesort_ramsize=0;
 
-/*+ The number of threads to use for filesorting. +*/
-int option_filesort_threads=1;
-
 
 /* Local functions */
 
@@ -67,7 +63,6 @@ static void print_usage(int detail,const char *argerr,const char *err);
 
 int main(int argc,char** argv)
 {
- struct timeval start_time;
  NodesX     *Nodes;
  SegmentsX  *Segments,*SuperSegments=NULL,*MergedSegments=NULL;
  WaysX      *Ways;
@@ -80,8 +75,6 @@ int main(int argc,char** argv)
  int         option_prune_isolated=500,option_prune_short=5,option_prune_straight=3;
  int         arg;
 
- gettimeofday(&start_time,NULL);
-
  /* Parse the command line arguments */
 
  for(arg=1;arg<argc;arg++)
@@ -90,10 +83,6 @@ int main(int argc,char** argv)
        print_usage(1,NULL,NULL);
     else if(!strncmp(argv[arg],"--sort-ram-size=",16))
        option_filesort_ramsize=atoi(&argv[arg][16]);
-#if defined(USE_PTHREADS) && USE_PTHREADS
-    else if(!strncmp(argv[arg],"--sort-threads=",15))
-       option_filesort_threads=atoi(&argv[arg][15]);
-#endif
     else if(!strncmp(argv[arg],"--dir=",6))
        dirname=&argv[arg][6];
     else if(!strncmp(argv[arg],"--tmpdir=",9))
@@ -106,8 +95,6 @@ int main(int argc,char** argv)
        option_process_only=1;
     else if(!strcmp(argv[arg],"--loggable"))
        option_loggable=1;
-    else if(!strcmp(argv[arg],"--logtime"))
-       option_logtime=1;
     else if(!strcmp(argv[arg],"--errorlog"))
        errorlog="error.log";
     else if(!strncmp(argv[arg],"--errorlog=",11))
@@ -162,35 +149,31 @@ int main(int argc,char** argv)
        option_tmpdirname=dirname;
    }
 
- 
- if(!option_process_only)
+ if(tagging)
    {
-    if(tagging)
+    if(!ExistsFile(tagging))
       {
-       if(!ExistsFile(tagging))
-         {
-          fprintf(stderr,"Error: The '--tagging' option specifies a file that does not exist.\n");
-          return(1);
-         }
-      }
-    else
-      {
-       if(ExistsFile(FileName(dirname,prefix,"tagging.xml")))
-          tagging=FileName(dirname,prefix,"tagging.xml");
-       else if(ExistsFile(FileName(DATADIR,NULL,"tagging.xml")))
-          tagging=FileName(DATADIR,NULL,"tagging.xml");
-       else
-         {
-          fprintf(stderr,"Error: The '--tagging' option was not used and the default 'tagging.xml' does not exist.\n");
-          return(1);
-         }
-      }
-
-    if(ParseXMLTaggingRules(tagging))
-      {
-       fprintf(stderr,"Error: Cannot read the tagging rules in the file '%s'.\n",tagging);
+       fprintf(stderr,"Error: The '--tagging' option specifies a file that does not exist.\n");
        return(1);
       }
+   }
+ else
+   {
+    if(ExistsFile(FileName(dirname,prefix,"tagging.xml")))
+       tagging=FileName(dirname,prefix,"tagging.xml");
+    else if(ExistsFile(FileName(DATADIR,NULL,"tagging.xml")))
+       tagging=FileName(DATADIR,NULL,"tagging.xml");
+    else
+      {
+       fprintf(stderr,"Error: The '--tagging' option was not used and the default 'tagging.xml' does not exist.\n");
+       return(1);
+      }
+   }
+
+ if(ParseXMLTaggingRules(tagging))
+   {
+    fprintf(stderr,"Error: Cannot read the tagging rules in the file '%s'.\n",tagging);
+    return(1);
    }
 
  /* Create new node, segment, way and relation variables */
@@ -210,45 +193,40 @@ int main(int argc,char** argv)
 
  /* Parse the file */
 
-if(!option_process_only)
-  {
-   if(option_filenames)
-     {
-      for(arg=1;arg<argc;arg++)
-        {
-         FILE *file;
+ if(option_filenames)
+   {
+    for(arg=1;arg<argc;arg++)
+      {
+       FILE *file;
 
-         if(argv[arg][0]=='-' && argv[arg][1]=='-')
-            continue;
+       if(argv[arg][0]=='-' && argv[arg][1]=='-')
+          continue;
 
-         file=fopen(argv[arg],"rb");
+       file=fopen(argv[arg],"rb");
 
-         if(!file)
-           {
-            fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",argv[arg],strerror(errno));
-            exit(EXIT_FAILURE);
-           }
+       if(!file)
+         {
+          fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",argv[arg],strerror(errno));
+          exit(EXIT_FAILURE);
+         }
 
-         printf("\nParse OSM Data [%s]\n==============\n\n",argv[arg]);
-         fflush(stdout);
+       printf("\nParse OSM Data [%s]\n==============\n\n",argv[arg]);
+       fflush(stdout);
 
-         if(ParseOSM(file,Nodes,Segments,Ways,Relations))
-            exit(EXIT_FAILURE);
+       if(ParseOSM(file,Nodes,Segments,Ways,Relations))
+          exit(EXIT_FAILURE);
 
-         fclose(file);
-        }
-     }
-   else
-     {
-      printf("\nParse OSM Data\n==============\n\n");
-      fflush(stdout);
+       fclose(file);
+      }
+   }
+ else if(!option_process_only)
+   {
+    printf("\nParse OSM Data\n==============\n\n");
+    fflush(stdout);
 
-      if(ParseOSM(stdin,Nodes,Segments,Ways,Relations))
-         exit(EXIT_FAILURE);
-     }
-
-   DeleteXMLTaggingRules();
-  }
+    if(ParseOSM(stdin,Nodes,Segments,Ways,Relations))
+       exit(EXIT_FAILURE);
+   }
 
  if(option_parse_only)
    {
@@ -259,6 +237,8 @@ if(!option_process_only)
 
     return(0);
    }
+
+ DeleteXMLTaggingRules();
 
  /* Process the data */
 
@@ -469,16 +449,6 @@ if(!option_process_only)
  if(errorlog)
     close_errorlog();
 
- /* Print the total time */
-
- if(option_logtime)
-   {
-    printf("\n");
-    fprintf_elapsed_time(stdout,&start_time);
-    printf("Complete\n");
-    fflush(stdout);
-   }
-
  return(0);
 }
 
@@ -498,15 +468,10 @@ static void print_usage(int detail,const char *argerr,const char *err)
  fprintf(stderr,
          "Usage: planetsplitter [--help]\n"
          "                      [--dir=<dirname>] [--prefix=<name>]\n"
-#if defined(USE_PTHREADS) && USE_PTHREADS
-         "                      [--sort-ram-size=<size>] [--sort-threads=<number>]\n"
-#else
          "                      [--sort-ram-size=<size>]\n"
-#endif
          "                      [--tmpdir=<dirname>]\n"
          "                      [--tagging=<filename>]\n"
-         "                      [--loggable] [--logtime]\n"
-         "                      [--errorlog[=<name>]]\n"
+         "                      [--loggable] [--errorlog[=<name>]]\n"
          "                      [--parse-only | --process-only]\n"
          "                      [--max-iterations=<number>]\n"
          "                      [--prune-none]\n"
@@ -539,10 +504,6 @@ static void print_usage(int detail,const char *argerr,const char *err)
 #else
             "                          (defaults to 256MB otherwise.)\n"
 #endif
-#if defined(USE_PTHREADS) && USE_PTHREADS
-            "--sort-threads=<number>   The number of threads to use for data sorting.\n"
-#endif
-            "\n"
             "--tmpdir=<dirname>        The directory name for temporary files.\n"
             "                          (defaults to the '--dir' option directory.)\n"
             "\n"
@@ -552,7 +513,6 @@ static void print_usage(int detail,const char *argerr,const char *err)
             "                           '" DATADIR "').\n"
             "\n"
             "--loggable                Print progress messages suitable for logging to file.\n"
-            "--logtime                 Print the elapsed time for each processing step.\n"
             "--errorlog[=<name>]       Log parsing errors to 'error.log' or the given name\n"
             "                          (the '--dir' and '--prefix' options are applied).\n"
             "\n"

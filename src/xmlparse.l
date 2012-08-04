@@ -6,7 +6,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2010-2012 Andrew M. Bishop
+ This file Copyright 2010-2011 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -73,18 +73,17 @@
 
 /*+ Reset the current string. +*/
 #define reset_string \
- stringnum=(stringnum+1)%XMLPARSE_MAX_ATTRS; \
- if(!string[stringnum]) string[stringnum]=(char*)malloc(stringlen[stringnum]=256); \
- *string[stringnum]=0; \
- stringused[stringnum]=0;
+ if(!string) string=(char*)malloc(16); \
+ *string=0; \
+ stringused=0;
 
 /*+ append information to the current string. +*/
 #define append_string(xx) \
  newlen=strlen(xx); \
- if((stringused[stringnum]+newlen)>=stringlen[stringnum]) \
-    string[stringnum]=(char*)realloc((void*)string[stringnum],stringlen[stringnum]=(stringused[stringnum]+newlen+256)); \
- strcpy(string[stringnum]+stringused[stringnum],xx); \
- stringused[stringnum]+=newlen;
+ if((stringused+newlen)>=stringlen) \
+    string=(char*)realloc((void*)string,stringlen=(stringused+newlen+16)); \
+ strcpy(string+stringused,xx); \
+ stringused+=newlen;
 
 
 /* Lexer functions and variables */
@@ -104,20 +103,14 @@ static unsigned long long lineno;
 %option batch
 %option never-interactive
 
-%option perf-report perf-report
-%option warn
-%option verbose
-
 %option nodefault
+%option perf-report
 %option fast
 %option noread
 
-%option noreject
 %option nounput
 %option noinput
 %option noyywrap
-%option noyymore
-%option noyylineno
 
 
  /* Grammar based on http://www.w3.org/TR/2004/REC-xml-20040204/ but for ASCII tags not Unicode. */
@@ -147,13 +140,12 @@ digit           [0-9]
 xdigit          [a-fA-F0-9]
 
 namechar        ({letter}|{digit}|[-._:])
-name            (({letter}|[_:]){namechar}*)
+name            ({letter}|[_:]){namechar}*
 
-entityref       (&{name};)
-charref         (&#({digit}+|x{xdigit}+);)
+entityref       &{name};
+charref         &#({digit}+|x{xdigit}+);
 
 
-%x BANGTAG
 %x COMMENT
 %x CDATA
 %x DOCTYPE
@@ -165,32 +157,23 @@ charref         (&#({digit}+|x{xdigit}+);)
 
 %%
  /* Must use static variables since the parser returns often. */
- static int stringnum=0;
- static char *string[XMLPARSE_MAX_ATTRS]={NULL};
- static unsigned long stringlen[XMLPARSE_MAX_ATTRS]={0},stringused[XMLPARSE_MAX_ATTRS]={0};
+ static char *string=NULL;
+ static int stringlen=0,stringused=0;
  static int after_attr=0;
  int newlen;
  int doctype_depth=0;
 
  /* Handle top level entities */
 
-"<!"                        { BEGIN(BANGTAG); }
+"<!--"                      { BEGIN(COMMENT); }
+"<![CDATA["                 { BEGIN(CDATA); }
+"<!DOCTYPE"                 { BEGIN(DOCTYPE); doctype_depth=0; }
 "</"                        { BEGIN(END_TAG1); }
 "<?"                        { BEGIN(XML_DECL_START); }
 "<"                         { BEGIN(TAG_START); }
-
 ">"                         { return(LEX_ERROR_CLOSE); }
-
 {N}                         { lineno++; }
 [^<>]                       { }
-
- /* Tags beginning with '!' */
-
-<BANGTAG>"--"               { BEGIN(COMMENT); }
-<BANGTAG>"[CDATA["          { BEGIN(CDATA); }
-<BANGTAG>"DOCTYPE"          { BEGIN(DOCTYPE); doctype_depth=0; }
-<BANGTAG>{N}                { /* lineno++; */ return(LEX_ERROR_TAG_START); }
-<BANGTAG>.                  { return(LEX_ERROR_TAG_START); }
 
  /* Comments */
 
@@ -207,20 +190,20 @@ charref         (&#({digit}+|x{xdigit}+);)
 <CDATA>{N}                  { lineno++; }
 <CDATA>[^]]                 { }
 
- /* DOCTYPE */
+ /* CDATA */
 
 <DOCTYPE>"<"                { doctype_depth++; }
 <DOCTYPE>">"                { if(doctype_depth==0) BEGIN(INITIAL); else doctype_depth--; }
 <DOCTYPE>{N}                { lineno++; }
 <DOCTYPE>[^<>]              { }
 
- /* XML declaration start */
+ /* XML Declaration start */
 
 <XML_DECL_START>xml         { BEGIN(XML_DECL); yylval=yytext; return(LEX_XML_DECL_BEGIN); }
 <XML_DECL_START>{N}         { /* lineno++; */ return(LEX_ERROR_XML_DECL_START); }
 <XML_DECL_START>.           { return(LEX_ERROR_XML_DECL_START); }
 
- /* XML declaration middle */
+ /* Tag middle */
 
 <XML_DECL>"?>"              { BEGIN(INITIAL); return(LEX_XML_DECL_FINISH); }
 <XML_DECL>{S}+              { }
@@ -266,16 +249,16 @@ charref         (&#({digit}+|x{xdigit}+);)
 
  /* Quoted strings */
 
-<DQUOTED>\"                 { BEGIN(after_attr); yylval=string[stringnum]; return(LEX_ATTR_VAL); }
+<DQUOTED>\"                 { BEGIN(after_attr); yylval=string; return(LEX_ATTR_VAL); }
 <DQUOTED>{entityref}        { if(xmlparse_options&XMLPARSE_RETURN_ATTR_ENCODED) {append_string(yytext);}
                               else { const char *str=ParseXML_Decode_Entity_Ref(yytext); if(str) {append_string(str);} else {yylval=yytext; return(LEX_ERROR_ENTITY_REF);} } }
 <DQUOTED>{charref}          { if(xmlparse_options&XMLPARSE_RETURN_ATTR_ENCODED) {append_string(yytext);}
                               else { const char *str=ParseXML_Decode_Char_Ref(yytext);   if(str) {append_string(str);} else {yylval=yytext; return(LEX_ERROR_CHAR_REF);} } }
-<DQUOTED>[<>&]              { yylval=yytext; return(LEX_ERROR_ATTR_VAL); }
+<DQUOTED>[<>&\"]            { yylval=yytext; return(LEX_ERROR_ATTR_VAL); }
 <DQUOTED>{UquotedD}+        { append_string(yytext); }
 <DQUOTED>.                  { yylval=yytext; return(LEX_ERROR_ATTR_VAL); }
 
-<SQUOTED>\'                 { BEGIN(after_attr); yylval=string[stringnum]; return(LEX_ATTR_VAL); }
+<SQUOTED>\'                 { BEGIN(after_attr); yylval=string; return(LEX_ATTR_VAL); }
 <SQUOTED>{entityref}        { if(xmlparse_options&XMLPARSE_RETURN_ATTR_ENCODED) {append_string(yytext);}
                               else { const char *str=ParseXML_Decode_Entity_Ref(yytext); if(str) {append_string(str);} else {yylval=yytext; return(LEX_ERROR_ENTITY_REF);} } }
 <SQUOTED>{charref}          { if(xmlparse_options&XMLPARSE_RETURN_ATTR_ENCODED) {append_string(yytext);}
@@ -286,8 +269,7 @@ charref         (&#({digit}+|x{xdigit}+);)
 
  /* End of file */
 
-<<EOF>>                     { for(stringnum=0;stringnum<XMLPARSE_MAX_ATTRS;stringnum++) {free(string[stringnum]); string[stringnum]=NULL; stringlen[stringnum]=stringused[stringnum]=0;}
-                              BEGIN(INITIAL); return(LEX_EOF); }
+<<EOF>>                     { free(string); string=NULL; stringlen=stringused=0; BEGIN(INITIAL); return(LEX_EOF); }
 
 %%
 
@@ -402,7 +384,11 @@ int ParseXML(FILE *file,xmltag **tags,int options)
              tag=tags[i];
 
              for(i=0;i<tag->nattributes;i++)
-                attributes[i]=NULL;
+                if(attributes[i])
+                  {
+                   free(attributes[i]);
+                   attributes[i]=NULL;
+                  }
 
              break;
             }
@@ -477,7 +463,11 @@ int ParseXML(FILE *file,xmltag **tags,int options)
          }
 
        for(i=0;i<tag->nattributes;i++)
-          attributes[i]=NULL;
+          if(attributes[i])
+            {
+             free(attributes[i]);
+             attributes[i]=NULL;
+            }
 
        if(tag->callback)
           if(call_callback(tag->name,tag->callback,XMLPARSE_TAG_END,tag->nattributes,attributes))
@@ -523,7 +513,7 @@ int ParseXML(FILE *file,xmltag **tags,int options)
       case LEX_ATTR_VAL:
 
        if(tag->callback && attribute!=-1 && yylval)
-          attributes[attribute]=yylval;
+          attributes[attribute]=strcpy(malloc(strlen(yylval)+1),yylval);
 
        break;
 
@@ -587,6 +577,10 @@ int ParseXML(FILE *file,xmltag **tags,int options)
  while(yychar>LEX_EOF && yychar<LEX_ERROR);
 
  /* Delete the tagdata */
+
+ for(i=0;i<XMLPARSE_MAX_ATTRS;i++)
+    if(attributes[i])
+       free(attributes[i]);
 
  if(stackdepth)
    {

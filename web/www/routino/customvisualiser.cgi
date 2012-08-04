@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Routino router results retrieval CGI
+# Routino data visualiser custom link CGI
 #
 # Part of the Routino routing software.
 #
@@ -20,12 +20,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# Use the directory paths script
-require "paths.pl";
-
-# Use the generic router script
-require "router.pl";
-
 # Use the perl CGI module
 use CGI ':cgi';
 
@@ -38,10 +32,9 @@ $query=new CGI;
 # Legal CGI parameters with regexp validity check
 
 %legalparams=(
-              "type"   => "(shortest|quickest|router)",
-              "format" => "(html|gpx-route|gpx-track|text|text-all|log)",
-
-              "uuid"   => "[0-9a-f]{32}"
+              "lon"  => "[-0-9.]+",
+              "lat"  => "[-0-9.]+",
+              "zoom" => "[0-9]+"
              );
 
 # Validate the CGI parameters, ignore invalid ones
@@ -63,12 +56,63 @@ foreach $key (@rawparams)
      }
   }
 
-# Parse the parameters
+# Open template file and output it
 
-$uuid  =$cgiparams{"uuid"};
-$type  =$cgiparams{"type"};
-$format=$cgiparams{"format"};
+$bestpref=0;
+$bestlang="";
 
-# Return the file
+if(defined $ENV{HTTP_ACCEPT_LANGUAGE})
+  {
+   $LANGUAGES=$ENV{HTTP_ACCEPT_LANGUAGE};
 
-ReturnOutput($uuid,$type,$format);
+   @LANGUAGES=split(",",$LANGUAGES);
+
+   foreach $LANG (@LANGUAGES)
+     {
+      if($LANG =~ m%^([^; ]+) *; *q *= *([0-9.]+)%)
+        {
+         $LANG=$1;
+         $preference=$2;
+        }
+      else
+        {
+         $preference=1.0;
+        }
+
+      if($preference>$bestpref && -f "visualiser.html.$LANG")
+        {
+         $bestpref=$preference;
+         $bestlang=$LANG;
+        }
+     }
+  }
+
+if($bestpref>0)
+  {
+   open(TEMPLATE,"<visualiser.html.$bestlang");
+  }
+else
+  {
+   open(TEMPLATE,"<visualiser.html");
+  }
+
+# Parse the template and fill in the parameters
+
+print header('text/html');
+
+while(<TEMPLATE>)
+  {
+   if(m%^<BODY.+>%)
+     {
+      s/'lat'/$cgiparams{'lat'}/   if(defined $cgiparams{'lat'});
+      s/'lon'/$cgiparams{'lon'}/   if(defined $cgiparams{'lon'});
+      s/'zoom'/$cgiparams{'zoom'}/ if(defined $cgiparams{'zoom'});
+      print;
+     }
+   else
+     {
+      print;
+     }
+  }
+
+close(TEMPLATE);

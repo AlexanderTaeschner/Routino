@@ -6,7 +6,7 @@
 
  Part of the Routino routing software.
 
- This file Copyright 2008-2012 Andrew M. Bishop
+ This file Copyright 2008-2011 Andrew M. Bishop
 
  Dutch translation by Jan Jansen (August 2010).
 
@@ -52,7 +52,7 @@
 <link href="router.css" type="text/css" rel="stylesheet">
 
 </HEAD>
-<BODY onload="html_init();map_init();form_init();">
+<BODY onload="map_init('lat','lon','zoom');form_init();block_return_key();">
 
 <!-- Left hand side of window - data panel -->
 
@@ -66,7 +66,7 @@
 
   <div class="tab_content" id="tab_options_div">
 
-    <form name="form" id="form" action="" method="get" onsubmit="return false;">
+    <form name="form" id="form" action="router.cgi" method="get">
       <div class="hideshow_box">
         <span class="hideshow_title">Routino OpenStreetMap Router</span>
         Zoom naar straatniveau.
@@ -94,21 +94,21 @@
         <div id="hideshow_language_div" style="display: none;">
           <table>
             <tr>
-              <td><a id="lang_nl_url" onmouseover="updateURL(this);" onfocus="updateURL(this);" onclick="updateURL(this);" href="router.html.nl" title="Nederlandse web pagina">Nederlands</a>
+              <td><a href="router.html.nl" title="Nederlandse web pagina">Nederlands</a>
               <td>(NL)
-              <td><input name="language" type="radio" value="nl" onchange="formSetLanguage()" checked>
+              <td><input name="language" type="radio" value="nl" onchange="formSetLanguage('nl')" checked><!-- language -->
             <tr>
-              <td><a id="lang_en_url" onmouseover="updateURL(this);" onfocus="updateURL(this);" onclick="updateURL(this);" href="router.html.en" title="Engelstalige web pagina">English</a>
+              <td><a href="router.html.en" title="Engelstalige web pagina">English</a>
               <td>(EN)
-              <td><input name="language" type="radio" value="en" onchange="formSetLanguage()">
+              <td><input name="language" type="radio" value="en" onchange="formSetLanguage('en')" ><!-- language -->
             <tr>
-              <td><a id="lang_de_url" onmouseover="updateURL(this);" onfocus="updateURL(this);" onclick="updateURL(this);" href="router.html.de" title="Deutsche Webseite">German</a>
+              <td>German
               <td>(DE)
-              <td><input name="language" type="radio" value="de" onchange="formSetLanguage()">
+              <td><input name="language" type="radio" value="de" onchange="formSetLanguage('de')"><!-- language -->
             <tr>
               <td>Russian
               <td>(RU)
-              <td><input name="language" type="radio" value="ru" onchange="formSetLanguage()">
+              <td><input name="language" type="radio" value="ru" onchange="formSetLanguage('ru')"><!-- language -->
           </table>
         </div>
       </div>
@@ -118,37 +118,136 @@
         <span id="hideshow_waypoint_hide" onclick="hideshow_hide('waypoint');" class="hideshow_show">-</span>
         <span class="hideshow_title">Coordinaten (waypoints)</span>
         <div id="hideshow_waypoint_div">
-          <table id="waypoints">
-            <tr id="waypointXXX" style="display: none;">
+          <table>
+            <tr id="point1">
               <td>
-                <img name="waypointXXX" src="icons/marker-XXX-grey.png" title="Waypoint XXX Position - (click voor plaatsen/verwijderen op map)" alt="Waypoint XXX" onmousedown="markerToggleMap(XXX)">&nbsp;
+                <img name="waypoint1" src="icons/marker-1-grey.png" title="Waypoint 1 Position - (click voor plaatsen/verwijderen op map)" alt="Waypoint 1" onmousedown="markerToggleMap(1)">&nbsp;
               <td>
-                <span id="coordsXXX">
-                  <input name="lonXXX" type="text" size="7" title="Waypoint XXX Longitude" onchange="formSetCoords(XXX);">E
-                  <input name="latXXX" type="text" size="7" title="Waypoint XXX Latitude"  onchange="formSetCoords(XXX);">N
-                </span>
-                <span id="searchXXX" style="display: none;">
-                  <input name="searchXXX" type="text" size="18" title="Waypoint XXX Location"> <!-- uses Javascript event for triggering -->
-                </span>
+                <input name="lon1" type="text" size=7 title="Waypoint 1 Longitude" onchange="formSetCoords(1);"><!-- lon1 --> E&nbsp;
               <td>
-                <img alt="?" src="icons/waypoint-search.png"   title="Search for location"         onmousedown="markerSearch(XXX);"  >
-                <img alt="G" src="icons/waypoint-locate.png"   title="Get current location"        onmousedown="markerLocate(XXX);"  >
-                <img alt="O" src="icons/waypoint-recentre.png" title="Centre map on this waypoint"  onmousedown="markerRecentre(XXX);">
-                <img alt="^" src="icons/waypoint-up.png"       title="Beweeg dit punt naar boven"   onmousedown="markerMoveUp(XXX);"  >
-                <img alt="+" src="icons/waypoint-add.png"      title="Voeg hierna punt toe"         onmousedown="markerAddAfter(XXX);">
-                <br>
-                <img alt="#" src="icons/waypoint-coords.png"   title="Coordinates for location"    onmousedown="markerCoords(XXX);"  >
-                <img alt="~" src="icons/waypoint-home.png"     title="Toggle als thuis locatie"     onmousedown="markerHome(XXX);"    >
-                <img alt="o" src="icons/waypoint-centre.png"   title="Centreer dit punt op map"     onmousedown="markerCentre(XXX);"  >
-                <img alt="v" src="icons/waypoint-down.png"     title="Beweeg dit punt naar beneden" onmousedown="markerMoveDown(XXX);">
-                <img alt="-" src="icons/waypoint-remove.png"   title="Verwijder dit punt"           onmousedown="markerRemove(XXX);"  >
-            <tr id="searchresultsXXX" style="display: none;">
-              <td colspan="3">
-            <!-- The waypoints are inserted by the JavaScript, see the "maxmarkers" variable in router.js.  -->
+                <input name="lat1" type="text" size=7 title="Waypoint 1 Latitude"  onchange="formSetCoords(1);"><!-- lat1 --> N&nbsp;
+              <td>
+                <img alt="o" src="icons/waypoint-centre.png" title="Centreer dit punt op map"     onmousedown="markerCentre(1);"  >
+                <img alt="^" src="icons/waypoint-up.png"     title="Beweeg dit punt naar boven"   onmousedown="markerMoveUp(1);"  >
+                <img alt="+" src="icons/waypoint-add.png"    title="Voeg hierna punt toe"         onmousedown="markerAddAfter(1);"><br>
+                <img alt="~" src="icons/waypoint-home.png"   title="Toggle als thuis locatie"     onmousedown="markerHome(1);"    >
+                <img alt="v" src="icons/waypoint-down.png"   title="Beweeg dit punt naar beneden" onmousedown="markerMoveDown(1);">
+                <img alt="-" src="icons/waypoint-remove.png" title="Verwijder dit punt"           onmousedown="markerRemove(1);"  >
+            <tr id="point2">
+              <td>
+                <img name="waypoint2" src="icons/marker-2-grey.png" title="Waypoint 2 Position - (click voor plaatsen/verwijderen op map)" alt="Waypoint 2" onmousedown="markerToggleMap(2)">&nbsp;
+              <td>
+                <input name="lon2" type="text" size=7 title="Waypoint 2 Longitude" onchange="formSetCoords(2);"><!-- lon2 --> E&nbsp;
+              <td>
+                <input name="lat2" type="text" size=7 title="Waypoint 2 Latitude"  onchange="formSetCoords(2);"><!-- lat2 --> N&nbsp;
+              <td>
+                <img alt="o" src="icons/waypoint-centre.png" title="Centreer dit punt op map"     onmousedown="markerCentre(2);">
+                <img alt="^" src="icons/waypoint-up.png"     title="Beweeg dit punt naar boven"   onmousedown="markerMoveUp(2);"  >
+                <img alt="+" src="icons/waypoint-add.png"    title="Voeg hierna punt toe"         onmousedown="markerAddAfter(2);"><br>
+                <img alt="~" src="icons/waypoint-home.png"   title="Toggle als thuis locatie"     onmousedown="markerHome(2);"    >
+                <img alt="v" src="icons/waypoint-down.png"   title="Beweeg dit punt naar beneden" onmousedown="markerMoveDown(2);">
+                <img alt="-" src="icons/waypoint-remove.png" title="Verwijder dit punt"           onmousedown="markerRemove(2);"  >
+            <tr id="point3">
+              <td>
+                <img name="waypoint3" src="icons/marker-3-grey.png" title="Waypoint 3 Position - (click voor plaatsen/verwijderen on map)" alt="Waypoint 3" onmousedown="markerToggleMap(3)">&nbsp;
+              <td>
+                <input name="lon3" type="text" size=7 title="Waypoint 3 Longitude" onchange="formSetCoords(3);"><!-- lon3 --> E&nbsp;
+              <td>
+                <input name="lat3" type="text" size=7 title="Waypoint 3 Latitude"  onchange="formSetCoords(3);"><!-- lat3 --> N&nbsp;
+              <td>
+                <img alt="o" src="icons/waypoint-centre.png" title="Centreer dit punt op map"     onmousedown="markerCentre(3);">
+                <img alt="^" src="icons/waypoint-up.png"     title="Beweeg dit punt naar boven"   onmousedown="markerMoveUp(3);"  >
+                <img alt="+" src="icons/waypoint-add.png"    title="Voeg hierna punt toe"         onmousedown="markerAddAfter(3);"><br>
+                <img alt="~" src="icons/waypoint-home.png"   title="Toggle als thuis locatie"     onmousedown="markerHome(3);"    >
+                <img alt="v" src="icons/waypoint-down.png"   title="Beweeg dit punt naar beneden" onmousedown="markerMoveDown(3);">
+                <img alt="-" src="icons/waypoint-remove.png" title="Verwijder dit punt"           onmousedown="markerRemove(3);"  >
+            <tr id="point4">
+              <td>
+                <img name="waypoint4" src="icons/marker-4-grey.png" title="Waypoint 4 Position - (click voor plaatsen/verwijderen op map)" alt="Waypoint 4" onmousedown="markerToggleMap(4)">&nbsp;
+              <td>
+                <input name="lon4" type="text" size=7 title="Waypoint 4 Longitude" onchange="formSetCoords(4);"><!-- lon4 --> E&nbsp;
+              <td>
+                <input name="lat4" type="text" size=7 title="Waypoint 4 Latitude"  onchange="formSetCoords(4);"><!-- lat4 --> N&nbsp;
+              <td>
+                <img alt="o" src="icons/waypoint-centre.png" title="Centreer dit punt op map"     onmousedown="markerCentre(4);">
+                <img alt="^" src="icons/waypoint-up.png"     title="Beweeg dit punt naar boven"   onmousedown="markerMoveUp(4);"  >
+                <img alt="+" src="icons/waypoint-add.png"    title="Voeg hierna punt toe"         onmousedown="markerAddAfter(4);"><br>
+                <img alt="~" src="icons/waypoint-home.png"   title="Toggle als thuis locatie"     onmousedown="markerHome(4);"    >
+                <img alt="v" src="icons/waypoint-down.png"   title="Beweeg dit punt naar beneden" onmousedown="markerMoveDown(4);">
+                <img alt="-" src="icons/waypoint-remove.png" title="Verwijder dit punt"           onmousedown="markerRemove(4);"  >
+            <tr id="point5">
+              <td>
+                <img name="waypoint5" src="icons/marker-5-grey.png" title="Waypoint 5 Position - (click voor plaatsen/verwijderen op map)" alt="Waypoint 5" onmousedown="markerToggleMap(5)">&nbsp;
+              <td>
+                <input name="lon5" type="text" size=7 title="Waypoint 5 Longitude" onchange="formSetCoords(5);"><!-- lon5 --> E&nbsp;
+              <td>
+                <input name="lat5" type="text" size=7 title="Waypoint 5 Latitude"  onchange="formSetCoords(5);"><!-- lat5 --> N&nbsp;
+              <td>
+                <img alt="o" src="icons/waypoint-centre.png" title="Centreer dit punt op map"     onmousedown="markerCentre(5);">
+                <img alt="^" src="icons/waypoint-up.png"     title="Beweeg dit punt naar boven"   onmousedown="markerMoveUp(5);"  >
+                <img alt="+" src="icons/waypoint-add.png"    title="Voeg hierna punt toe"         onmousedown="markerAddAfter(5);"><br>
+                <img alt="~" src="icons/waypoint-home.png"   title="Toggle als thuis locatie"     onmousedown="markerHome(5);"    >
+                <img alt="v" src="icons/waypoint-down.png"   title="Beweeg dit punt naar beneden" onmousedown="markerMoveDown(5);">
+                <img alt="-" src="icons/waypoint-remove.png" title="Verwijder dit punt"           onmousedown="markerRemove(5);"  >
+            <tr id="point6">
+              <td>
+                <img name="waypoint6" src="icons/marker-6-grey.png" title="Waypoint 6 Position - (click voor plaatsen/verwijderen op map)" alt="Waypoint 6" onmousedown="markerToggleMap(6)">&nbsp;
+              <td>
+                <input name="lon6" type="text" size=7 title="Waypoint 6 Longitude" onchange="formSetCoords(6);"><!-- lon6 --> E&nbsp;
+              <td>
+                <input name="lat6" type="text" size=7 title="Waypoint 6 Latitude"  onchange="formSetCoords(6);"><!-- lat6 --> N&nbsp;
+              <td>
+                <img alt="o" src="icons/waypoint-centre.png" title="Centreer dit punt op map"     onmousedown="markerCentre(6);">
+                <img alt="^" src="icons/waypoint-up.png"     title="Beweeg dit punt naar boven"   onmousedown="markerMoveUp(6);"  >
+                <img alt="+" src="icons/waypoint-add.png"    title="Voeg hierna punt toe"         onmousedown="markerAddAfter(6);"><br>
+                <img alt="~" src="icons/waypoint-home.png"   title="Toggle als thuis locatie"     onmousedown="markerHome(6);"    >
+                <img alt="v" src="icons/waypoint-down.png"   title="Beweeg dit punt naar beneden" onmousedown="markerMoveDown(6);">
+                <img alt="-" src="icons/waypoint-remove.png" title="Verwijder dit punt"           onmousedown="markerRemove(6);"  >
+            <tr id="point7">
+              <td>
+                <img name="waypoint7" src="icons/marker-7-grey.png" title="Waypoint 7 Position - (click voor plaatsen/verwijderen op map)" alt="Waypoint 7" onmousedown="markerToggleMap(7)">&nbsp;
+              <td>
+                <input name="lon7" type="text" size=7 title="Waypoint 7 Longitude" onchange="formSetCoords(7);"><!-- lon7 --> E&nbsp;
+              <td>
+                <input name="lat7" type="text" size=7 title="Waypoint 7 Latitude"  onchange="formSetCoords(7);"><!-- lat7 --> N&nbsp;
+              <td>
+                <img alt="o" src="icons/waypoint-centre.png" title="Centreer dit punt op map"     onmousedown="markerCentre(7);">
+                <img alt="^" src="icons/waypoint-up.png"     title="Beweeg dit punt naar boven"   onmousedown="markerMoveUp(7);"  >
+                <img alt="+" src="icons/waypoint-add.png"    title="Voeg hierna punt toe"         onmousedown="markerAddAfter(7);"><br>
+                <img alt="~" src="icons/waypoint-home.png"   title="Toggle als thuis locatie"     onmousedown="markerHome(7);"    >
+                <img alt="v" src="icons/waypoint-down.png"   title="Beweeg dit punt naar beneden" onmousedown="markerMoveDown(7);">
+                <img alt="-" src="icons/waypoint-remove.png" title="Verwijder dit punt"           onmousedown="markerRemove(7);"  >
+            <tr id="point8">
+              <td>
+                <img name="waypoint8" src="icons/marker-8-grey.png" title="Waypoint 8 Position - (click voor plaatsen/verwijderen op map)" alt="Waypoint 8" onmousedown="markerToggleMap(8)">&nbsp;
+              <td>
+                <input name="lon8" type="text" size=7 title="Waypoint 8 Longitude" onchange="formSetCoords(8);"><!-- lon8 --> E&nbsp;
+              <td>
+                <input name="lat8" type="text" size=7 title="Waypoint 8 Latitude"  onchange="formSetCoords(8);"><!-- lat8 --> N&nbsp;
+              <td>
+                <img alt="o" src="icons/waypoint-centre.png" title="Centreer dit punt op map"     onmousedown="markerCentre(8);">
+                <img alt="^" src="icons/waypoint-up.png"     title="Beweeg dit punt naar boven"   onmousedown="markerMoveUp(8);"  >
+                <img alt="+" src="icons/waypoint-add.png"    title="Voeg hierna punt toe"         onmousedown="markerAddAfter(8);"><br>
+                <img alt="~" src="icons/waypoint-home.png"   title="Toggle als thuis locatie"     onmousedown="markerHome(8);"    >
+                <img alt="v" src="icons/waypoint-down.png"   title="Beweeg dit punt naar beneden" onmousedown="markerMoveDown(8);">
+                <img alt="-" src="icons/waypoint-remove.png" title="Verwijder dit punt"           onmousedown="markerRemove(8);"  >
+            <tr id="point9">
+              <td>
+                <img name="waypoint9" src="icons/marker-9-grey.png" title="Waypoint 9 Position - (click voor plaatsen/verwijderen op map)" alt="Waypoint 9" onmousedown="markerToggleMap(9)">&nbsp;
+              <td>
+                <input name="lon9" type="text" size=7 title="Waypoint 9 Longitude" onchange="formSetCoords(9);"><!-- lon9 --> E&nbsp;
+              <td>
+                <input name="lat9" type="text" size=7 title="Waypoint 9 Latitude"  onchange="formSetCoords(9);"><!-- lat9 --> N&nbsp;
+              <td>
+                <img alt="o" src="icons/waypoint-centre.png" title="Centreer dit punt op map"     onmousedown="markerCentre(9);">
+                <img alt="^" src="icons/waypoint-up.png"     title="Beweeg dit punt naar boven"   onmousedown="markerMoveUp(9);"  >
+                <img alt="+" src="icons/waypoint-add.png"    title="Voeg hierna punt toe"         onmousedown="markerAddAfter(9);"><br>
+                <img alt="~" src="icons/waypoint-home.png"   title="Toggle als thuis locatie"     onmousedown="markerHome(9);"    >
+                <img alt="v" src="icons/waypoint-down.png"   title="Beweeg dit punt naar beneden" onmousedown="markerMoveDown(9);">
+                <img alt="-" src="icons/waypoint-remove.png" title="Verwijder dit punt"           onmousedown="markerRemove(9);"  >
+            <!-- Up to 99 markers can be included here in the HTML  -->
             <tr>
-              <td colspan="3" align="center">
-                <input type="button" title="Keer volgorde punten om" value="Keer volgorde punten om" onmousedown="markersReverse();">
-                <input type="button" title="Add a new waypoint to make a loop" value="Close loop"    onmousedown="markersLoop();">
+              <td colspan="4" align="center"><input type="button" title="Keer volgorde punten om" value="Keer volgorde punten om" onmousedown="markersReverse();">
           </table>
         </div>
       </div>
@@ -159,16 +258,16 @@
         <span class="hideshow_title">Transport Type</span>
         <div id="hideshow_transport_div">
           <table>
-            <tr><td>Te voet          <td><input name="transport" type="radio" value="foot"       onchange="formSetTransport('foot'      )">
-            <tr><td>Paard            <td><input name="transport" type="radio" value="horse"      onchange="formSetTransport('horse'     )">
-            <tr><td>Rolstoel         <td><input name="transport" type="radio" value="wheelchair" onchange="formSetTransport('wheelchair')">
-            <tr><td>Fiets            <td><input name="transport" type="radio" value="bicycle"    onchange="formSetTransport('bicycle'   )">
-            <tr><td>Brommer          <td><input name="transport" type="radio" value="moped"      onchange="formSetTransport('moped'     )">
-            <tr><td>Motorfiets       <td><input name="transport" type="radio" value="motorbike"  onchange="formSetTransport('motorbike' )">
-            <tr><td>Auto             <td><input name="transport" type="radio" value="motorcar"   onchange="formSetTransport('motorcar'  )">
-            <tr><td>Goederen         <td><input name="transport" type="radio" value="goods"      onchange="formSetTransport('goods'     )">
-            <tr><td>Zwaar transport  <td><input name="transport" type="radio" value="hgv"        onchange="formSetTransport('hgv'       )">
-            <tr><td>Publiek transport<td><input name="transport" type="radio" value="psv"        onchange="formSetTransport('psv'       )">
+            <tr><td>Te voet          <td><input name="transport" type="radio" value="foot"       onchange="formSetTransport('foot'      )"><!-- transport -->
+            <tr><td>Paard            <td><input name="transport" type="radio" value="horse"      onchange="formSetTransport('horse'     )"><!-- transport -->
+            <tr><td>Rolstoel         <td><input name="transport" type="radio" value="wheelchair" onchange="formSetTransport('wheelchair')"><!-- transport -->
+            <tr><td>Fiets            <td><input name="transport" type="radio" value="bicycle"    onchange="formSetTransport('bicycle'   )"><!-- transport -->
+            <tr><td>Brommer          <td><input name="transport" type="radio" value="moped"      onchange="formSetTransport('moped'     )"><!-- transport -->
+            <tr><td>Motorfiets       <td><input name="transport" type="radio" value="motorbike"  onchange="formSetTransport('motorbike' )"><!-- transport -->
+            <tr><td>Auto             <td><input name="transport" type="radio" value="motorcar"   onchange="formSetTransport('motorcar'  )"><!-- transport -->
+            <tr><td>Goederen         <td><input name="transport" type="radio" value="goods"      onchange="formSetTransport('goods'     )"><!-- transport -->
+            <tr><td>Zwaar transport  <td><input name="transport" type="radio" value="hgv"        onchange="formSetTransport('hgv'       )"><!-- transport -->
+            <tr><td>Publiek transport<td><input name="transport" type="radio" value="psv"        onchange="formSetTransport('psv'       )"><!-- transport -->
           </table>
         </div>
       </div>
@@ -179,19 +278,19 @@
         <span class="hideshow_title">Voorkeur Wegtype</span>
         <div id="hideshow_highway_div" style="display: none;">
           <table>
-            <tr><td>Autostrade           <td><input name="highway-motorway"     type="text" size=3 onchange="formSetHighway('motorway'    )"><td>%
-            <tr><td>Autoweg:             <td><input name="highway-trunk"        type="text" size=3 onchange="formSetHighway('trunk'       )"><td>%
-            <tr><td>Provinciale wegen:   <td><input name="highway-primary"      type="text" size=3 onchange="formSetHighway('primary'     )"><td>%
-            <tr><td>Nationale wegen:     <td><input name="highway-secondary"    type="text" size=3 onchange="formSetHighway('secondary'   )"><td>%
-            <tr><td>Doorgangsweg:        <td><input name="highway-tertiary"     type="text" size=3 onchange="formSetHighway('tertiary'    )"><td>%
-            <tr><td>Niet geclassificeerd:<td><input name="highway-unclassified" type="text" size=3 onchange="formSetHighway('unclassified')"><td>%
-            <tr><td>Woongebied:          <td><input name="highway-residential"  type="text" size=3 onchange="formSetHighway('residential' )"><td>%
-            <tr><td>Toegangsweg:         <td><input name="highway-service"      type="text" size=3 onchange="formSetHighway('service'     )"><td>%
-            <tr><td>Veldweg:             <td><input name="highway-track"        type="text" size=3 onchange="formSetHighway('track'       )"><td>%
-            <tr><td>Fietspad:            <td><input name="highway-cycleway"     type="text" size=3 onchange="formSetHighway('cycleway'    )"><td>%
-            <tr><td>Pad:                 <td><input name="highway-path"         type="text" size=3 onchange="formSetHighway('path'        )"><td>%
-            <tr><td>Trap:                <td><input name="highway-steps"        type="text" size=3 onchange="formSetHighway('steps'       )"><td>%
-            <tr><td>Ferry:               <td><input name="highway-ferry"        type="text" size=3 onchange="formSetHighway('ferry'       )"><td>%
+            <tr><td>Autostrade           <td><input name="highway-motorway"     type="text" size=3 onchange="formSetHighway('motorway'    )"><!-- highway-motorway     --><td>%
+            <tr><td>Autoweg:             <td><input name="highway-trunk"        type="text" size=3 onchange="formSetHighway('trunk'       )"><!-- highway-trunk        --><td>%
+            <tr><td>Provinciale wegen:   <td><input name="highway-primary"      type="text" size=3 onchange="formSetHighway('primary'     )"><!-- highway-primary      --><td>%
+            <tr><td>Nationale wegen:     <td><input name="highway-secondary"    type="text" size=3 onchange="formSetHighway('secondary'   )"><!-- highway-secondary    --><td>%
+            <tr><td>Doorgangsweg:        <td><input name="highway-tertiary"     type="text" size=3 onchange="formSetHighway('tertiary'    )"><!-- highway-tertiary     --><td>%
+            <tr><td>Niet geclassificeerd:<td><input name="highway-unclassified" type="text" size=3 onchange="formSetHighway('unclassified')"><!-- highway-unclassified --><td>%
+            <tr><td>Woongebied:          <td><input name="highway-residential"  type="text" size=3 onchange="formSetHighway('residential' )"><!-- highway-residential  --><td>%
+            <tr><td>Toegangsweg:         <td><input name="highway-service"      type="text" size=3 onchange="formSetHighway('service'     )"><!-- highway-service      --><td>%
+            <tr><td>Veldweg:             <td><input name="highway-track"        type="text" size=3 onchange="formSetHighway('track'       )"><!-- highway-track        --><td>%
+            <tr><td>Fietspad:            <td><input name="highway-cycleway"     type="text" size=3 onchange="formSetHighway('cycleway'    )"><!-- highway-cycleway     --><td>%
+            <tr><td>Pad:                 <td><input name="highway-path"         type="text" size=3 onchange="formSetHighway('path'        )"><!-- highway-path         --><td>%
+            <tr><td>Trap:                <td><input name="highway-steps"        type="text" size=3 onchange="formSetHighway('steps'       )"><!-- highway-steps        --><td>%
+            <tr><td>Ferry:               <td><input name="highway-ferry"        type="text" size=3 onchange="formSetHighway('ferry'       )"><!-- highway-ferry        --><td>%
           </table>
         </div>
       </div>
@@ -202,19 +301,19 @@
         <span class="hideshow_title">Snelheidslimieten</span>
         <div id="hideshow_speed_div" style="display: none;">
           <table>
-            <tr><td>Autostrade           <td><input name="speed-motorway"     type="text" size=3 onchange="formSetSpeed('motorway'    )"><td>km/hr
-            <tr><td>Autoweg:             <td><input name="speed-trunk"        type="text" size=3 onchange="formSetSpeed('trunk'       )"><td>km/hr
-            <tr><td>Provinciale wegen:   <td><input name="speed-primary"      type="text" size=3 onchange="formSetSpeed('primary'     )"><td>km/hr
-            <tr><td>Nationale wegen:     <td><input name="speed-secondary"    type="text" size=3 onchange="formSetSpeed('secondary'   )"><td>km/hr
-            <tr><td>Doorgangsweg:        <td><input name="speed-tertiary"     type="text" size=3 onchange="formSetSpeed('tertiary'    )"><td>km/hr
-            <tr><td>Niet geclassificeerd:<td><input name="speed-unclassified" type="text" size=3 onchange="formSetSpeed('unclassified')"><td>km/hr
-            <tr><td>Woongebied:          <td><input name="speed-residential"  type="text" size=3 onchange="formSetSpeed('residential' )"><td>km/hr
-            <tr><td>Toegangsweg:         <td><input name="speed-service"      type="text" size=3 onchange="formSetSpeed('service'     )"><td>km/hr
-            <tr><td>Veldweg:             <td><input name="speed-track"        type="text" size=3 onchange="formSetSpeed('track'       )"><td>km/hr
-            <tr><td>Fietspad:            <td><input name="speed-cycleway"     type="text" size=3 onchange="formSetSpeed('cycleway'    )"><td>km/hr
-            <tr><td>Pad:                 <td><input name="speed-path"         type="text" size=3 onchange="formSetSpeed('path'        )"><td>km/hr
-            <tr><td>Trap:                <td><input name="speed-steps"        type="text" size=3 onchange="formSetSpeed('steps'       )"><td>km/hr
-            <tr><td>Ferry:               <td><input name="speed-ferry"        type="text" size=3 onchange="formSetSpeed('ferry'       )"><td>km/hr
+            <tr><td>Autostrade           <td><input name="speed-motorway"     type="text" size=3 onchange="formSetSpeed('motorway'    )"><!-- speed-motorway     --><td>km/hr
+            <tr><td>Autoweg:             <td><input name="speed-trunk"        type="text" size=3 onchange="formSetSpeed('trunk'       )"><!-- speed-trunk        --><td>km/hr
+            <tr><td>Provinciale wegen:   <td><input name="speed-primary"      type="text" size=3 onchange="formSetSpeed('primary'     )"><!-- speed-primary      --><td>km/hr
+            <tr><td>Nationale wegen:     <td><input name="speed-secondary"    type="text" size=3 onchange="formSetSpeed('secondary'   )"><!-- speed-secondary    --><td>km/hr
+            <tr><td>Doorgangsweg:        <td><input name="speed-tertiary"     type="text" size=3 onchange="formSetSpeed('tertiary'    )"><!-- speed-tertiary     --><td>km/hr
+            <tr><td>Niet geclassificeerd:<td><input name="speed-unclassified" type="text" size=3 onchange="formSetSpeed('unclassified')"><!-- speed-unclassified --><td>km/hr
+            <tr><td>Woongebied:          <td><input name="speed-residential"  type="text" size=3 onchange="formSetSpeed('residential' )"><!-- speed-residential  --><td>km/hr
+            <tr><td>Toegangsweg:         <td><input name="speed-service"      type="text" size=3 onchange="formSetSpeed('service'     )"><!-- speed-service      --><td>km/hr
+            <tr><td>Veldweg:             <td><input name="speed-track"        type="text" size=3 onchange="formSetSpeed('track'       )"><!-- speed-track        --><td>km/hr
+            <tr><td>Fietspad:            <td><input name="speed-cycleway"     type="text" size=3 onchange="formSetSpeed('cycleway'    )"><!-- speed-cycleway     --><td>km/hr
+            <tr><td>Pad:                 <td><input name="speed-path"         type="text" size=3 onchange="formSetSpeed('path'        )"><!-- speed-path         --><td>km/hr
+            <tr><td>Trap:                <td><input name="speed-steps"        type="text" size=3 onchange="formSetSpeed('steps'       )"><!-- speed-steps        --><td>km/hr
+            <tr><td>Ferry:               <td><input name="speed-ferry"        type="text" size=3 onchange="formSetSpeed('ferry'       )"><!-- speed-ferry        --><td>km/hr
           </table>
         </div>
       </div>
@@ -225,12 +324,12 @@
         <span class="hideshow_title">Weg Eigenschappen</span>
         <div id="hideshow_property_div" style="display: none;">
           <table>
-            <tr><td>Verhard:         <td><input name="property-paved"        type="text" size=3 onchange="formSetProperty('paved'       )"><td>%
-            <tr><td>Meerdere Stroken:<td><input name="property-multilane"    type="text" size=3 onchange="formSetProperty('multilane'   )"><td>%
-            <tr><td>Brug:            <td><input name="property-bridge"       type="text" size=3 onchange="formSetProperty('bridge'      )"><td>%
-            <tr><td>Tunnel:          <td><input name="property-tunnel"       type="text" size=3 onchange="formSetProperty('tunnel'      )"><td>%
-            <tr><td>Walking Route:   <td><input name="property-footroute"    type="text" size=3 onchange="formSetProperty('footroute'   )"><td>%
-            <tr><td>Bicycle Route:   <td><input name="property-bicycleroute" type="text" size=3 onchange="formSetProperty('bicycleroute')"><td>%
+            <tr><td>Verhard:         <td><input name="property-paved"        type="text" size=3 onchange="formSetProperty('paved'       )"><!-- property-paved        --><td>%
+            <tr><td>Meerdere Stroken:<td><input name="property-multilane"    type="text" size=3 onchange="formSetProperty('multilane'   )"><!-- property-multilane    --><td>%
+            <tr><td>Brug:            <td><input name="property-bridge"       type="text" size=3 onchange="formSetProperty('bridge'      )"><!-- property-bridge       --><td>%
+            <tr><td>Tunnel:          <td><input name="property-tunnel"       type="text" size=3 onchange="formSetProperty('tunnel'      )"><!-- property-tunnel       --><td>%
+            <tr><td>Walking Route:   <td><input name="property-footroute"    type="text" size=3 onchange="formSetProperty('footroute'   )"><!-- property-footroute    --><td>%
+            <tr><td>Bicycle Route:   <td><input name="property-bicycleroute" type="text" size=3 onchange="formSetProperty('bicycleroute')"><!-- property-bicycleroute --><td>%
           </table>
         </div>
       </div>
@@ -241,12 +340,12 @@
         <span class="hideshow_title">Andere Beperkingen</span>
         <div id="hideshow_restriction_div" style="display: none;">
           <table>
-            <tr><td>Volg Eenrichtingsverkeer:<td><input name="restrict-oneway" type="checkbox"    onchange="formSetRestriction('oneway')"><td>
-            <tr><td>Obey turn restrictions:  <td><input name="restrict-turns"  type="checkbox"    onchange="formSetRestriction('turns' )"><td>
-            <tr><td>Gewicht:                 <td><input name="restrict-weight" type="text" size=3 onchange="formSetRestriction('weight')"><td> ton
-            <tr><td>Hoogte:                  <td><input name="restrict-height" type="text" size=3 onchange="formSetRestriction('height')"><td> meter
-            <tr><td>Breedte:                 <td><input name="restrict-width"  type="text" size=3 onchange="formSetRestriction('width' )"><td> meter
-            <tr><td>Lengte:                  <td><input name="restrict-length" type="text" size=3 onchange="formSetRestriction('length')"><td> meter
+            <tr><td>Volg Eenrichtingsverkeer:<td><input name="restrict-oneway" type="checkbox"    onchange="formSetRestriction('oneway')"><!-- oneway --><td>
+            <tr><td>Obey turn restrictions:  <td><input name="restrict-turns"  type="checkbox"    onchange="formSetRestriction('turns' )"><!-- turns  --><td>
+            <tr><td>Gewicht:                 <td><input name="restrict-weight" type="text" size=3 onchange="formSetRestriction('weight')"><!-- weight --><td> ton
+            <tr><td>Hoogte:                  <td><input name="restrict-height" type="text" size=3 onchange="formSetRestriction('height')"><!-- height --><td> meter
+            <tr><td>Breedte:                 <td><input name="restrict-width"  type="text" size=3 onchange="formSetRestriction('width' )"><!-- width  --><td> meter
+            <tr><td>Lengte:                  <td><input name="restrict-length" type="text" size=3 onchange="formSetRestriction('length')"><!-- length --><td> meter
           </table>
         </div>
       </div>
@@ -259,9 +358,9 @@
 
       <div class="hideshow_box">
         <span class="hideshow_title">Links</span>
-        <a id="permalink_url" onmouseover="updateURL(this);" onfocus="updateURL(this);" onclick="updateURL(this);" href="router.html">Permanente link naar deze parameters</a>
+        <a id="link_url"                href="router.html">Permanente link naar deze parameters</a>
         <br>
-        <a id="edit_url" onmouseover="updateURL(this);" onfocus="updateURL(this);" onclick="updateURL(this);" href="http://wiki.openstreetmap.org/wiki/NL:Mapper" target="edit">Lees hoe je OSM data kan inbrengen met Potlatch</a>
+        <a id="edit_url" target="other" href="http://wiki.openstreetmap.org/wiki/NL:Mapper">Lees hoe je OSM data kan inbrengen met Potlatch</a>
       </div>
 
       <div class="hideshow_box">
@@ -424,17 +523,17 @@
           <br>
           Na het berekenen van een route, kan het GPX bestand, of de beschrijving als tekstbestand downloaden.
           Door met muis over de beschrijving te bewegen, ziet u die ook op de kaart gesitueerd.
-          <p>
+          <p style="margin-bottom: 0px">
           <b>Problem Solving</b>
           <br>
           Als de router eindigt met een fout, dan is de meest waarschijnlijke
           oorzaak, dat er geen route mogelijk is tussen de gekozen punten.
           Het verplaatsen van de punten, of het aanpassen van weg-eigenschappen
           of voertuigtype kan een oplossing bieden.
-          <p>
+          <p style="margin-bottom: 0px">
           <b>Output Formats</b>
           <br>
-          <dl>
+          <dl style="margin-top: 0px">
             <dt>HTML instructies
             <dd>Een beschrijving van de route, met de te nemen afslag aan iedere splitsing.
             <dt>GPX track bestand
@@ -466,7 +565,7 @@
       <span class="hideshow_title">Visualiser</span>
       Om te kijken hoe routino omgaat met de basisdata, is er een tooltje dat de onderliggende data toont op verschillende manieren.
       <br>
-      <a id="visualiser_url" onmouseover="updateURL(this);" onfocus="updateURL(this);" onclick="updateURL(this);" href="visualiser.html" target="visualiser">Custom link to this map view</a>
+      <a id="visualiser_url" target="other" href="visualiser.html">Custom link to this map view</a>
     </div>
   </div>
 

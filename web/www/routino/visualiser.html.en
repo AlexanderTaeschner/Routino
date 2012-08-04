@@ -6,7 +6,7 @@
 
  Part of the Routino routing software.
 
- This file Copyright 2008-2012 Andrew M. Bishop
+ This file Copyright 2008-2011 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -49,7 +49,7 @@
 <link href="visualiser.css" type="text/css" rel="stylesheet">
 
 </HEAD>
-<BODY onload="map_init();">
+<BODY onload="map_init('lat','lon','zoom');">
 
 <!-- Left hand side of window - data panel -->
 
@@ -71,27 +71,6 @@
         <a target="other" href="http://www.routino.org/">Routino Website</a>
         |
         <a target="other" href="../documentation/">Documentation</a>
-      </div>
-    </div>
-
-    <div class="hideshow_box">
-      <span id="hideshow_language_show" onclick="hideshow_show('language');" class="hideshow_show">+</span>
-      <span id="hideshow_language_hide" onclick="hideshow_hide('language');" class="hideshow_hide">-</span>
-      <span class="hideshow_title">Language</span>
-
-      <!-- Note for translations: Only this HTML file needs to be translated, the Javascript has
-           no language specific information in it.  Only the body text and title attributes should
-           be changed, the values passed to the JavaScript and the element names must not be changed.
-           The selection below changes the language option passed to the router and selects the
-           output language not the web page language, the links are for that.  The router itself uses
-           the translations.xml file for the translated versions of the output. -->
-
-      <div id="hideshow_language_div" style="display: none;">
-        <table>
-          <tr>
-            <td><a id="lang_en_url" onmouseover="updateURL(this);" onfocus="updateURL(this);" onclick="updateURL(this);" href="visualiser.html.en" title="English language web page">English</a>
-            <td>(EN)
-        </table>
       </div>
     </div>
 
@@ -120,12 +99,6 @@
         </div>
         <div id="result_status_oneway"    style="display: none;">
           <b>Processed # oneway segments</b>
-        </div>
-        <div id="result_status_highway"   style="display: none;">
-          <b>Processed # segments</b>
-        </div>
-        <div id="result_status_transport" style="display: none;">
-          <b>Processed # segments</b>
         </div>
         <div id="result_status_turns"     style="display: none;">
           <b>Processed # turn restrictions</b>
@@ -175,55 +148,6 @@
         Each one-way segment is shown with a coloured triangle indicating the
         allowed direction.  The colours of the triangles depend on the bearing
         of the highway segment.
-      </div>
-    </div>
-
-    <div class="hideshow_box">
-      <span id="hideshow_highway_show" onclick="hideshow_show('highway');" class="hideshow_show">+</span>
-      <span id="hideshow_highway_hide" onclick="hideshow_hide('highway');" class="hideshow_hide">-</span>
-      <input type="button" id="highway" onclick="displayData('highway');" value="Display Highway Segments">
-      <div id="hideshow_highway_div" style="display: none;">
-        Each segment of the chosen type of highway is drawn.
-        <form name="highways" id="highways" action="" method="get" onsubmit="return false;">
-          <table>
-            <tr><td>Motorway:    <td><input name="highway" type="radio" value="motorway"    >
-            <tr><td>Trunk:       <td><input name="highway" type="radio" value="trunk"       >
-            <tr><td>Primary:     <td><input name="highway" type="radio" value="primary"     checked>
-            <tr><td>Secondary:   <td><input name="highway" type="radio" value="secondary"   >
-            <tr><td>Tertiary:    <td><input name="highway" type="radio" value="tertiary"    >
-            <tr><td>Unclassified:<td><input name="highway" type="radio" value="unclassified">
-            <tr><td>Residential: <td><input name="highway" type="radio" value="residential" >
-            <tr><td>Service:     <td><input name="highway" type="radio" value="service"     >
-            <tr><td>Track:       <td><input name="highway" type="radio" value="track"       >
-            <tr><td>Cycleway:    <td><input name="highway" type="radio" value="cycleway"    >
-            <tr><td>Path:        <td><input name="highway" type="radio" value="path"        >
-            <tr><td>Steps:       <td><input name="highway" type="radio" value="steps"       >
-            <tr><td>Ferry:       <td><input name="highway" type="radio" value="ferry"       >
-          </table>
-        </form>
-      </div>
-    </div>
-
-    <div class="hideshow_box">
-      <span id="hideshow_transport_show" onclick="hideshow_show('transport');" class="hideshow_show">+</span>
-      <span id="hideshow_transport_hide" onclick="hideshow_hide('transport');" class="hideshow_hide">-</span>
-      <input type="button" id="transport" onclick="displayData('transport');" value="Display Transport Segments">
-      <div id="hideshow_transport_div" style="display: none;">
-        Each segment allowed for the chosen type of transport is drawn.
-        <form name="transports" id="transports" action="" method="get" onsubmit="return false;">
-          <table>
-            <tr><td>Foot      <td><input name="transport" type="radio" value="foot"      >
-            <tr><td>Horse     <td><input name="transport" type="radio" value="horse"     >
-            <tr><td>Wheelchair<td><input name="transport" type="radio" value="wheelchair">
-            <tr><td>Bicycle   <td><input name="transport" type="radio" value="bicycle"   >
-            <tr><td>Moped     <td><input name="transport" type="radio" value="moped"     >
-            <tr><td>Motorbike <td><input name="transport" type="radio" value="motorbike" >
-            <tr><td>Motorcar  <td><input name="transport" type="radio" value="motorcar"  checked>
-            <tr><td>Goods     <td><input name="transport" type="radio" value="goods"     >
-            <tr><td>HGV       <td><input name="transport" type="radio" value="hgv"       >
-            <tr><td>PSV       <td><input name="transport" type="radio" value="psv"       >
-          </table>
-        </form>
       </div>
     </div>
 
@@ -323,9 +247,9 @@
 
     <div class="hideshow_box">
       <span class="hideshow_title">Links</span>
-      <a id="permalink_url" onmouseover="updateURL(this);" onfocus="updateURL(this);" onclick="updateURL(this);" href="visualiser.html">Permanent link to this view</a>
+      <a id="link_url"                href="visualiser.html">Permanent link to this view</a>
       <br>
-      <a id="edit_url" onmouseover="updateURL(this);" onfocus="updateURL(this);" onclick="updateURL(this);" href="http://www.openstreetmap.org/" target="edit">Edit OSM data in Potlatch</a>
+      <a id="edit_url" target="other" href="http://www.openstreetmap.org/">Edit OSM data in Potlatch</a>
     </div>
   </div>
 
@@ -334,7 +258,7 @@
       <span class="hideshow_title">Router</span>
       To perform routing on the map use the link below.
       <br>
-      <a id="router_url" onmouseover="updateURL(this);" onfocus="updateURL(this);" onclick="updateURL(this);" href="router.html" target="router">Custom link to this map view</a>
+      <a id="router_url" target="other" href="router.html">Custom link to this map view</a>
     </div>
   </div>
 

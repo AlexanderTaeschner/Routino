@@ -3,7 +3,7 @@
 //
 // Part of the Routino routing software.
 //
-// This file Copyright 2008-2012 Andrew M. Bishop
+// This file Copyright 2008-2011 Andrew M. Bishop
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,14 +19,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-
-var vismarkers, markers, markersmoved, paramschanged;
-var homelat=null, homelon=null;
-
-
-////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////// Initialisation /////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
 // Make a deep copy of the routino profile.
 
@@ -48,99 +40,6 @@ for(var l1 in routino)
            }
      }
 
-// Store the latitude and longitude in the routino variable
-
-routino.point=[];
-for(var marker=1;marker<=mapprops.maxmarkers;marker++)
-  {
-   routino.point[marker]={};
-
-   routino.point[marker].lon="";
-   routino.point[marker].lat="";
-   routino.point[marker].search="";
-   routino.point[marker].active=false;
-   routino.point[marker].used=false;
-   routino.point[marker].home=false;
-  }
-
-// Process the URL query string and extract the arguments
-
-var legal={"^lon"             : "^[-0-9.]+$",
-           "^lat"             : "^[-0-9.]+$",
-           "^zoom"            : "^[0-9]+$",
-
-           "^lon[1-9]"        : "^[-0-9.]+$",
-           "^lat[1-9]"        : "^[-0-9.]+$",
-           "^search[1-9]"     : "^.+$",
-           "^transport"       : "^[a-z]+$",
-           "^highway-[a-z]+"  : "^[0-9.]+$",
-           "^speed-[a-z]+"    : "^[0-9.]+$",
-           "^property-[a-z]+" : "^[0-9.]+$",
-           "^oneway"          : "^(1|0|true|false|on|off)$",
-           "^turns"           : "^(1|0|true|false|on|off)$",
-           "^weight"          : "^[0-9.]+$",
-           "^height"          : "^[0-9.]+$",
-           "^width"           : "^[0-9.]+$",
-           "^length"          : "^[0-9.]+$",
-
-           "^language"        : "^[-a-zA-Z]+$"};
-
-var args={};
-
-if(location.search.length>1)
-  {
-   var query,queries;
-
-   query=location.search.replace(/^\?/,"");
-   query=query.replace(/;/g,'&');
-   queries=query.split('&');
-
-   for(var i=0;i<queries.length;i++)
-     {
-      queries[i].match(/^([^=]+)(=(.*))?$/);
-
-      k=RegExp.$1;
-      v=unescape(RegExp.$3);
-
-      for(var l in legal)
-        {
-         if(k.match(RegExp(l)) && v.match(RegExp(legal[l])))
-            args[k]=v;
-        }
-     }
-  }
-
-
-//
-// Fill in the HTML - add the missing waypoints
-//
-
-function html_init()            // called from router.html
-{
- var waypoints=document.getElementById("waypoints");
-
- var waypoint_html=waypoints.rows[0].innerHTML;
- waypoints.deleteRow(0);
-
- var searchresults_html=waypoints.rows[0].innerHTML;
- waypoints.deleteRow(0);
-
- for(var marker=mapprops.maxmarkers;marker>=1;marker--)
-   {
-    var searchresults=waypoints.insertRow(0);
-
-    searchresults.style.display="none";
-    searchresults.id="searchresults" + marker;
-    searchresults.innerHTML=searchresults_html.split('XXX').join(marker);
-
-    var waypoint=waypoints.insertRow(0);
-
-    waypoint.style.display="none";
-    waypoint.id="waypoint" + marker;
-    waypoint.innerHTML=waypoint_html.split('XXX').join(marker);
-   }
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// Form handling /////////////////////////////////
@@ -150,108 +49,80 @@ function html_init()            // called from router.html
 // Form initialisation - fill in the uninitialised parts
 //
 
-function form_init()            // called from router.html
+function form_init()
 {
- // Fill in the waypoints
+ // Update the routino variable with the URL settings (from the HTML).
 
- vismarkers=0;
+ for(var lang=0;lang< document.forms["form"].elements["language"].length;lang++)
+    if(document.forms["form"].elements["language"][lang].checked)
+       formSetLanguage(document.forms["form"].elements["language"][lang].value);
 
- for(var marker=mapprops.maxmarkers;marker>=1;marker--)
+ var transport=null;
+
+ for(var key in routino.transports)
+    if(document.forms["form"].elements["transport"][routino.transports[key]-1].checked)
+       transport=key;
+
+ if(transport==null)
+    formSetTransport(routino.transport);
+ else
    {
-    var lon=args["lon" + marker];
-    var lat=args["lat" + marker];
-    var search=args["search" + marker];
+    routino.transport=transport;
 
-    if(lon != undefined && lat != undefined && search != undefined && lon != "" && lat != "" && search != "")
+    for(var key in routino.profile_highway)
       {
-       markerAddForm(marker);
-
-       formSetSearch(marker,search);
-       formSetCoords(marker,lon,lat);
-
-       markerAddMap(marker);
-
-       markerSearch(marker);
-
-       vismarkers++;
-      }
-    else if(lon != undefined && lat != undefined && lon != "" && lat != "")
-      {
-       markerAddForm(marker);
-
-       formSetCoords(marker,lon,lat);
-
-       markerAddMap(marker);
-
-       markerCoords(marker);
-
-       vismarkers++;
-      }
-    else if(search != undefined && search != "")
-      {
-       markerAddForm(marker);
-
-       formSetSearch(marker,search);
-
-       markerSearch(marker);
-
-       DoSearch(marker);
-
-       vismarkers++;
-      }
-    else if(vismarkers || marker<=2)
-      {
-       markerAddForm(marker);
-
-       vismarkers++;
+       if(document.forms["form"].elements["highway-" + key].value=="")
+          document.forms["form"].elements["highway-" + key].value=routino.profile_highway[key][routino.transport];
+       else
+          formSetHighway(key);
       }
 
-    var searchfield=document.forms["form"].elements["search" + marker];
+    for(var key in routino.profile_speed)
+      {
+       if(document.forms["form"].elements["speed-" + key].value=="")
+          document.forms["form"].elements["speed-" + key].value=routino.profile_speed[key][routino.transport];
+       else
+          formSetSpeed(key);
+      }
 
-    if(searchfield.addEventListener)
-       searchfield.addEventListener('keyup', searchOnReturnKey, false);
-    else if(searchfield.attachEvent)
-       searchfield.attachEvent('keyup', searchOnReturnKey); // Internet Explorer
+    for(var key in routino.profile_property)
+      {
+       if(document.forms["form"].elements["property-" + key].value=="")
+          document.forms["form"].elements["property-" + key].value=routino.profile_property[key][routino.transport];
+       else
+          formSetProperty(key);
+      }
+
+    for(var key in routino.restrictions)
+      {
+       if(key=="oneway" || key=="turns")
+          formSetRestriction(key);
+       else
+         {
+          if(document.forms["form"].elements["restrict-" + key].value=="")
+             document.forms["form"].elements["restrict-" + key].value=routino.profile_restrictions[key][routino.transport];
+          else
+             formSetRestriction(key);
+         }
+      }
    }
 
- // Update the transport type with the URL settings which updates all HTML forms to defaults.
+ // Delete the extra empty waypoints
 
- var transport=routino.transport;
+ var filled=0;
 
- if(args["transport"] != undefined)
-    transport=args["transport"];
-
- formSetTransport(transport);
-
- // Update the HTML with the URL settings
-
- if(args["language"] != undefined)
-    formSetLanguage(args["language"]);
-
- for(var key in routino.profile_highway)
-    if(args["highway-" + key] != undefined)
-       formSetHighway(key,args["highway-" + key]);
-
- for(var key in routino.profile_speed)
-    if(args["speed-" + key] != undefined)
-       formSetSpeed(key,args["speed-" + key]);
-
- for(var key in routino.profile_property)
-    if(args["property-" + key] != undefined)
-       formSetProperty(key,args["property-" + key]);
-
- for(var key in routino.restrictions)
+ for(var marker=nmarkers;marker>=1;marker--)
    {
-    if(key=="oneway" || key=="turns")
+    var lon=document.forms["form"].elements["lon" + marker].value;
+    var lat=document.forms["form"].elements["lat" + marker].value;
+
+    if(lon != "" && lat != "")
       {
-       if(args[key] != undefined)
-          formSetRestriction(key,args[key]);
+       filled++;
+       markerAddMap(marker);
       }
-    else
-      {
-       if(args["restrict-" + key] != undefined)
-          formSetRestriction(key,args["restrict-" + key]);
-      }
+    else if(filled==0)
+       markerRemove(marker);
    }
 
  // Get the home location cookie and compare to each waypoint
@@ -269,29 +140,27 @@ function form_init()            // called from router.html
 
  if(homelon!=null && homelat!=null)
    {
-    for(var m=1;m<=vismarkers;m++)
-       markerCheckHome(m);
+    for(var marker=nmarkers;marker>=1;marker--)
+      {
+       var lon=document.forms["form"].elements["lon" + marker].value;
+       var lat=document.forms["form"].elements["lat" + marker].value;
+
+       if(lon==homelon && lat==homelat)
+          updateIcon(marker);
+      }
 
     // If the first location is empty and the cookie is set then fill it.
 
-    if(!routino.point[1].used)
-       markerMoveHome(1);
+    if(document.forms["form"].elements["lon1"].value=="" && document.forms["form"].elements["lat1"].value=="")
+      {
+       document.forms["form"].elements["lon1"].value=homelon;
+       document.forms["form"].elements["lat1"].value=homelat;
+
+       markerAddMap(1);
+      }
    }
-}
 
-
-//
-// Function to perform the search if the return key is pressed.
-// (using 'onchange' only triggers once and is confusing when clicking outside the field).
-//
-
-function searchOnReturnKey(ev)
-{
- if(ev.keyCode==13)
-    if(this.name.match(/^search([0-9]+)$/))
-       formSetSearch(RegExp.$1);
-
- return(true);
+ updateCustomURL();
 }
 
 
@@ -299,24 +168,11 @@ function searchOnReturnKey(ev)
 // Change of language in the form
 //
 
-function formSetLanguage(value) // called from router.html (with no arguments)
+function formSetLanguage(type)
 {
- if(value == undefined)
-   {
-    for(var lang=0;lang<document.forms["form"].elements["language"].length;lang++)
-       if(document.forms["form"].elements["language"][lang].checked)
-          routino.language=document.forms["form"].elements["language"][lang].value;
-   }
- else
-   {
-    for(var lang=0;lang<document.forms["form"].elements["language"].length;lang++)
-       if(document.forms["form"].elements["language"][lang].value==value)
-          document.forms["form"].elements["language"][lang].checked=true;
-       else
-          document.forms["form"].elements["language"][lang].checked=false;
+ routino.language=type;
 
-    routino.language=value;
-   }
+ updateCustomURL();
 }
 
 
@@ -324,9 +180,9 @@ function formSetLanguage(value) // called from router.html (with no arguments)
 // Change of transport in the form
 //
 
-function formSetTransport(value) // called from router.html
+function formSetTransport(type)
 {
- routino.transport=value;
+ routino.transport=type;
 
  for(var key in routino.transports)
     document.forms["form"].elements["transport"][routino.transports[key]-1].checked=(key==routino.transport);
@@ -349,6 +205,8 @@ function formSetTransport(value) // called from router.html
    }
 
  paramschanged=true;
+
+ updateCustomURL();
 }
 
 
@@ -356,17 +214,13 @@ function formSetTransport(value) // called from router.html
 // Change of highway in the form
 //
 
-function formSetHighway(type,value) // called from router.html (with one argument)
+function formSetHighway(type)
 {
- if(value == undefined)
-    routino.profile_highway[type][routino.transport]=document.forms["form"].elements["highway-" + type].value;
- else
-   {
-    document.forms["form"].elements["highway-" + type].value=value;
-    routino.profile_highway[type][routino.transport]=value;
-   }
+ routino.profile_highway[type][routino.transport]=document.forms["form"].elements["highway-" + type].value;
 
  paramschanged=true;
+
+ updateCustomURL();
 }
 
 
@@ -374,17 +228,13 @@ function formSetHighway(type,value) // called from router.html (with one argumen
 // Change of Speed in the form
 //
 
-function formSetSpeed(type,value) // called from router.html (with one argument)
+function formSetSpeed(type)
 {
- if(value == undefined)
-    routino.profile_speed[type][routino.transport]=document.forms["form"].elements["speed-" + type].value;
- else
-   {
-    document.forms["form"].elements["speed-" + type].value=value;
-    routino.profile_speed[type][routino.transport]=value;
-   }
+ routino.profile_speed[type][routino.transport]=document.forms["form"].elements["speed-" + type].value;
 
  paramschanged=true;
+
+ updateCustomURL();
 }
 
 
@@ -392,17 +242,13 @@ function formSetSpeed(type,value) // called from router.html (with one argument)
 // Change of Property in the form
 //
 
-function formSetProperty(type,value) // called from router.html (with one argument)
+function formSetProperty(type)
 {
- if(value == undefined)
-    routino.profile_property[type][routino.transport]=document.forms["form"].elements["property-" + type].value;
- else
-   {
-    document.forms["form"].elements["property-" + type].value=value;
-    routino.profile_property[type][routino.transport]=value;
-   }
+ routino.profile_property[type][routino.transport]=document.forms["form"].elements["property-" + type].value;
 
  paramschanged=true;
+
+ updateCustomURL();
 }
 
 
@@ -410,26 +256,16 @@ function formSetProperty(type,value) // called from router.html (with one argume
 // Change of Restriction rule in the form
 //
 
-function formSetRestriction(type,value) // called from router.html (with one argument)
+function formSetRestriction(type)
 {
- if(value == undefined)
-   {
-    if(type=="oneway" || type=="turns")
-       routino.profile_restrictions[type][routino.transport]=document.forms["form"].elements["restrict-" + type].checked;
-    else
-       routino.profile_restrictions[type][routino.transport]=document.forms["form"].elements["restrict-" + type].value;
-   }
+ if(type=="oneway" || type=="turns")
+    routino.profile_restrictions[type][routino.transport]=document.forms["form"].elements["restrict-" + type].checked;
  else
-   {
-    if(type=="oneway" || type=="turns")
-       document.forms["form"].elements["restrict-" + type].checked=value;
-    else
-       document.forms["form"].elements["restrict-" + type].value=value;
-
-    routino.profile_restrictions[type][routino.transport]=value;
-   }
+    routino.profile_restrictions[type][routino.transport]=document.forms["form"].elements["restrict-" + type].value;
 
  paramschanged=true;
+
+ updateCustomURL();
 }
 
 
@@ -437,87 +273,59 @@ function formSetRestriction(type,value) // called from router.html (with one arg
 // Set the feature coordinates from the form when the form changes.
 //
 
-function formSetCoords(marker,lon,lat) // called from router.html (with one argument)
+function formSetCoords(marker)
 {
- clearSearchResult(marker);
+ var lonlat=map.getCenter().clone();
 
- if(lon == undefined && lat == undefined)
+ lonlat.transform(map.getProjectionObject(),epsg4326);
+
+ var lon=document.forms["form"].elements["lon" + marker].value;
+ var lat=document.forms["form"].elements["lat" + marker].value;
+
+ if(lon!="")
    {
-    lon=document.forms["form"].elements["lon" + marker].value;
-    lat=document.forms["form"].elements["lat" + marker].value;
-   }
-
- if(lon == "" && lat == "")
-   {
-    document.forms["form"].elements["lon" + marker].value="";
-    document.forms["form"].elements["lat" + marker].value="";
-
-    routino.point[marker].lon="";
-    routino.point[marker].lat=""
-   }
- else
-   {
-    if(lon=="")
-      {
-       var lonlat=map.getCenter().clone();
-       lonlat.transform(epsg900913,epsg4326);
-
-       lon=lonlat.lon;
-      }
-
     if(lon<-180) lon=-180;
     if(lon>+180) lon=+180;
+    lonlat.lon=lon;
+   }
 
-    if(lat=="")
-      {
-       var lonlat=map.getCenter().clone();
-       lonlat.transform(epsg900913,epsg4326);
-
-       lat=lonlat.lat;
-      }
-
+ if(lat!="")
+   {
     if(lat<-90 ) lat=-90 ;
     if(lat>+90 ) lat=+90 ;
-
-    var lonlat = new OpenLayers.LonLat(lon,lat);
-    lonlat.transform(epsg4326,epsg900913);
-
-    markers[marker].move(lonlat);
-
-    markersmoved=true;
-
-    document.forms["form"].elements["lon" + marker].value=format5f(lon);
-    document.forms["form"].elements["lat" + marker].value=format5f(lat);
-
-    routino.point[marker].lon=lon;
-    routino.point[marker].lat=lat;
-    routino.point[marker].used=true;
-
-    markerCheckHome(marker);
+    lonlat.lat=lat;
    }
+
+ var point = lonlat.clone();
+
+ point.transform(epsg4326,map.getProjectionObject());
+
+ markers[marker].move(point);
+
+ markersmoved=true;
+
+ coordsSetForm(marker);
 }
 
 
 //
-// Set the search field from the form when the form changes.
+// Set the feature coordinates in the form.
 //
 
-function formSetSearch(marker,search) // called from event handler linked to router.html (with one argument)
+function coordsSetForm(marker)
 {
- clearSearchResult(marker);
+ var lonlat = new OpenLayers.LonLat(markers[marker].geometry.x, markers[marker].geometry.y);
+ lonlat.transform(map.getProjectionObject(),epsg4326);
 
- if(search == undefined)
-   {
-    routino.point[marker].search=document.forms["form"].elements["search" + marker].value;
+ var lon=format5f(lonlat.lon);
+ var lat=format5f(lonlat.lat);
 
-    DoSearch(marker);
-   }
- else
-   {
-    document.forms["form"].elements["search" + marker].value=search;
+ document.forms["form"].elements["lon" + marker].value=lon;
+ document.forms["form"].elements["lat" + marker].value=lat;
 
-    routino.point[marker].search=search;
-   }
+ updateIcon(marker);
+
+ updateCustomURL();
 }
 
 
@@ -549,17 +357,17 @@ function format5f(number)
 // Build a set of URL arguments
 //
 
-function buildURLArguments(lang)
+function buildURLArguments(all)
 {
- var url= "transport=" + routino.transport;
+ var url="?";
+
+ url=url + "transport=" + routino.transport;
 
  for(var marker=1;marker<=vismarkers;marker++)
-    if(routino.point[marker].active)
+    if(markers[marker].style.display == "" || all)
       {
-       url=url + ";lon" + marker + "=" + routino.point[marker].lon;
-       url=url + ";lat" + marker + "=" + routino.point[marker].lat;
-       if(routino.point[marker].search != "")
-          url=url + ";search" + marker + "=" + encodeURIComponent(routino.point[marker].search);
+       url=url + ";lon" + marker + "=" + document.forms["form"].elements["lon" + marker].value;
+       url=url + ";lat" + marker + "=" + document.forms["form"].elements["lat" + marker].value;
       }
 
  for(var key in routino.profile_highway)
@@ -578,7 +386,7 @@ function buildURLArguments(lang)
     if(routino.profile_restrictions[key][routino.transport]!=routino_default.profile_restrictions[key][routino.transport])
        url=url + ";" + key + "=" + routino.profile_restrictions[key][routino.transport];
 
- if(lang && routino.language)
+ if(routino.language)
     url=url + ";language=" + routino.language;
 
  return(url);
@@ -586,37 +394,45 @@ function buildURLArguments(lang)
 
 
 //
-// Build a set of URL arguments for the map location
+// Update custom URL
 //
 
-function buildMapArguments()
+function updateCustomURL()
 {
- var lonlat = map.getCenter().clone();
- lonlat.transform(epsg900913,epsg4326);
+ var visualiser_url=document.getElementById("visualiser_url");
+ var link_url      =document.getElementById("link_url");
+ var edit_url      =document.getElementById("edit_url");
 
- var zoom = map.getZoom() + map.minZoomLevel;
-
- return "lat=" + format5f(lonlat.lat) + ";lon=" + format5f(lonlat.lon) + ";zoom=" + zoom;
+ visualiser_url.href="customvisualiser.cgi?" + map_args;
+ link_url.href="customrouter.cgi" + buildURLArguments(1) + ";" + map_args;
+ edit_url.href="http://www.openstreetmap.org/edit?" + map_args;
 }
 
 
 //
-// Update a URL
+// Block the use of the return key to submit the form
 //
 
-function updateURL(element)     // called from router.html
+function block_return_key()
 {
- if(element.id == "permalink_url")
-    element.href=location.pathname + "?" + buildURLArguments(true) + ";" + buildMapArguments();
+ var form=document.getElementById("form");
 
- if(element.id == "visualiser_url")
-    element.href="visualiser.html" + "?" + buildMapArguments();
+ if(form.addEventListener)
+    form.addEventListener('keyup', discardReturnKey, false);
+ else if(form.attachEvent)
+    form.attachEvent('keyup', discardReturnKey); // Internet Explorer
+}
 
- if(element.id == "edit_url")
-    element.href="http://www.openstreetmap.org/edit" + "?" + buildMapArguments();
+//
+// Function to discard the return key if pressed
+//
 
- if(element.id.match(/^lang_([a-zA-Z-]+)_url$/))
-    element.href="router.html" + "." + RegExp.$1 + "?" + buildURLArguments(false) + ";" + buildMapArguments();
+function discardReturnKey(ev)
+{
+ if(ev.keyCode==13)
+    return(false);
+
+ return(true);
 }
 
 
@@ -627,17 +443,14 @@ function updateURL(element)     // called from router.html
 var map;
 var layerMap=[], layerVectors, layerGPX;
 var epsg4326, epsg900913;
+var map_args;
 
-//
+// 
 // Initialise the 'map' object
 //
 
-function map_init()             // called from router.html
+function map_init(lat,lon,zoom)
 {
- lon =args["lon"];
- lat =args["lat"];
- zoom=args["zoom"];
-
  // Map properties (North/South and East/West limits and zoom in/out limits) are now in mapprops.js
  // Map URLs are now in mapprops.js
 
@@ -662,14 +475,15 @@ function map_init()             // called from router.html
 
                             minZoomLevel: mapprops.zoomout,
                             numZoomLevels: mapprops.zoomin-mapprops.zoomout+1,
-                            maxResolution: 156543.03390625 / Math.pow(2,mapprops.zoomout),
+                            maxResolution: 156543.0339 / Math.pow(2,mapprops.zoomout),
 
-                            // These two lines are not needed with OpenLayers 2.12
-                            units: "m",
                             maxExtent:        new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
+                            restrictedExtent: new OpenLayers.Bounds(mapprops.westedge,mapprops.southedge,mapprops.eastedge,mapprops.northedge).transform(epsg4326,epsg900913),
 
-                            restrictedExtent: new OpenLayers.Bounds(mapprops.westedge,mapprops.southedge,mapprops.eastedge,mapprops.northedge).transform(epsg4326,epsg900913)
+                            units: "m"
                            });
+
+ map.events.register("moveend", map, mapMoved);
 
  // Add map tile layers
 
@@ -718,29 +532,40 @@ function map_init()             // called from router.html
 
  gpx_style={shortest: new OpenLayers.Style({},{strokeWidth: 3, strokeColor: "#00FF00"}),
             quickest: new OpenLayers.Style({},{strokeWidth: 3, strokeColor: "#0000FF"})};
-
+ 
  // Add a vectors layer
-
+ 
  layerVectors = new OpenLayers.Layer.Vector("Markers");
  map.addLayer(layerVectors);
 
  // A set of markers
 
+ nmarkers=99;
+ vismarkers=0;
  markers={};
  markersmoved=false;
  paramschanged=false;
 
- for(var marker=1;marker<=mapprops.maxmarkers;marker++)
+ for(var marker=1;marker<=nmarkers;marker++)
    {
-    markers[marker] = new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Point(0,0),{},
-                                                    new OpenLayers.Style({},{externalGraphic: 'icons/marker-' + marker + '-red.png',
-                                                                             fillColor: "white",
-                                                                             graphicYOffset: -25,
-                                                                             graphicWidth: 21,
-                                                                             graphicHeight: 25,
-                                                                             display: "none"}));
+    if(document.forms["form"].elements["lon" + marker] != undefined)
+      {
+       markers[marker] = new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Point(0,0),{},
+                                                       new OpenLayers.Style({},{externalGraphic: 'icons/marker-' + marker + '-red.png',
+                                                                                fillColor: "white",
+                                                                                graphicYOffset: -25,
+                                                                                graphicWidth: 21,
+                                                                                graphicHeight: 25,
+                                                                                display: "none"}));
 
-    layerVectors.addFeatures([markers[marker]]);
+       layerVectors.addFeatures([markers[marker]]);
+      }
+    else
+      {
+       nmarkers=marker-1;
+       vismarkers=marker-1;
+       break;
+      }
    }
 
  // A function to drag the markers
@@ -778,7 +603,7 @@ function map_init()             // called from router.html
 
  // Move the map
 
- if(lon != undefined && lat != undefined && zoom != undefined)
+ if(lon != 'lon' && lat != 'lat' && zoom != 'zoom')
    {
     if(lon<mapprops.westedge) lon=mapprops.westedge;
     if(lon>mapprops.eastedge) lon=mapprops.eastedge;
@@ -789,11 +614,28 @@ function map_init()             // called from router.html
     if(zoom<mapprops.zoomout) zoom=mapprops.zoomout;
     if(zoom>mapprops.zoomin)  zoom=mapprops.zoomin;
 
-    var lonlat = new OpenLayers.LonLat(lon,lat);
-    lonlat.transform(epsg4326,epsg900913);
+    var lonlat = new OpenLayers.LonLat(lon,lat).transform(epsg4326,map.getProjectionObject());
 
     map.moveTo(lonlat,zoom-map.minZoomLevel);
    }
+}
+
+
+//
+// Map has moved
+//
+
+function mapMoved()
+{
+ var centre = map.getCenter().clone();
+
+ var lonlat = centre.transform(map.getProjectionObject(),epsg4326);
+
+ var zoom = this.getZoom() + map.minZoomLevel;
+
+ map_args="lat=" + lonlat.lat + ";lon=" + lonlat.lon + ";zoom=" + zoom;
+
+ updateCustomURL();
 }
 
 
@@ -805,7 +647,11 @@ function dragMove(feature,pixel)
 {
  for(var marker in markers)
     if(feature==markers[marker])
-       dragSetForm(marker);
+      {
+       markersmoved=true;
+
+       coordsSetForm(marker);
+      }
 }
 
 
@@ -817,23 +663,11 @@ function dragComplete(feature,pixel)
 {
  for(var marker in markers)
     if(feature==markers[marker])
-       dragSetForm(marker);
-}
+      {
+       markersmoved=true;
 
-
-//
-// Set the feature coordinates in the form after dragging.
-//
-
-function dragSetForm(marker)
-{
- var lonlat = new OpenLayers.LonLat(markers[marker].geometry.x, markers[marker].geometry.y);
- lonlat.transform(epsg900913,epsg4326);
-
- var lon=format5f(lonlat.lon);
- var lat=format5f(lonlat.lat);
-
- formSetCoords(marker,lon,lat);
+       coordsSetForm(marker);
+      }
 }
 
 
@@ -841,34 +675,20 @@ function dragSetForm(marker)
 /////////////////////////////// Marker handling ////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+var nmarkers, vismarkers, markers, markersmoved, paramschanged;
+var homelat=null, homelon=null;
+
 
 //
 // Toggle a marker on the map.
 //
 
-function markerToggleMap(marker) // called from router.html
+function markerToggleMap(marker)
 {
- if(!routino.point[marker].used)
-   {
-    routino.point[marker].used=true;
-    markerCentre(marker);
-    markerCoords(marker);
-   }
-
- markerAddRemoveMap(marker,!routino.point[marker].active);
-}
-
-
-//
-// Show or hide a marker on the map.
-//
-
-function markerAddRemoveMap(marker,active)
-{
- if(active)
-    markerAddMap(marker);
- else
+ if(markers[marker].style.display == "")
     markerRemoveMap(marker);
+ else
+    markerAddMap(marker);
 }
 
 
@@ -878,11 +698,9 @@ function markerAddRemoveMap(marker,active)
 
 function markerAddMap(marker)
 {
- clearSearchResult(marker);
-
  markers[marker].style.display = "";
- routino.point[marker].active=true;
- routino.point[marker].used=true;
+
+ formSetCoords(marker);
 
  updateIcon(marker);
 
@@ -896,10 +714,7 @@ function markerAddMap(marker)
 
 function markerRemoveMap(marker)
 {
- clearSearchResult(marker);
-
  markers[marker].style.display = "none";
- routino.point[marker].active=false;
 
  updateIcon(marker);
 
@@ -908,67 +723,17 @@ function markerRemoveMap(marker)
 
 
 //
-// Display search string for the marker
-//
-
-function markerSearch(marker)   // called from router.html
-{
- clearSearchResult(marker);
-
- document.getElementById("coords" + marker).style.display="none";
- document.getElementById("search" + marker).style.display="";
-}
-
-
-//
-// Display coordinates for the marker
-//
-
-function markerCoords(marker)   // called from router.html
-{
- clearSearchResult(marker);
-
- document.getElementById("search" + marker).style.display="none";
- document.getElementById("coords" + marker).style.display="";
-}
-
-
-//
 // Centre the marker on the map
 //
 
-function markerCentre(marker)   // called from router.html
+function markerCentre(marker)
 {
- if(!routino.point[marker].used)
-    return;
+ document.forms["form"].elements["lon" + marker].value="";
+ document.forms["form"].elements["lat" + marker].value="";
 
- clearSearchResult(marker);
+ formSetCoords(marker);
 
- var lonlat=map.getCenter().clone();
- lonlat.transform(epsg900913,epsg4326);
-
- formSetCoords(marker,lonlat.lon,lonlat.lat);
-}
-
-
-//
-// Centre the map on the marker
-//
-
-function markerRecentre(marker) // called from router.html
-{
- if(!routino.point[marker].used)
-    return;
-
- clearSearchResult(marker);
-
- lon=routino.point[marker].lon;
- lat=routino.point[marker].lat;
-
- var lonlat = new OpenLayers.LonLat(lon,lat);
- lonlat.transform(epsg4326,epsg900913);
-
- map.panTo(lonlat);
+ markersmoved=true;
 }
 
 
@@ -976,17 +741,31 @@ function markerRecentre(marker) // called from router.html
 // Clear the current marker.
 //
 
-function markerRemove(marker)   // called from router.html
+function markerRemove(marker)
 {
- clearSearchResult(marker);
+ for(var marker2=marker;marker2<vismarkers;marker2++)
+   {
+    document.forms["form"].elements["lon" + marker2].value=document.forms["form"].elements["lon" + (marker2+1)].value;
+    document.forms["form"].elements["lat" + marker2].value=document.forms["form"].elements["lat" + (marker2+1)].value;
 
- for(var m=marker;m<vismarkers;m++)
-    markerCopy(m,m+1);
+    if(markers[marker2+1].style.display=="")
+       markerAddMap(marker2);
+    else
+       markerRemoveMap(marker2);
+   }
 
- markerRemoveForm(vismarkers--);
+ markerRemoveMap(vismarkers);
+
+ var marker_tr=document.getElementById("point" + vismarkers);
+
+ marker_tr.style.display="none";
+
+ vismarkers--;
 
  if(vismarkers==1)
     markerAddAfter(1);
+
+ updateCustomURL();
 }
 
 
@@ -996,17 +775,33 @@ function markerRemove(marker)   // called from router.html
 
 function markerAddBefore(marker)
 {
- clearSearchResult(marker);
-
- if(vismarkers==mapprops.maxmarkers || marker==1)
+ if(vismarkers==nmarkers || marker==1)
     return false;
 
- markerAddForm(++vismarkers);
+ vismarkers++;
 
- for(var m=vismarkers;m>marker;m--)
-    markerCopy(m,m-1);
+ var marker_tr=document.getElementById("point" + vismarkers);
 
- markerClearForm(marker-1);
+ marker_tr.style.display="";
+
+ for(var marker2=vismarkers;marker2>marker;marker2--)
+   {
+    document.forms["form"].elements["lon" + marker2].value=document.forms["form"].elements["lon" + (marker2-1)].value;
+    document.forms["form"].elements["lat" + marker2].value=document.forms["form"].elements["lat" + (marker2-1)].value;
+
+    if(markers[marker2-1].style.display=="")
+       markerAddMap(marker2);
+    else
+       markerRemoveMap(marker2);
+   }
+
+ document.forms["form"].elements["lon" + marker].value="";
+ document.forms["form"].elements["lat" + marker].value="";
+ markers[marker].style.display="none";
+
+ markerRemoveMap(marker);
+
+ updateCustomURL();
 }
 
 
@@ -1014,19 +809,35 @@ function markerAddBefore(marker)
 // Add a marker after the current one.
 //
 
-function markerAddAfter(marker) // called from router.html
+function markerAddAfter(marker)
 {
- clearSearchResult(marker);
-
- if(vismarkers==mapprops.maxmarkers)
+ if(vismarkers==nmarkers)
     return false;
 
- markerAddForm(++vismarkers);
+ vismarkers++;
 
- for(var m=vismarkers;m>(marker+1);m--)
-    markerCopy(m,m-1);
+ var marker_tr=document.getElementById("point" + vismarkers);
 
- markerClearForm(marker+1);
+ marker_tr.style.display="";
+
+ for(var marker2=vismarkers;marker2>(marker+1);marker2--)
+   {
+    document.forms["form"].elements["lon" + marker2].value=document.forms["form"].elements["lon" + (marker2-1)].value;
+    document.forms["form"].elements["lat" + marker2].value=document.forms["form"].elements["lat" + (marker2-1)].value;
+
+    if(markers[marker2-1].style.display=="")
+       markerAddMap(marker2);
+    else
+       markerRemoveMap(marker2);
+   }
+
+ document.forms["form"].elements["lon" + (marker+1)].value="";
+ document.forms["form"].elements["lat" + (marker+1)].value="";
+ markers[marker+1].style.display="none";
+
+ markerRemoveMap(marker+1);
+
+ updateCustomURL();
 }
 
 
@@ -1034,35 +845,11 @@ function markerAddAfter(marker) // called from router.html
 // Set this marker as the home location.
 //
 
-function markerHome(marker)     // called from router.html
+function markerHome(marker)
 {
- if(!routino.point[marker].used)
-   {
-    markerMoveHome(marker);
-   }
- else
-   {
-    clearSearchResult(marker);
-
-    markerSetClearHome(marker,!routino.point[marker].home);
-   }
-}
-
-
-//
-// Set this marker as the current location.
-//
-
-function markerLocate(marker)   // called from router.html
-{
- clearSearchResult(marker);
-
- if(navigator.geolocation)
-    navigator.geolocation.getCurrentPosition(
-                                             function(position) {
-                                              formSetCoords(marker,position.coords.longitude,position.coords.latitude);
-                                              markerAddMap(marker);
-                                             });
+ if(markerHomeCookie(marker))
+    for(marker=1;marker<=nmarkers;marker++)
+       updateIcon(marker);
 }
 
 
@@ -1072,9 +859,12 @@ function markerLocate(marker)   // called from router.html
 
 function updateIcon(marker)
 {
- if(routino.point[marker].home)
+ var lon=document.forms["form"].elements["lon" + marker].value;
+ var lat=document.forms["form"].elements["lat" + marker].value;
+
+ if(lon==homelon && lat==homelat)
    {
-    if(routino.point[marker].active)
+    if(markers[marker].style.display=="")
        document.images["waypoint" + marker].src="icons/marker-home-red.png";
     else
        document.images["waypoint" + marker].src="icons/marker-home-grey.png";
@@ -1083,7 +873,7 @@ function updateIcon(marker)
    }
  else
    {
-    if(routino.point[marker].active)
+    if(markers[marker].style.display=="")
        document.images["waypoint" + marker].src="icons/marker-" + marker + "-red.png";
     else
        document.images["waypoint" + marker].src="icons/marker-" + marker + "-grey.png";
@@ -1096,78 +886,43 @@ function updateIcon(marker)
 
 
 //
-// Move the marker to the home location
-//
-
-function markerMoveHome(marker)
-{
- if(homelon==null || homelat==null)
-    return;
-
- routino.point[marker].home=true;
- routino.point[marker].used=true;
-
- formSetCoords(marker,homelon,homelat);
- markerAddMap(marker);
-}
-
-
-//
 // Set or clear the home marker icon
 //
 
-function markerSetClearHome(marker,home)
+function markerHomeCookie(marker)
 {
+ var lon=document.forms["form"].elements["lon" + marker].value;
+ var lat=document.forms["form"].elements["lat" + marker].value;
+
+ if(lon=="" || lat=="")
+    return(false);
+
  var cookie;
  var date = new Date();
 
- if(home)
+ if((homelat==null && homelon==null) ||
+    (homelat!=lat  && homelon!=lon))
    {
-    homelat=routino.point[marker].lat;
-    homelon=routino.point[marker].lon;
-
-    cookie="Routino-home=lon:" + homelon + ":lat:" + homelat;
+    cookie="Routino-home=lon:" + lon + ":lat:" + lat;
 
     date.setUTCFullYear(date.getUTCFullYear()+5);
 
-    routino.point[marker].home=true;
+    homelat=lat;
+    homelon=lon;
    }
  else
    {
-    homelat=null;
-    homelon=null;
-
     cookie="Routino-home=unset";
 
     date.setUTCFullYear(date.getUTCFullYear()-1);
 
-    routino.point[marker].home=false;
+    homelat=null;
+    homelon=null;
    }
 
  document.cookie=cookie + ";expires=" + date.toGMTString();
 
- updateIcon(marker);
-
- for(m=1;m<=mapprops.maxmarkers;m++)
-    markerCheckHome(m);
-}
-
-
-//
-// Check if a marker is the home marker
-//
-
-function markerCheckHome(marker)
-{
- var home=routino.point[marker].home;
-
- if(routino.point[marker].lon==homelon && routino.point[marker].lat==homelat)
-    routino.point[marker].home=true;
- else
-    routino.point[marker].home=false;
-
- if(home!=routino.point[marker].home)
-    updateIcon(marker);
+ return(true);
 }
 
 
@@ -1175,15 +930,12 @@ function markerCheckHome(marker)
 // Move this marker up.
 //
 
-function markerMoveUp(marker)   // called from router.html
+function markerMoveUp(marker)
 {
  if(marker==1)
-   {
-    for(var m=1;m<vismarkers;m++)
-       markerSwap(m,m+1);
-   }
- else
-    markerSwap(marker,marker-1);
+    return false;
+
+ markerSwap(marker,marker-1);
 }
 
 
@@ -1191,36 +943,12 @@ function markerMoveUp(marker)   // called from router.html
 // Move this marker down.
 //
 
-function markerMoveDown(marker) // called from router.html
+function markerMoveDown(marker)
 {
  if(marker==vismarkers)
-   {
-    for(var m=vismarkers;m>1;m--)
-       markerSwap(m,m-1);
-   }
- else
-    markerSwap(marker,marker+1);
-}
+    return false;
 
-
-//
-// Copy a marker from one place to another.
-//
-
-function markerCopy(marker1,marker2)
-{
- for(var element in routino.point[marker2])
-    routino.point[marker1][element]=routino.point[marker2][element];
-
- document.getElementById("search" + marker1).style.display=document.getElementById("search" + marker2).style.display;
-
- document.getElementById("coords" + marker1).style.display=document.getElementById("coords" + marker2).style.display;
-
- document.forms["form"].elements["search" + marker1].value=document.forms["form"].elements["search" + marker2].value;
-
- formSetCoords(marker1,routino.point[marker1].lon,routino.point[marker1].lat);
-
- markerAddRemoveMap(marker1,routino.point[marker1].active);
+ markerSwap(marker,marker+1);
 }
 
 
@@ -1230,30 +958,25 @@ function markerCopy(marker1,marker2)
 
 function markerSwap(marker1,marker2)
 {
- for(var element in routino.point[marker2])
-   {
-    var temp=routino.point[marker1][element];
-    routino.point[marker1][element]=routino.point[marker2][element];
-    routino.point[marker2][element]=temp;
-   }
+ var lon=document.forms["form"].elements["lon" + marker1].value;
+ var lat=document.forms["form"].elements["lat" + marker1].value;
+ var display=markers[marker1].style.display;
 
- var search_display=document.getElementById("search" + marker1).style.display;
- document.getElementById("search" + marker1).style.display=document.getElementById("search" + marker2).style.display;
- document.getElementById("search" + marker2).style.display=search_display;
+ document.forms["form"].elements["lon" + marker1].value=document.forms["form"].elements["lon" + marker2].value;
+ document.forms["form"].elements["lat" + marker1].value=document.forms["form"].elements["lat" + marker2].value;
+ if(markers[marker2].style.display=="")
+    markerAddMap(marker1);
+ else
+    markerRemoveMap(marker1);
 
- var coords_display=document.getElementById("coords" + marker1).style.display;
- document.getElementById("coords" + marker1).style.display=document.getElementById("coords" + marker2).style.display;
- document.getElementById("coords" + marker2).style.display=coords_display;
+ document.forms["form"].elements["lon" + marker2].value=lon;
+ document.forms["form"].elements["lat" + marker2].value=lat;
+ if(display=="")
+    markerAddMap(marker2);
+ else
+    markerRemoveMap(marker2);
 
- var search_value=document.forms["form"].elements["search" + marker1].value;
- document.forms["form"].elements["search" + marker1].value=document.forms["form"].elements["search" + marker2].value;
- document.forms["form"].elements["search" + marker2].value=search_value;
-
- formSetCoords(marker1,routino.point[marker1].lon,routino.point[marker1].lat);
- formSetCoords(marker2,routino.point[marker2].lon,routino.point[marker2].lat);
-
- markerAddRemoveMap(marker1,routino.point[marker1].active);
- markerAddRemoveMap(marker2,routino.point[marker2].active);
+ updateCustomURL();
 }
 
 
@@ -1261,70 +984,12 @@ function markerSwap(marker1,marker2)
 // Reverse the markers.
 //
 
-function markersReverse()       // called from router.html
+function markersReverse()
 {
  for(var marker=1;marker<=vismarkers/2;marker++)
     markerSwap(marker,vismarkers+1-marker);
-}
 
-
-//
-// Close the loop.
-//
-
-function markersLoop()          // called from router.html
-{
- if(vismarkers==mapprops.maxmarkers)
-    return false;
-
- if(routino.point[vismarkers].lon==routino.point[1].lon && routino.point[vismarkers].lat==routino.point[1].lat)
-    return false;
-
- if(routino.point[vismarkers].used)
-    markerAddForm(++vismarkers);
-
- markerCopy(vismarkers,1);
-}
-
-
-//
-// Display the form for a marker
-//
-
-function markerAddForm(marker)
-{
- document.getElementById("waypoint" + marker).style.display="";
-}
-
-
-//
-// Hide the form for a marker
-//
-
-function markerRemoveForm(marker)
-{
- document.getElementById("waypoint" + marker).style.display="none";
-
- markerClearForm(marker);
-}
-
-
-//
-// Clear the form for a marker
-//
-
-function markerClearForm(marker)
-{
- markerRemoveMap(marker);
- markerCoords(marker);
-
- formSetCoords(marker,"","");
- formSetSearch(marker,"");
-
- updateIcon(marker);
-
- routino.point[marker].used=false;
- routino.point[marker].home=false;
+ updateCustomURL();
 }
 
 
@@ -1346,8 +1011,7 @@ var gpx_style={shortest: null, quickest: null};
 
 function zoomTo(type,line)
 {
- var lonlat = new OpenLayers.LonLat(routepoints[type][line].lon,routepoints[type][line].lat);
- lonlat.transform(epsg4326,epsg900913);
+ var lonlat = new OpenLayers.LonLat(routepoints[type][line].lon,routepoints[type][line].lat).transform(epsg4326,map.getProjectionObject());
 
  map.moveTo(lonlat,map.numZoomLevels-2);
 }
@@ -1369,8 +1033,7 @@ function highlight(type,line)
    {
     // Marker
 
-    var lonlat = new OpenLayers.LonLat(routepoints[type][line].lon,routepoints[type][line].lat);
-    lonlat.transform(epsg4326,epsg900913);
+    var lonlat = new OpenLayers.LonLat(routepoints[type][line].lon,routepoints[type][line].lat).transform(epsg4326,map.getProjectionObject());
 
     highlights[type].move(lonlat);
 
@@ -1456,9 +1119,11 @@ function removeGPXTrace(type)
 
  displayStatus(type,"no_info");
 
- document.getElementById(type + "_links").style.display = "none";
+ var div_links=document.getElementById(type + "_links");
+ div_links.style.display = "none";
 
- document.getElementById(type + "_route").innerHTML = "";
+ var div_route=document.getElementById(type + "_route");
+ div_route.innerHTML = "";
 
  hideshow_hide(type);
 }
@@ -1472,11 +1137,11 @@ function removeGPXTrace(type)
 // Display data statistics
 //
 
-function displayStatistics() // called from router.html
+function displayStatistics()
 {
  // Use AJAX to get the statistics
 
- OpenLayers.Request.GET({url: "statistics.cgi", success: runStatisticsSuccess});
+ OpenLayers.loadURL("statistics.cgi",null,null,runStatisticsSuccess);
 }
 
 
@@ -1486,8 +1151,12 @@ function displayStatistics() // called from router.html
 
 function runStatisticsSuccess(response)
 {
- document.getElementById("statistics_data").innerHTML="<pre>" + response.responseText + "</pre>";
- document.getElementById("statistics_link").style.display="none";
+ var statistics_data=document.getElementById("statistics_data");
+ var statistics_link=document.getElementById("statistics_link");
+
+ statistics_data.innerHTML="<pre>" + response.responseText + "</pre>";
+
+ statistics_link.style.display="none";
 }
 
 
@@ -1495,7 +1164,7 @@ function runStatisticsSuccess(response)
 // Submit form - perform the routing
 //
 
-function findRoute(type) // called from router.html
+function findRoute(type)
 {
  tab_select("results");
 
@@ -1505,7 +1174,7 @@ function findRoute(type) // called from router.html
 
  displayStatus("result","running");
 
- var url="router.cgi" + "?" + buildURLArguments(true) + ";type=" + type;
+ var url="router.cgi" + buildURLArguments(0) + ";type=" + type;
 
  // Destroy the existing layer(s)
 
@@ -1525,7 +1194,7 @@ function findRoute(type) // called from router.html
 
  routing_type=type;
 
- OpenLayers.Request.GET({url: url, success: runRouterSuccess, failure: runRouterFailure});
+ OpenLayers.loadURL(url,null,null,runRouterSuccess,runRouterFailure);
 }
 
 
@@ -1569,32 +1238,28 @@ function runRouterSuccess(response)
 
  link=document.getElementById(routing_type + "_html");
  link.href="results.cgi?uuid=" + uuid + ";type=" + routing_type + ";format=html";
-
  link=document.getElementById(routing_type + "_gpx_track");
  link.href="results.cgi?uuid=" + uuid + ";type=" + routing_type + ";format=gpx-track";
-
  link=document.getElementById(routing_type + "_gpx_route");
  link.href="results.cgi?uuid=" + uuid + ";type=" + routing_type + ";format=gpx-route";
-
  link=document.getElementById(routing_type + "_text_all");
  link.href="results.cgi?uuid=" + uuid + ";type=" + routing_type + ";format=text-all";
-
  link=document.getElementById(routing_type + "_text");
  link.href="results.cgi?uuid=" + uuid + ";type=" + routing_type + ";format=text";
 
- links=document.getElementById(routing_type + "_links").style.display = "";
+ var div_links=document.getElementById(routing_type + "_links");
+ div_links.style.display = "";
 
  // Add a GPX layer
 
  var url="results.cgi?uuid=" + uuid + ";type=" + routing_type + ";format=gpx-track";
 
- layerGPX[routing_type] = new OpenLayers.Layer.Vector("GPX (" + routing_type + ")",
-                                                      {
-                                                       protocol:   new OpenLayers.Protocol.HTTP({url: url, format: new OpenLayers.Format.GPX()}),
-                                                       strategies: [new OpenLayers.Strategy.Fixed()],
-                                                       style:      gpx_style[routing_type],
-                                                       projection: map.displayProjection
-                                                      });
+ layerGPX[routing_type] = new OpenLayers.Layer.GML("GPX (" + routing_type + ")", url,
+                                                   {
+                                                    format:     OpenLayers.Format.GPX,
+                                                    style:      gpx_style[routing_type],
+                                                    projection: map.displayProjection
+                                                   });
 
  map.addLayer(layerGPX[routing_type]);
 
@@ -1620,7 +1285,9 @@ function runRouterFailure(response)
 
 function displayStatus(type,subtype,content)
 {
- var child=document.getElementById(type + "_status").firstChild;
+ var div_status=document.getElementById(type + "_status");
+
+ var child=div_status.firstChild;
 
  do
    {
@@ -1654,7 +1321,7 @@ function displayResult(type,uuid)
 
  // Use AJAX to get the route
 
- OpenLayers.Request.GET({url: url, success: getRouteSuccess, failure: getRouteFailure});
+ OpenLayers.loadURL(url,null,null,getRouteSuccess,getRouteFailure);
 }
 
 
@@ -1665,6 +1332,7 @@ function displayResult(type,uuid)
 function getRouteSuccess(response)
 {
  var lines=response.responseText.split('\n');
+ var div_route=document.getElementById(routing_type + "_route");
 
  routepoints[routing_type]=[];
 
@@ -1755,7 +1423,7 @@ function getRouteSuccess(response)
 
  result=result + "</table>";
 
- document.getElementById(routing_type + "_route").innerHTML=result;
+ div_route.innerHTML=result;
 }
 
 
@@ -1765,117 +1433,6 @@ function getRouteSuccess(response)
 
 function getRouteFailure(response)
 {
- document.getElementById(routing_type + "_route").innerHTML = "";
-}
-
-
-//
-// Perform a search
-//
-
-function DoSearch(marker)
-{
- // Use AJAX to get the search result
-
- var search=routino.point[marker].search;
-
- var bounds=map.getExtent().clone();
- bounds.transform(epsg900913,epsg4326);
-
- var url="search.cgi?marker=" + marker +
-         ";left=" + format5f(bounds.left) +
-         ";top="  + format5f(bounds.top) +
-         ";right="  + format5f(bounds.right) +
-         ";bottom=" + format5f(bounds.bottom) +
-         ";search=" + encodeURIComponent(search);
-
- OpenLayers.Request.GET({url: url, success: runSearchSuccess});
-}
-
-
-var searchresults=[];
-
-//
-// Success in running search.
-//
-
-function runSearchSuccess(response)
-{
- var lines=response.responseText.split('\n');
-
- var marker=lines[0];
- var cpuinfo=lines[1];  // not used
- var message=lines[2];  // not used
-
- if(message != "")
-   {
-    alert(message);
-    return;
-   }
-
- searchresults[marker]=[];
-
- for(var line=3;line<lines.length;line++)
-   {
-    var thisline=lines[line];
-
-    if(thisline=="")
-       break;
-
-    thisline.match('([-.0-9]+) ([-.0-9]+) (.*)');
-
-    searchresults[marker][searchresults[marker].length]={lat: Number(RegExp.$1), lon: Number(RegExp.$2), name: RegExp.$3};
-   }
-
- if(searchresults[marker].length==1)
-   {
-    formSetSearch(marker,searchresults[marker][0].name);
-    formSetCoords(marker,searchresults[marker][0].lon,searchresults[marker][0].lat);
-    markerAddMap(marker);
-   }
- else
-   {
-    var results=document.getElementById("searchresults" + marker);
-
-    var innerHTML="<td colspan=\"3\">";
-
-    for(var n=0;n<searchresults[marker].length;n++)
-      {
-       if(n>0)
-          innerHTML+="<br>";
-
-       innerHTML+="<a href=\"#\" onclick=\"choseSearchResult(" + marker + "," + n + ")\">" +
-                  searchresults[marker][n].name +
-                  "</a>";
-      }
-
-    results.innerHTML=innerHTML;
-
-    results.style.display="";
-   }
-}
-
-
-//
-// Display search results.
-//
-
-function choseSearchResult(marker,n)
-{
- if(n>=0)
-   {
-    formSetSearch(marker,searchresults[marker][n].name);
-    formSetCoords(marker,searchresults[marker][n].lon,searchresults[marker][n].lat);
-    markerAddMap(marker);
-   }
-}
-
-
-//
-// Clear search results.
-//
-
-function clearSearchResult(marker)
-{
- document.getElementById("searchresults" + marker).style.display="none";
+ var div_route=document.getElementById(routing_type + "_route");
+ div_route.innerHTML = "";
 }

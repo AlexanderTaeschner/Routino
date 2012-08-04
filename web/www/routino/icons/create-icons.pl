@@ -4,7 +4,7 @@
 #
 # Part of the Routino routing software.
 #
-# This file Copyright 2008-2012 Andrew M. Bishop
+# This file Copyright 2008-2010 Andrew M. Bishop
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@ use Graphics::Magick;
 @borders=("black","grey");
 @letters=("red","grey");
 
-foreach $character (1..99,'home','XXX')
+foreach $character ('0'..'9','home')
   {
    foreach $colour (0..$#names)
      {
@@ -57,32 +57,12 @@ foreach $character (1..99,'home','XXX')
          $image->Composite(image => $home, compose => Over,
                            x => 32-$home->Get('width')/2, y => 26-$home->Get('height')/2);
         }
-      elsif($character eq 'XXX')
-        {
-         ($x_ppem, $y_ppem, $ascender, $descender, $width, $height, $max_advance) = 
-           $image->QueryFontMetrics(text => $character, font => 'Helvetica', pointsize => '36');
-
-         $image->Annotate(text => "X", font => 'Helvetica', pointsize => '36',
-                          stroke => $letters[$colour], fill => $letters[$colour],
-                          x => 32, y => 32-$descender, align => Center,
-                          antialias => 'false');
-        }
-      elsif($character>=0 && $character<=9)
+      else
         {
          ($x_ppem, $y_ppem, $ascender, $descender, $width, $height, $max_advance) = 
            $image->QueryFontMetrics(text => $character, font => 'Helvetica', pointsize => '36');
 
          $image->Annotate(text => $character, font => 'Helvetica', pointsize => '36',
-                          stroke => $letters[$colour], fill => $letters[$colour],
-                          x => 32, y => 32-$descender, align => Center,
-                          antialias => 'false');
-        }
-      else
-        {
-         ($x_ppem, $y_ppem, $ascender, $descender, $width, $height, $max_advance) = 
-           $image->QueryFontMetrics(text => $character, font => 'Helvetica', pointsize => '32');
-
-         $image->Annotate(text => $character, font => 'Helvetica', pointsize => '32',
                           stroke => $letters[$colour], fill => $letters[$colour],
                           x => 32, y => 32-$descender, align => Center,
                           antialias => 'false');
@@ -128,12 +108,12 @@ foreach $colour (0..9)
 
 # Limit signs
 
-foreach $limit (1..200)
+foreach $limit (1..160)
   {
    &draw_limit($limit);
   }
 
-foreach $limit (1..400)
+foreach $limit (10..200)
   {
    &draw_limit(sprintf "%.1f",$limit/10);
   }
@@ -160,16 +140,13 @@ sub draw_limit
                 stroke => 'red', fill => 'white', strokewidth => 3,
                 antialias => 'false');
 
-   if($limit ne "no")
-     {
-      ($x_ppem, $y_ppem, $ascender, $descender, $width, $height, $max_advance) =
-        $image->QueryFontMetrics(text => "$limit", font => 'Helvetica', pointsize => '22');
+   ($x_ppem, $y_ppem, $ascender, $descender, $width, $height, $max_advance) =
+     $image->QueryFontMetrics(text => "$limit", font => 'Helvetica', pointsize => '22');
 
-      $image->Annotate(text => "$limit", font => 'Helvetica', pointsize => '22',
-                       stroke => 'black', fill => 'black',
-                       x => 28, y => 28-$descender, align => Center,
-                       antialias => 'false');
-     }
+   $image->Annotate(text => "$limit", font => 'Helvetica', pointsize => '22',
+                    stroke => 'black', fill => 'black',
+                    x => 28, y => 28-$descender, align => Center,
+                    antialias => 'false');
 
    $image->Resize(width => 19, height => 19);
 

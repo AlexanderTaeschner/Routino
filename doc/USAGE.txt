@@ -19,11 +19,10 @@ planetsplitter
 
    Usage: planetsplitter [--help]
                          [--dir=<dirname>] [--prefix=<name>]
-                         [--sort-ram-size=<size>] [--sort-threads=<number>]
+                         [--sort-ram-size=<size>]
                          [--tmpdir=<dirname>]
                          [--tagging=<filename>]
-                         [--loggable] [--logtime]
-                         [--errorlog[=<name>]]
+                         [--loggable] [--errorlog[=<name>]]
                          [--parse-only | --process-only]
                          [--max-iterations=<number>]
                          [--prune-none]
@@ -48,11 +47,6 @@ planetsplitter
           If not specified then 64 MB will be used in slim mode or 256 MB
           otherwise.
 
-   --sort-threads=<number>
-          The number of threads to use for data sorting (the sorting
-          memory is shared between the threads - too many threads and not
-          enough memory will reduce the performance).
-
    --tmpdir=<dirname>
           Specifies the name of the directory to store the temporary disk
           files. If not specified then it defaults to either the value of
@@ -70,9 +64,6 @@ planetsplitter
           Print progress messages that are suitable for logging to a file;
           normally an incrementing counter is printed which is more
           suitable for real-time display than logging.
-
-   --logtime
-          Print the elapsed time for each processing step.
 
    --errorlog[=<name>]
           Log OSM parsing and processing errors to 'error.log' or the
@@ -433,11 +424,6 @@ filedumper
                o junctions = segment count at each junction.
                o super = super-node and super-segments.
                o oneway = oneway segments.
-               o highway-* = segments of the specified highway type (e.g.
-                 highway-primary to display segments ofprimary roads).
-               o transport-* = segments allowing the specified transport
-                 type (e.g. transport-foot to display segments accessible
-                 on foot).
                o turns = turn restrictions.
                o speed = speed limits.
                o weight = weight limits.
