@@ -28,7 +28,7 @@ use Graphics::Magick;
 @borders=("black","grey");
 @letters=("red","grey");
 
-foreach $character (1..99,'home','XXX')
+foreach $character (0..99,'home')
   {
    foreach $colour (0..$#names)
      {
@@ -56,16 +56,6 @@ foreach $character (1..99,'home','XXX')
 
          $image->Composite(image => $home, compose => Over,
                            x => 32-$home->Get('width')/2, y => 26-$home->Get('height')/2);
-        }
-      elsif($character eq 'XXX')
-        {
-         ($x_ppem, $y_ppem, $ascender, $descender, $width, $height, $max_advance) = 
-           $image->QueryFontMetrics(text => $character, font => 'Helvetica', pointsize => '36');
-
-         $image->Annotate(text => "X", font => 'Helvetica', pointsize => '36',
-                          stroke => $letters[$colour], fill => $letters[$colour],
-                          x => 32, y => 32-$descender, align => Center,
-                          antialias => 'false');
         }
       elsif($character>=0 && $character<=9)
         {
