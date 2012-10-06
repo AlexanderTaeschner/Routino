@@ -124,9 +124,9 @@ void ChooseSuperNodes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx)
 
              segmentway[count]=wayx->way;
 
-             /* If the node allows less traffic types than any connecting way then it is super */
+             /* If the node allows less traffic types than any connecting way then it is super if it allows anything */
 
-             if((wayx->way.allow&nodex->allow)!=wayx->way.allow)
+             if((wayx->way.allow&nodex->allow)!=wayx->way.allow && nodex->allow!=Transports_None)
                {
                 issuper=1;
                 break;
@@ -224,9 +224,11 @@ SegmentsX *CreateSuperSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx)
  /* Map into memory / open the files */
 
 #if !SLIM
+ nodesx->data=MapFile(nodesx->filename);
  segmentsx->data=MapFile(segmentsx->filename);
  waysx->data=MapFile(waysx->filename);
 #else
+ nodesx->fd=ReOpenFile(nodesx->filename);
  segmentsx->fd=ReOpenFile(segmentsx->filename);
  waysx->fd=ReOpenFile(waysx->filename);
 #endif
@@ -305,9 +307,11 @@ SegmentsX *CreateSuperSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx)
  /* Unmap from memory / close the files */
 
 #if !SLIM
+ nodesx->data=UnmapFile(nodesx->filename);
  segmentsx->data=UnmapFile(segmentsx->filename);
  waysx->data=UnmapFile(waysx->filename);
 #else
+ nodesx->fd=CloseFile(nodesx->fd);
  segmentsx->fd=CloseFile(segmentsx->fd);
  waysx->fd=CloseFile(waysx->fd);
 #endif
@@ -450,7 +454,7 @@ static Results *FindRoutesWay(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,n
 
  /* Insert the first node into the queue */
 
- results=NewResultsList(4);
+ results=NewResultsList(64);
 
  queue=NewQueueList();
 
@@ -471,14 +475,13 @@ static Results *FindRoutesWay(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,n
 
     while(segmentx)
       {
+       NodeX  *node2x;
        index_t node2,seg2;
        distance_t cumulative_distance;
 
        /* must not be one-way against the direction of travel */
        if(IsOnewayTo(segmentx,node1))
           goto endloop;
-
-       node2=OtherNode(segmentx,node1);
 
        seg2=IndexSegmentX(segmentsx,segmentx);
 
@@ -490,6 +493,14 @@ static Results *FindRoutesWay(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,n
 
        /* must be the right type of way */
        if(WaysCompare(&wayx->way,match))
+          goto endloop;
+
+       node2=OtherNode(segmentx,node1);
+
+       node2x=LookupNodeX(nodesx,node2,2); /* position 1 is already used */
+
+       /* Don't route beyond a node with no access */
+       if(node2x->allow==Transports_None)
           goto endloop;
 
        cumulative_distance=(distance_t)result1->score+DISTANCE(segmentx->distance);
