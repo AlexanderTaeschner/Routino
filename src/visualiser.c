@@ -130,26 +130,26 @@ void OutputJunctions(Nodes *nodes,Segments *segments,Ways *ways,Relations *relat
 static void output_junctions(index_t node,double latitude,double longitude)
 {
  Node *nodep=LookupNode(OSMNodes,node,1);
- Segment *segmentp;
- Way *firstwayp;
+ Segment *segment;
+ Way *firstway;
  int count=0,difference=0;
 
- segmentp=FirstSegment(OSMSegments,nodep,1);
- firstwayp=LookupWay(OSMWays,segmentp->way,1);
+ segment=FirstSegment(OSMSegments,nodep,1);
+ firstway=LookupWay(OSMWays,segment->way,1);
 
  do
    {
-    Way *wayp=LookupWay(OSMWays,segmentp->way,2);
+    Way *way=LookupWay(OSMWays,segment->way,2);
 
-    if(IsNormalSegment(segmentp))
+    if(IsNormalSegment(segment))
        count++;
 
-    if(WaysCompare(firstwayp,wayp))
+    if(WaysCompare(firstway,way))
        difference=1;
 
-    segmentp=NextSegment(OSMSegments,segmentp,node);
+    segment=NextSegment(OSMSegments,segment,node);
    }
- while(segmentp);
+ while(segment);
 
  if(count!=2 || difference)
     printf("%.6f %.6f %d\n",radians_to_degrees(latitude),radians_to_degrees(longitude),count);
@@ -209,20 +209,20 @@ void OutputSuper(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations
 static void output_super(index_t node,double latitude,double longitude)
 {
  Node *nodep=LookupNode(OSMNodes,node,1);
- Segment *segmentp;
+ Segment *segment;
 
  if(!IsSuperNode(nodep))
     return;
 
  printf("%.6f %.6f n\n",radians_to_degrees(latitude),radians_to_degrees(longitude));
 
- segmentp=FirstSegment(OSMSegments,nodep,1);
+ segment=FirstSegment(OSMSegments,nodep,1);
 
  do
    {
-    if(IsSuperSegment(segmentp))
+    if(IsSuperSegment(segment))
       {
-       index_t othernode=OtherNode(segmentp,node);
+       index_t othernode=OtherNode(segment,node);
        double lat,lon;
 
        GetLatLong(OSMNodes,othernode,&lat,&lon);
@@ -231,9 +231,9 @@ static void output_super(index_t node,double latitude,double longitude)
           printf("%.6f %.6f s\n",radians_to_degrees(lat),radians_to_degrees(lon));
       }
 
-    segmentp=NextSegment(OSMSegments,segmentp,node);
+    segment=NextSegment(OSMSegments,segment,node);
    }
- while(segmentp);
+ while(segment);
 }
 
 
@@ -290,15 +290,15 @@ void OutputOneway(Nodes *nodes,Segments *segments,Ways *ways,Relations *relation
 static void output_oneway(index_t node,double latitude,double longitude)
 {
  Node *nodep=LookupNode(OSMNodes,node,1);
- Segment *segmentp;
+ Segment *segment;
 
- segmentp=FirstSegment(OSMSegments,nodep,1);
+ segment=FirstSegment(OSMSegments,nodep,1);
 
  do
    {
-    if(IsNormalSegment(segmentp))
+    if(IsNormalSegment(segment))
       {
-       index_t othernode=OtherNode(segmentp,node);
+       index_t othernode=OtherNode(segment,node);
 
        if(node>othernode)
          {
@@ -306,16 +306,16 @@ static void output_oneway(index_t node,double latitude,double longitude)
 
           GetLatLong(OSMNodes,othernode,&lat,&lon);
 
-          if(IsOnewayFrom(segmentp,node))
+          if(IsOnewayFrom(segment,node))
              printf("%.6f %.6f %.6f %.6f\n",radians_to_degrees(latitude),radians_to_degrees(longitude),radians_to_degrees(lat),radians_to_degrees(lon));
-          else if(IsOnewayFrom(segmentp,othernode))
+          else if(IsOnewayFrom(segment,othernode))
              printf("%.6f %.6f %.6f %.6f\n",radians_to_degrees(lat),radians_to_degrees(lon),radians_to_degrees(latitude),radians_to_degrees(longitude));
          }
       }
 
-    segmentp=NextSegment(OSMSegments,segmentp,node);
+    segment=NextSegment(OSMSegments,segment,node);
    }
- while(segmentp);
+ while(segment);
 }
 
 
@@ -376,21 +376,21 @@ void OutputHighway(Nodes *nodes,Segments *segments,Ways *ways,Relations *relatio
 static void output_highway(index_t node,double latitude,double longitude)
 {
  Node *nodep=LookupNode(OSMNodes,node,1);
- Segment *segmentp;
+ Segment *segment;
 
- segmentp=FirstSegment(OSMSegments,nodep,1);
+ segment=FirstSegment(OSMSegments,nodep,1);
 
  do
    {
-    if(IsNormalSegment(segmentp))
+    if(IsNormalSegment(segment))
       {
-       index_t othernode=OtherNode(segmentp,node);
+       index_t othernode=OtherNode(segment,node);
 
        if(node>othernode)
          {
-          Way *wayp=LookupWay(OSMWays,segmentp->way,1);
+          Way *way=LookupWay(OSMWays,segment->way,1);
 
-          if(HIGHWAY(wayp->type)==highways)
+          if(HIGHWAY(way->type)==highways)
             {
              double lat,lon;
 
@@ -401,9 +401,9 @@ static void output_highway(index_t node,double latitude,double longitude)
          }
       }
 
-    segmentp=NextSegment(OSMSegments,segmentp,node);
+    segment=NextSegment(OSMSegments,segment,node);
    }
- while(segmentp);
+ while(segment);
 }
 
 
@@ -464,21 +464,21 @@ void OutputTransport(Nodes *nodes,Segments *segments,Ways *ways,Relations *relat
 static void output_transport(index_t node,double latitude,double longitude)
 {
  Node *nodep=LookupNode(OSMNodes,node,1);
- Segment *segmentp;
+ Segment *segment;
 
- segmentp=FirstSegment(OSMSegments,nodep,1);
+ segment=FirstSegment(OSMSegments,nodep,1);
 
  do
    {
-    if(IsNormalSegment(segmentp))
+    if(IsNormalSegment(segment))
       {
-       index_t othernode=OtherNode(segmentp,node);
+       index_t othernode=OtherNode(segment,node);
 
        if(node>othernode)
          {
-          Way *wayp=LookupWay(OSMWays,segmentp->way,1);
+          Way *way=LookupWay(OSMWays,segment->way,1);
 
-          if(wayp->allow&transports)
+          if(way->allow&transports)
             {
              double lat,lon;
 
@@ -489,9 +489,9 @@ static void output_transport(index_t node,double latitude,double longitude)
          }
       }
 
-    segmentp=NextSegment(OSMSegments,segmentp,node);
+    segment=NextSegment(OSMSegments,segment,node);
    }
- while(segmentp);
+ while(segment);
 }
 
 
@@ -621,17 +621,17 @@ static void output_turnrestriction(index_t node,double latitude,double longitude
  do
    {
     TurnRelation *relation;
-    Segment *from_segmentp,*to_segmentp;
+    Segment *from_segment,*to_segment;
     index_t from_node,to_node;
     double from_lat,from_lon,to_lat,to_lon;
 
     relation=LookupTurnRelation(OSMRelations,turnrelation,1);
 
-    from_segmentp=LookupSegment(OSMSegments,relation->from,1);
-    to_segmentp  =LookupSegment(OSMSegments,relation->to  ,2);
+    from_segment=LookupSegment(OSMSegments,relation->from,1);
+    to_segment  =LookupSegment(OSMSegments,relation->to  ,2);
 
-    from_node=OtherNode(from_segmentp,node);
-    to_node=OtherNode(to_segmentp,node);
+    from_node=OtherNode(from_segment,node);
+    to_node=OtherNode(to_segment,node);
 
     GetLatLong(OSMNodes,from_node,&from_lat,&from_lon);
     GetLatLong(OSMNodes,to_node,&to_lat,&to_lon);
@@ -869,37 +869,37 @@ void OutputLengthLimits(Nodes *nodes,Segments *segments,Ways *ways,Relations *re
 static void output_limits(index_t node,double latitude,double longitude)
 {
  Node *nodep=LookupNode(OSMNodes,node,1);
- Segment *segmentp,segmentps[MAX_SEG_PER_NODE];
+ Segment *segment,segments[MAX_SEG_PER_NODE];
  int limits[MAX_SEG_PER_NODE];
  int count=0;
  int i,j,same=0;
 
- segmentp=FirstSegment(OSMSegments,nodep,1);
+ segment=FirstSegment(OSMSegments,nodep,1);
 
  do
    {
-    if(IsNormalSegment(segmentp) && count<MAX_SEG_PER_NODE)
+    if(IsNormalSegment(segment) && count<MAX_SEG_PER_NODE)
       {
-       Way *wayp=LookupWay(OSMWays,segmentp->way,1);
+       Way *way=LookupWay(OSMWays,segment->way,1);
 
-       segmentps[count]=*segmentp;
+       segments[count]=*segment;
 
        switch(limit_type)
          {
-         case SPEED_LIMIT:  limits[count]=wayp->speed;  break;
-         case WEIGHT_LIMIT: limits[count]=wayp->weight; break;
-         case HEIGHT_LIMIT: limits[count]=wayp->height; break;
-         case WIDTH_LIMIT:  limits[count]=wayp->width;  break;
-         case LENGTH_LIMIT: limits[count]=wayp->length; break;
+         case SPEED_LIMIT:  limits[count]=way->speed;  break;
+         case WEIGHT_LIMIT: limits[count]=way->weight; break;
+         case HEIGHT_LIMIT: limits[count]=way->height; break;
+         case WIDTH_LIMIT:  limits[count]=way->width;  break;
+         case LENGTH_LIMIT: limits[count]=way->length; break;
          }
 
-       if(limits[count] || HIGHWAY(wayp->type)<Way_Track)
+       if(limits[count] || HIGHWAY(way->type)<Way_Track)
           count++;
       }
 
-    segmentp=NextSegment(OSMSegments,segmentp,node);
+    segment=NextSegment(OSMSegments,segment,node);
    }
- while(segmentp);
+ while(segment);
 
  /* Nodes with only one limit are not interesting */
 
@@ -931,7 +931,7 @@ static void output_limits(index_t node,double latitude,double longitude)
       {
        double lat,lon;
 
-       GetLatLong(OSMNodes,OtherNode(&segmentps[i],node),&lat,&lon);
+       GetLatLong(OSMNodes,OtherNode(&segments[i],node),&lat,&lon);
 
        switch(limit_type)
          {
@@ -988,10 +988,10 @@ static void find_all_nodes(Nodes *nodes,callback_t callback)
 
        for(i=index1;i<index2;i++)
          {
-          Node *nodep=LookupNode(nodes,i,1);
+          Node *node=LookupNode(nodes,i,1);
 
-          double lat=latlong_to_radians(bin_to_latlong(nodes->file.latzero+latb)+off_to_latlong(nodep->latoffset));
-          double lon=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonb)+off_to_latlong(nodep->lonoffset));
+          double lat=latlong_to_radians(bin_to_latlong(nodes->file.latzero+latb)+off_to_latlong(node->latoffset));
+          double lon=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonb)+off_to_latlong(node->lonoffset));
 
           if(lat>LatMin && lat<LatMax && lon>LonMin && lon<LonMax)
              (*callback)(i,lat,lon);

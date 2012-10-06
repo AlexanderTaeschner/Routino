@@ -34,7 +34,7 @@
 
 /* Local functions */
 
-static int valid_segment_for_profile(Ways *ways,Segment *segmentp,Profile *profile);
+static int valid_segment_for_profile(Ways *ways,Segment *segment,Profile *profile);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -194,23 +194,23 @@ index_t FindClosestNode(Nodes *nodes,Segments *segments,Ways *ways,double latitu
 
           for(i=index1;i<index2;i++)
             {
-             Node *nodep=LookupNode(nodes,i,3);
-             double lat=latlong_to_radians(bin_to_latlong(nodes->file.latzero+latb)+off_to_latlong(nodep->latoffset));
-             double lon=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonb)+off_to_latlong(nodep->lonoffset));
+             Node *node=LookupNode(nodes,i,3);
+             double lat=latlong_to_radians(bin_to_latlong(nodes->file.latzero+latb)+off_to_latlong(node->latoffset));
+             double lon=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonb)+off_to_latlong(node->lonoffset));
 
              distance_t dist=Distance(lat,lon,latitude,longitude);
 
              if(dist<distance)
                {
-                Segment *segmentp;
+                Segment *segment;
 
                 /* Check that at least one segment is valid for the profile */
 
-                segmentp=FirstSegment(segments,nodep,1);
+                segment=FirstSegment(segments,node,1);
 
                 do
                   {
-                   if(IsNormalSegment(segmentp) && valid_segment_for_profile(ways,segmentp,profile))
+                   if(IsNormalSegment(segment) && valid_segment_for_profile(ways,segment,profile))
                      {
                       bestn=i;
                       bestd=distance=dist;
@@ -218,9 +218,9 @@ index_t FindClosestNode(Nodes *nodes,Segments *segments,Ways *ways,double latitu
                       break;
                      }
 
-                   segmentp=NextSegment(segments,segmentp,i);
+                   segment=NextSegment(segments,segment,i);
                   }
-                while(segmentp);
+                while(segment);
                }
             }
 
@@ -350,29 +350,29 @@ index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double lat
 
           for(i=index1;i<index2;i++)
             {
-             Node *nodep=LookupNode(nodes,i,3);
-             double lat1=latlong_to_radians(bin_to_latlong(nodes->file.latzero+latb)+off_to_latlong(nodep->latoffset));
-             double lon1=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonb)+off_to_latlong(nodep->lonoffset));
+             Node *node=LookupNode(nodes,i,3);
+             double lat1=latlong_to_radians(bin_to_latlong(nodes->file.latzero+latb)+off_to_latlong(node->latoffset));
+             double lon1=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonb)+off_to_latlong(node->lonoffset));
              distance_t dist1;
 
              dist1=Distance(lat1,lon1,latitude,longitude);
 
              if(dist1<distance)
                {
-                Segment *segmentp;
+                Segment *segment;
 
                 /* Check each segment for closeness and if valid for the profile */
 
-                segmentp=FirstSegment(segments,nodep,1);
+                segment=FirstSegment(segments,node,1);
 
                 do
                   {
-                   if(IsNormalSegment(segmentp) && valid_segment_for_profile(ways,segmentp,profile))
+                   if(IsNormalSegment(segment) && valid_segment_for_profile(ways,segment,profile))
                      {
                       distance_t dist2,dist3;
                       double lat2,lon2,dist3a,dist3b,distp;
 
-                      GetLatLong(nodes,OtherNode(segmentp,i),&lat2,&lon2);
+                      GetLatLong(nodes,OtherNode(segment,i),&lat2,&lon2);
 
                       dist2=Distance(lat2,lon2,latitude,longitude);
 
@@ -404,18 +404,18 @@ index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double lat
 
                       if(distp<(double)bestd)
                         {
-                         bests=IndexSegment(segments,segmentp);
+                         bests=IndexSegment(segments,segment);
 
-                         if(segmentp->node1==i)
+                         if(segment->node1==i)
                            {
                             bestn1=i;
-                            bestn2=OtherNode(segmentp,i);
+                            bestn2=OtherNode(segment,i);
                             bestd1=(distance_t)dist3a;
                             bestd2=(distance_t)dist3b;
                            }
                          else
                            {
-                            bestn1=OtherNode(segmentp,i);
+                            bestn1=OtherNode(segment,i);
                             bestn2=i;
                             bestd1=(distance_t)dist3b;
                             bestd2=(distance_t)dist3a;
@@ -425,9 +425,9 @@ index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double lat
                         }
                      }
 
-                   segmentp=NextSegment(segments,segmentp,i);
+                   segment=NextSegment(segments,segment,i);
                   }
-                while(segmentp);
+                while(segment);
                }
 
             } /* dist1 < distance */
@@ -458,37 +458,37 @@ index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double lat
 
   Ways *ways The set of ways to use.
 
-  Segment *segmentp The segment to check.
+  Segment *segment The segment to check.
 
   Profile *profile The profile to check.
   ++++++++++++++++++++++++++++++++++++++*/
 
-static int valid_segment_for_profile(Ways *ways,Segment *segmentp,Profile *profile)
+static int valid_segment_for_profile(Ways *ways,Segment *segment,Profile *profile)
 {
- Way *wayp=LookupWay(ways,segmentp->way,1);
+ Way *way=LookupWay(ways,segment->way,1);
  score_t segment_pref;
  int i;
 
  /* mode of transport must be allowed on the highway */
- if(!(wayp->allow&profile->allow))
+ if(!(way->allow&profile->allow))
     return(0);
 
  /* must obey weight restriction (if exists) */
- if(wayp->weight && wayp->weight<profile->weight)
+ if(way->weight && way->weight<profile->weight)
     return(0);
 
  /* must obey height/width/length restriction (if exists) */
- if((wayp->height && wayp->height<profile->height) ||
-    (wayp->width  && wayp->width <profile->width ) ||
-    (wayp->length && wayp->length<profile->length))
+ if((way->height && way->height<profile->height) ||
+    (way->width  && way->width <profile->width ) ||
+    (way->length && way->length<profile->length))
     return(0);
 
- segment_pref=profile->highway[HIGHWAY(wayp->type)];
+ segment_pref=profile->highway[HIGHWAY(way->type)];
 
  for(i=1;i<Property_Count;i++)
     if(ways->file.props & PROPERTIES(i))
       {
-       if(wayp->props & PROPERTIES(i))
+       if(way->props & PROPERTIES(i))
           segment_pref*=profile->props_yes[i];
        else
           segment_pref*=profile->props_no[i];
@@ -517,7 +517,7 @@ static int valid_segment_for_profile(Ways *ways,Segment *segmentp,Profile *profi
 
 void GetLatLong(Nodes *nodes,index_t index,double *latitude,double *longitude)
 {
- Node *nodep=LookupNode(nodes,index,4);
+ Node *node=LookupNode(nodes,index,4);
  ll_bin_t latbin=-1,lonbin=-1;
  ll_bin_t start,end,mid;
  index_t offset;
@@ -603,6 +603,6 @@ void GetLatLong(Nodes *nodes,index_t index,double *latitude,double *longitude)
 
  /* Return the values */
 
- *latitude =latlong_to_radians(bin_to_latlong(nodes->file.latzero+latbin)+off_to_latlong(nodep->latoffset));
- *longitude=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonbin)+off_to_latlong(nodep->lonoffset));
+ *latitude =latlong_to_radians(bin_to_latlong(nodes->file.latzero+latbin)+off_to_latlong(node->latoffset));
+ *longitude=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonbin)+off_to_latlong(node->lonoffset));
 }

@@ -99,44 +99,44 @@ Segments *LoadSegmentList(const char *filename)
 
 index_t FindClosestSegmentHeading(Nodes *nodes,Segments *segments,Ways *ways,index_t node1,double heading,Profile *profile)
 {
- Segment *segmentp;
+ Segment *segment;
  index_t best_seg=NO_SEGMENT;
  double best_difference=360;
 
  if(IsFakeNode(node1))
-    segmentp=FirstFakeSegment(node1);
+    segment=FirstFakeSegment(node1);
  else
    {
-    Node *nodep=LookupNode(nodes,node1,3);
+    Node *node=LookupNode(nodes,node1,3);
 
-    segmentp=FirstSegment(segments,nodep,1);
+    segment=FirstSegment(segments,node,1);
    }
 
- while(segmentp)
+ while(segment)
    {
-    Way *wayp;
+    Way *way;
     index_t node2,seg2;
     double bearing,difference;
 
-    node2=OtherNode(segmentp,node1);  /* need this here because we use node2 at the end of the loop */
+    node2=OtherNode(segment,node1);  /* need this here because we use node2 at the end of the loop */
 
-    if(!IsNormalSegment(segmentp))
+    if(!IsNormalSegment(segment))
        goto endloop;
 
-    if(profile->oneway && IsOnewayFrom(segmentp,node1))
+    if(profile->oneway && IsOnewayFrom(segment,node1))
        goto endloop;
 
     if(IsFakeNode(node1) || IsFakeNode(node2))
-       seg2=IndexFakeSegment(segmentp);
+       seg2=IndexFakeSegment(segment);
     else
-       seg2=IndexSegment(segments,segmentp);
+       seg2=IndexSegment(segments,segment);
 
-    wayp=LookupWay(ways,segmentp->way,1);
+    way=LookupWay(ways,segment->way,1);
 
-    if(!(wayp->allow&profile->allow))
+    if(!(way->allow&profile->allow))
        goto endloop;
 
-    bearing=BearingAngle(nodes,segmentp,node1);
+    bearing=BearingAngle(nodes,segment,node1);
 
     difference=(heading-bearing);
 
@@ -154,11 +154,11 @@ index_t FindClosestSegmentHeading(Nodes *nodes,Segments *segments,Ways *ways,ind
    endloop:
 
     if(IsFakeNode(node1))
-       segmentp=NextFakeSegment(segmentp,node1);
+       segment=NextFakeSegment(segment,node1);
     else if(IsFakeNode(node2))
-       segmentp=NULL; /* cannot call NextSegment() with a fake segment */
+       segment=NULL; /* cannot call NextSegment() with a fake segment */
     else
-       segmentp=NextSegment(segments,segmentp,node1);
+       segment=NextSegment(segments,segment,node1);
    }
 
  return(best_seg);
@@ -208,18 +208,18 @@ distance_t Distance(double lat1,double lon1,double lat2,double lon2)
 
   duration_t Duration Returns the duration of travel.
 
-  Segment *segmentp The segment to traverse.
+  Segment *segment The segment to traverse.
 
-  Way *wayp The way that the segment belongs to.
+  Way *way The way that the segment belongs to.
 
   Profile *profile The profile of the transport being used.
   ++++++++++++++++++++++++++++++++++++++*/
 
-duration_t Duration(Segment *segmentp,Way *wayp,Profile *profile)
+duration_t Duration(Segment *segment,Way *way,Profile *profile)
 {
- speed_t    speed1=wayp->speed;
- speed_t    speed2=profile->speed[HIGHWAY(wayp->type)];
- distance_t distance=DISTANCE(segmentp->distance);
+ speed_t    speed1=way->speed;
+ speed_t    speed2=profile->speed[HIGHWAY(way->type)];
+ distance_t distance=DISTANCE(segment->distance);
 
  if(speed1==0)
    {
@@ -247,9 +247,9 @@ duration_t Duration(Segment *segmentp,Way *wayp,Profile *profile)
 
   Nodes *nodes The set of nodes to use.
 
-  Segment *segment1p The current segment.
+  Segment *segment1 The current segment.
 
-  Segment *segment2p The next segment.
+  Segment *segment2 The next segment.
 
   index_t node The node at which they join.
 
@@ -257,15 +257,15 @@ duration_t Duration(Segment *segmentp,Way *wayp,Profile *profile)
   Angles are calculated using flat Cartesian lat/long grid approximation (after scaling longitude due to latitude).
   ++++++++++++++++++++++++++++++++++++++*/
 
-double TurnAngle(Nodes *nodes,Segment *segment1p,Segment *segment2p,index_t node)
+double TurnAngle(Nodes *nodes,Segment *segment1,Segment *segment2,index_t node)
 {
  double lat1,latm,lat2;
  double lon1,lonm,lon2;
  double angle1,angle2,angle;
  index_t node1,node2;
 
- node1=OtherNode(segment1p,node);
- node2=OtherNode(segment2p,node);
+ node1=OtherNode(segment1,node);
+ node2=OtherNode(segment2,node);
 
  if(IsFakeNode(node1))
     GetFakeLatLong(node1,&lat1,&lon1);
@@ -303,14 +303,14 @@ double TurnAngle(Nodes *nodes,Segment *segment1p,Segment *segment2p,index_t node
 
   Nodes *nodes The set of nodes to use.
 
-  Segment *segmentp The segment.
+  Segment *segment The segment.
 
   index_t node The node to finish.
 
   Angles are calculated using flat Cartesian lat/long grid approximation (after scaling longitude due to latitude).
   ++++++++++++++++++++++++++++++++++++++*/
 
-double BearingAngle(Nodes *nodes,Segment *segmentp,index_t node)
+double BearingAngle(Nodes *nodes,Segment *segment,index_t node)
 {
  double lat1,lat2;
  double lon1,lon2;
@@ -318,7 +318,7 @@ double BearingAngle(Nodes *nodes,Segment *segmentp,index_t node)
  index_t node1,node2;
 
  node1=node;
- node2=OtherNode(segmentp,node);
+ node2=OtherNode(segment,node);
 
  if(IsFakeNode(node1))
     GetFakeLatLong(node1,&lat1,&lon1);
