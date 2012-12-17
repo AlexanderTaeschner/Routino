@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/time.h>
@@ -42,6 +43,7 @@
 #include "functions.h"
 #include "osmparser.h"
 #include "tagging.h"
+#include "uncompress.h"
 
 
 /* Global variables */
@@ -89,18 +91,28 @@ int main(int argc,char** argv)
    {
     if(!strcmp(argv[arg],"--help"))
        print_usage(1,NULL,NULL);
+    else if(!strncmp(argv[arg],"--dir=",6))
+       dirname=&argv[arg][6];
+    else if(!strncmp(argv[arg],"--prefix=",9))
+       prefix=&argv[arg][9];
     else if(!strncmp(argv[arg],"--sort-ram-size=",16))
        option_filesort_ramsize=atoi(&argv[arg][16]);
 #if defined(USE_PTHREADS) && USE_PTHREADS
     else if(!strncmp(argv[arg],"--sort-threads=",15))
        option_filesort_threads=atoi(&argv[arg][15]);
 #endif
-    else if(!strncmp(argv[arg],"--dir=",6))
-       dirname=&argv[arg][6];
     else if(!strncmp(argv[arg],"--tmpdir=",9))
        option_tmpdirname=&argv[arg][9];
-    else if(!strncmp(argv[arg],"--prefix=",9))
-       prefix=&argv[arg][9];
+    else if(!strncmp(argv[arg],"--tagging=",10))
+       tagging=&argv[arg][10];
+    else if(!strcmp(argv[arg],"--loggable"))
+       option_loggable=1;
+    else if(!strcmp(argv[arg],"--logtime"))
+       option_logtime=1;
+    else if(!strcmp(argv[arg],"--errorlog"))
+       errorlog="error.log";
+    else if(!strncmp(argv[arg],"--errorlog=",11))
+       errorlog=&argv[arg][11];
     else if(!strcmp(argv[arg],"--parse-only"))
        option_parse_only=1;
     else if(!strcmp(argv[arg],"--process-only"))
@@ -111,18 +123,8 @@ int main(int argc,char** argv)
        option_keep=1;
     else if(!strcmp(argv[arg],"--changes"))
        option_changes=1;
-    else if(!strcmp(argv[arg],"--loggable"))
-       option_loggable=1;
-    else if(!strcmp(argv[arg],"--logtime"))
-       option_logtime=1;
-    else if(!strcmp(argv[arg],"--errorlog"))
-       errorlog="error.log";
-    else if(!strncmp(argv[arg],"--errorlog=",11))
-       errorlog=&argv[arg][11];
     else if(!strncmp(argv[arg],"--max-iterations=",17))
        max_iterations=atoi(&argv[arg][17]);
-    else if(!strncmp(argv[arg],"--tagging=",10))
-       tagging=&argv[arg][10];
     else if(!strncmp(argv[arg],"--prune",7))
       {
        if(!strcmp(&argv[arg][7],"-none"))
@@ -225,25 +227,26 @@ if(!option_process_only)
      {
       for(arg=1;arg<argc;arg++)
         {
-         FILE *file;
+         int fd;
+         char *p;
 
          if(argv[arg][0]=='-' && argv[arg][1]=='-')
             continue;
 
-         file=fopen(argv[arg],"rb");
+         fd=ReOpenFile(argv[arg]);
 
-         if(!file)
-           {
-            fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",argv[arg],strerror(errno));
-            exit(EXIT_FAILURE);
-           }
+         if((p=strstr(argv[arg],".bz2")) && !strcmp(p,".bz2"))
+            fd=Uncompress_Bzip2(fd);
+
+         if((p=strstr(argv[arg],".gz")) && !strcmp(p,".gz"))
+            fd=Uncompress_Gzip(fd);
 
          if(option_changes)
            {
             printf("\nParse OSC Data [%s]\n==============\n\n",argv[arg]);
             fflush(stdout);
 
-            if(ParseOSC(file,Nodes,Segments,Ways,Relations))
+            if(ParseOSC(fd,Nodes,Segments,Ways,Relations))
                exit(EXIT_FAILURE);
            }
          else
@@ -251,11 +254,11 @@ if(!option_process_only)
             printf("\nParse OSM Data [%s]\n==============\n\n",argv[arg]);
             fflush(stdout);
 
-            if(ParseOSM(file,Nodes,Segments,Ways,Relations))
+            if(ParseOSM(fd,Nodes,Segments,Ways,Relations))
                exit(EXIT_FAILURE);
            }
 
-         fclose(file);
+         CloseFile(fd);
         }
      }
    else
@@ -265,7 +268,7 @@ if(!option_process_only)
          printf("\nParse OSC Data\n==============\n\n");
          fflush(stdout);
 
-         if(ParseOSC(stdin,Nodes,Segments,Ways,Relations))
+         if(ParseOSC(STDIN_FILENO,Nodes,Segments,Ways,Relations))
             exit(EXIT_FAILURE);
         }
       else
@@ -273,7 +276,7 @@ if(!option_process_only)
          printf("\nParse OSM Data\n==============\n\n");
          fflush(stdout);
 
-         if(ParseOSM(stdin,Nodes,Segments,Ways,Relations))
+         if(ParseOSM(STDIN_FILENO,Nodes,Segments,Ways,Relations))
             exit(EXIT_FAILURE);
         }
      }
@@ -564,7 +567,14 @@ static void print_usage(int detail,const char *argerr,const char *err)
          "                      [--prune-isolated=<len>]\n"
          "                      [--prune-short=<len>]\n"
          "                      [--prune-straight=<len>]\n"
-         "                      [<filename.osm> ...]\n");
+         "                      [<filename.osm> ... | <filename.osc> ..."
+#if defined(USE_BZIP2) && USE_BZIP2
+         "\n                       | <filename.osm.bz2> ... | <filename.osc.bz2> ..."
+#endif
+#if defined(USE_GZIP) && USE_GZIP
+         "\n                       | <filename.osm.gz> ... | <filename.osc.gz> ..."
+#endif
+         "]\n");
 
  if(argerr)
     fprintf(stderr,
@@ -625,8 +635,14 @@ static void print_usage(int detail,const char *argerr,const char *err)
             "--prune-straight=<len>    Remove nodes in almost straight highways (defaults to\n"
             "                          removing nodes up to 3m offset from a straight line).\n"
             "\n"
-            "<filename.osm> ...        The name(s) of the file(s) to process (by default\n"
-            "                          data is read from standard input).\n"
+            "<filename.osm> ...        The name(s) of the file(s) to process (defaults to\n"
+            "<filename.osc> ...         reading data from standard input).\n"
+#if defined(USE_BZIP2) && USE_BZIP2
+            "                          Filenames ending '.bz2' will be bzip2 uncompressed.\n"
+#endif
+#if defined(USE_GZIP) && USE_GZIP
+            "                          Filenames ending '.gz' will be gzip uncompressed.\n"
+#endif
             "\n"
             "<transport> defaults to all but can be set to:\n"
             "%s"

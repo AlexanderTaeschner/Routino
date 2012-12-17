@@ -1,9 +1,9 @@
 /***************************************
- Header file for OSM parser function prototype.
+ Function prototypes for file uncompression.
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2012 Andrew M. Bishop
+ This file Copyright 2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -20,17 +20,11 @@
  ***************************************/
 
 
-#ifndef OSMPARSER_H
-#define OSMPARSER_H    /*+ To stop multiple inclusions. +*/
+#ifndef UNCOMPRESS_H
+#define UNCOMPRESS_H    /*+ To stop multiple inclusions. +*/
 
-#include "typesx.h"
+int Uncompress_Bzip2(int filefd);
 
+int Uncompress_Gzip(int filefd);
 
-/* Functions in osmparser.c */
-
-int ParseOSM(int fd,NodesX *OSMNodes,SegmentsX *OSMSegments,WaysX *OSMWays,RelationsX *OSMRelations);
-
-int ParseOSC(int fd,NodesX *OSMNodes,SegmentsX *OSMSegments,WaysX *OSMWays,RelationsX *OSMRelations);
-
-
-#endif /* OSMPARSER_H */
+#endif /* UNCOMPRESS_H */

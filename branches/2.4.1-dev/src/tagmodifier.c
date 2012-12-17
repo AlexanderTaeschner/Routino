@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
@@ -30,6 +31,7 @@
 #include "logging.h"
 #include "xmlparse.h"
 #include "tagging.h"
+#include "uncompress.h"
 
 
 /* Local variables */
@@ -277,7 +279,7 @@ static int nodeType_function(const char *_tag_,int _type_,const char *id,const c
 
  if(_type_&XMLPARSE_TAG_END)
    {
-    TagList *result=ApplyTaggingRules(&NodeRules,current_tags,node_id);
+    TagList *result=ApplyNodeTaggingRules(current_tags,node_id);
     int i;
 
     for(i=0;i<result->ntags;i++)
@@ -404,7 +406,7 @@ static int wayType_function(const char *_tag_,int _type_,const char *id,const ch
 
  if(_type_&XMLPARSE_TAG_END)
    {
-    TagList *result=ApplyTaggingRules(&WayRules,current_tags,way_id);
+    TagList *result=ApplyWayTaggingRules(current_tags,way_id);
     int i;
 
     for(i=0;i<result->ntags;i++)
@@ -481,7 +483,7 @@ static int relationType_function(const char *_tag_,int _type_,const char *id,con
 
  if(_type_&XMLPARSE_TAG_END)
    {
-    TagList *result=ApplyTaggingRules(&RelationRules,current_tags,relation_id);
+    TagList *result=ApplyRelationTaggingRules(current_tags,relation_id);
     int i;
 
     for(i=0;i<result->ntags;i++)
@@ -563,8 +565,9 @@ static int xmlDeclaration_function(const char *_tag_,int _type_,const char *vers
 
 int main(int argc,char **argv)
 {
- char *tagging=NULL,*filename=NULL;
- FILE *file;
+ char *tagging=NULL,*filename=NULL,*errorlog=NULL;
+ char *p;
+ int fd;
  int arg,retval;
 
  /* Parse the command line arguments */
@@ -573,10 +576,16 @@ int main(int argc,char **argv)
    {
     if(!strcmp(argv[arg],"--help"))
        print_usage(1);
-    else if(!strcmp(argv[arg],"--loggable"))
-       option_loggable=1;
     else if(!strncmp(argv[arg],"--tagging=",10))
        tagging=&argv[arg][10];
+    else if(!strcmp(argv[arg],"--loggable"))
+       option_loggable=1;
+    else if(!strcmp(argv[arg],"--logtime"))
+       option_logtime=1;
+    else if(!strcmp(argv[arg],"--errorlog"))
+       errorlog="error.log";
+    else if(!strncmp(argv[arg],"--errorlog=",11))
+       errorlog=&argv[arg][11];
     else if(argv[arg][0]=='-' && argv[arg][1]=='-')
        print_usage(0);
     else if(filename)
@@ -615,30 +624,38 @@ int main(int argc,char **argv)
  /* Open the input file */
 
  if(filename)
-   {
-    file=fopen(filename,"rb");
-
-    if(!file)
-      {
-       fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",argv[arg],strerror(errno));
-       exit(EXIT_FAILURE);
-      }
-   }
+    fd=ReOpenFile(filename);
  else
-    file=stdin;
+    fd=STDIN_FILENO;
+
+ if((p=strstr(filename,".bz2")) && !strcmp(p,".bz2"))
+    fd=Uncompress_Bzip2(fd);
+
+ if((p=strstr(filename,".gz")) && !strcmp(p,".gz"))
+    fd=Uncompress_Gzip(fd);
+
+ /* Create the error log file */
+
+ if(errorlog)
+    open_errorlog(errorlog,0);
 
  /* Parse the file */
 
  fprintf_first(stderr,"Reading: Lines=0 Nodes=0 Ways=0 Relations=0");
 
- retval=ParseXML(file,xml_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_IGNORE);
+ retval=ParseXML(fd,xml_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_IGNORE);
 
  fprintf_last(stderr,"Read: Lines=%llu Nodes=%lu Ways=%lu Relations=%lu",ParseXML_LineNumber(),nnodes,nways,nrelations);
+
+ /* Close the error log file */
+
+ if(errorlog)
+    close_errorlog();
 
  /* Tidy up */
 
  if(filename)
-    fclose(file);
+    CloseFile(fd);
 
  return(retval);
 }
@@ -654,22 +671,39 @@ static void print_usage(int detail)
 {
  fprintf(stderr,
          "Usage: tagmodifier [--help]\n"
-         "                   [--loggable]\n"
          "                   [--tagging=<filename>]\n"
-         "                   [<filename.osm>]\n");
+         "                   [--loggable] [--logtime]\n"
+         "                   [--errorlog[=<name>]]\n"
+         "                   [<filename.osm>"
+#if defined(USE_BZIP2) && USE_BZIP2
+         " | <filename.osm.bz2>"
+#endif
+#if defined(USE_GZIP) && USE_GZIP
+         " | <filename.osm.gz>"
+#endif
+         "]\n");
 
  if(detail)
     fprintf(stderr,
             "\n"
             "--help                    Prints this information.\n"
             "\n"
-            "--loggable                Print progress messages suitable for logging to file.\n"
-            "\n"
             "--tagging=<filename>      The name of the XML file containing the tagging rules\n"
             "                          (defaults to 'tagging.xml' in current directory).\n"
             "\n"
-            "<filename.osm>            The name of the file to process (by default data is\n"
-            "                          read from standard input).\n");
+            "--loggable                Print progress messages suitable for logging to file.\n"
+            "--logtime                 Print the elapsed time for the processing.\n"
+            "--errorlog[=<name>]       Log parsing errors to 'error.log' or the given name.\n"
+            "\n"
+            "<filename.osm>            The name of the file to process (defaults to\n"
+            "                           reading data from standard input).\n"
+#if defined(USE_BZIP2) && USE_BZIP2
+            "                          Filenames ending '.bz2' will be bzip2 uncompressed.\n"
+#endif
+#if defined(USE_GZIP) && USE_GZIP
+            "                          Filenames ending '.gz' will be gzip uncompressed.\n"
+#endif
+            );
 
  exit(!detail);
 }
