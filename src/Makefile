@@ -27,6 +27,8 @@ WEBDIR=../web/bin
 CC=gcc
 LD=gcc
 
+LEX=flex
+
 # Compilation program options
 
 CFLAGS=-Wall -Wmissing-prototypes -std=c99
@@ -41,17 +43,11 @@ CFLAGS+=-O3
 #LDFLAGS+=-pg -static
 #LDFLAGS+=-fprofile-arcs -ftest-coverage
 
+LEXFLAGS=
+
 # Required for multi-threaded support
 CFLAGS+=-pthread -DUSE_PTHREADS
 LDFLAGS+=-pthread -lpthread
-
-# Required for bzip2 support
-CFLAGS+=-DUSE_BZIP2
-LDFLAGS+=-lbz2
-
-# Required for gzip support
-CFLAGS+=-DUSE_GZIP
-LDFLAGS+=-lz
 
 # Required to use stdio with files > 2GiB on 32-bit system.
 CFLAGS+=-D_FILE_OFFSET_BITS=64
@@ -86,7 +82,7 @@ PLANETSPLITTER_OBJ=planetsplitter.o \
 	           ways.o types.o \
 	           files.o logging.o \
 	           results.o queue.o sorting.o \
-	           uncompress.o xmlparse.o osmxmlparse.o osmpbfparse.o tagging.o osmparser.o
+	           xmlparse.o tagging.o osmparser.o
 
 planetsplitter : $(PLANETSPLITTER_OBJ)
 	$(LD) $(PLANETSPLITTER_OBJ) -o $@ $(LDFLAGS)
@@ -98,7 +94,7 @@ PLANETSPLITTER_SLIM_OBJ=planetsplitter-slim.o \
 	                ways.o types.o \
 	                files.o logging.o \
 	                results.o queue.o sorting.o \
-	           	uncompress.o xmlparse.o osmxmlparse.o osmpbfparse.o tagging.o osmparser.o
+	                xmlparse.o tagging.o osmparser.o
 
 planetsplitter-slim : $(PLANETSPLITTER_SLIM_OBJ)
 	$(LD) $(PLANETSPLITTER_SLIM_OBJ) -o $@ $(LDFLAGS)
@@ -157,10 +153,17 @@ filedumper-slim : $(FILEDUMPER_SLIM_OBJ)
 
 TAGMODIFIER_OBJ=tagmodifier.o \
 	        files.o logging.o \
-                uncompress.o xmlparse.o tagging.o
+                xmlparse.o tagging.o
 
 tagmodifier : $(TAGMODIFIER_OBJ)
 	$(LD) $(TAGMODIFIER_OBJ) -o $@ $(LDFLAGS)
+
+########
+
+xmlparse.c : xmlparse.l
+	$(LEX) $(LEXFLAGS)  $<
+	-@mv lex.yy.c xmlparse.c
+	@echo Created xmlparse.c
 
 ########
 
@@ -195,6 +198,7 @@ clean:
 	rm -f *.o
 	rm -f core
 	rm -f *.gcda *.gcno *.gcov gmon.out
+	rm -f xmlparse.c
 	cd xml  && $(MAKE) clean
 	cd test && $(MAKE) clean
 
