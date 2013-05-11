@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -480,7 +480,7 @@ int main(int argc,char** argv)
        if(IsFakeNode(finish_node))
           GetFakeLatLong(finish_node,&lat,&lon);
        else
-          GetLatLong(OSMNodes,finish_node,NULL,&lat,&lon);
+          GetLatLong(OSMNodes,finish_node,&lat,&lon);
 
        if(IsFakeNode(finish_node))
           printf("Point %d is segment %"Pindex_t" (node %"Pindex_t" -> %"Pindex_t"): %3.6f %4.6f = %2.3f km\n",point,segment,node1,node2,
@@ -507,7 +507,7 @@ int main(int argc,char** argv)
       {
        /* Check if the end of the route was reached */
 
-       if(begin->finish_node!=NO_NODE)
+       if(FindResult1(begin,finish_node))
           results[point]=ExtendStartRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,begin,finish_node);
       }
     else
@@ -526,7 +526,7 @@ int main(int argc,char** argv)
          {
           /* Check if the end of the route was reached */
 
-          if(begin->finish_node!=NO_NODE)
+          if(FindResult1(begin,finish_node))
              results[point]=ExtendStartRoutes(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,begin,finish_node);
          }
        else
@@ -616,21 +616,6 @@ int main(int argc,char** argv)
 
  if(!option_none)
     PrintRoute(results,NWAYPOINTS,OSMNodes,OSMSegments,OSMWays,profile);
-
- /* Destroy the remaining results lists and data structures */
-
-#if 0
-
- for(point=1;point<=NWAYPOINTS;point++)
-    if(results[point])
-       FreeResultsList(results[point]);
-
- DestroyNodeList(OSMNodes);
- DestroySegmentList(OSMSegments);
- DestroyWayList(OSMWays);
- DestroyRelationList(OSMRelations);
-
-#endif
 
  return(0);
 }

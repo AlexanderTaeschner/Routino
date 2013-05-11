@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@
 
 #include "ways.h"
 
-#include "cache.h"
 #include "files.h"
 
 
@@ -39,6 +38,9 @@
 Ways *LoadWayList(const char *filename)
 {
  Ways *ways;
+#if SLIM
+ int i;
+#endif
 
  ways=(Ways*)malloc(sizeof(Ways));
 
@@ -63,37 +65,17 @@ Ways *LoadWayList(const char *filename)
 
  ReadFile(ways->fd,&ways->file,sizeof(WaysFile));
 
+ for(i=0;i<sizeof(ways->cached)/sizeof(ways->cached[0]);i++)
+    ways->incache[i]=NO_WAY;
+
  ways->namesoffset=sizeof(WaysFile)+ways->file.number*sizeof(Way);
 
- ways->cache=NewWayCache();
+ for(i=0;i<sizeof(ways->cached)/sizeof(ways->cached[0]);i++)
+    ways->ncached[i]=NULL;
 
 #endif
 
  return(ways);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Destroy the way list.
-
-  Ways *ways The way list to destroy.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-void DestroyWayList(Ways *ways)
-{
-#if !SLIM
-
- ways->data=UnmapFile(ways->data);
-
-#else
-
- ways->fd=CloseFile(ways->fd);
-
- DeleteWayCache(ways->cache);
-
-#endif
-
- free(ways);
 }
 
 

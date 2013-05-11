@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,6 @@
 
 #include "types.h"
 
-#include "cache.h"
 #include "files.h"
 
 
@@ -85,10 +84,9 @@ struct _Ways
  off_t      namesoffset;        /*+ The offset of the names within the file. +*/
 
  Way        cached[3];          /*+ Two cached nodes read from the file in slim mode. +*/
+ index_t    incache[3];         /*+ The indexes of the cached ways. +*/
 
  char      *ncached[3];         /*+ The cached way name. +*/
-
- WayCache  *cache;              /*+ A RAM cache of ways read from the file. +*/
 
 #endif
 };
@@ -97,8 +95,6 @@ struct _Ways
 /* Functions in ways.c */
 
 Ways *LoadWayList(const char *filename);
-
-void DestroyWayList(Ways *ways);
 
 int WaysCompare(Way *way1p,Way *way2p);
 
@@ -115,23 +111,9 @@ int WaysCompare(Way *way1p,Way *way2p);
 
 #else
 
-static inline Way *LookupWay(Ways *ways,index_t index,int position);
+static Way *LookupWay(Ways *ways,index_t index,int position);
 
-static inline char *WayName(Ways *ways,Way *wayp);
-
-CACHE_NEWCACHE_PROTO(Way)
-CACHE_DELETECACHE_PROTO(Way)
-CACHE_FETCHCACHE_PROTO(Way)
-CACHE_INVALIDATECACHE_PROTO(Way)
-
-
-/* Inline functions */
-
-CACHE_STRUCTURE(Way)
-CACHE_NEWCACHE(Way)
-CACHE_DELETECACHE(Way)
-CACHE_FETCHCACHE(Way)
-CACHE_INVALIDATECACHE(Way)
+static char *WayName(Ways *ways,Way *wayp);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -148,7 +130,12 @@ CACHE_INVALIDATECACHE(Way)
 
 static inline Way *LookupWay(Ways *ways,index_t index,int position)
 {
- ways->cached[position-1]=*FetchCachedWay(ways->cache,index,ways->fd,sizeof(WaysFile));
+ if(ways->incache[position-1]!=index)
+   {
+    SeekReadFile(ways->fd,&ways->cached[position-1],sizeof(Way),sizeof(WaysFile)+(off_t)index*sizeof(Way));
+
+    ways->incache[position-1]=index;
+   }
 
  return(&ways->cached[position-1]);
 }
