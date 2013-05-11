@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2011-2013 Andrew M. Bishop
+ This file Copyright 2011-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -153,7 +153,7 @@ void PruneIsolatedRegions(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,dista
  transport_t transport;
  BitMask *connected,*region;
  index_t *regionsegments,*othersegments;
- index_t nallocregionsegments,nallocothersegments;
+ int nallocregionsegments,nallocothersegments;
  index_t nnewways=0;
  int fd;
 
@@ -170,10 +170,6 @@ void PruneIsolatedRegions(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,dista
  nodesx->fd=ReOpenFile(nodesx->filename_tmp);
  segmentsx->fd=ReOpenFileWriteable(segmentsx->filename_tmp);
  waysx->fd=ReOpenFile(waysx->filename_tmp);
-
- InvalidateNodeXCache(nodesx->cache);
- InvalidateSegmentXCache(segmentsx->cache);
- InvalidateWayXCache(waysx->cache);
 #endif
 
  fd=ReOpenFileWriteable(waysx->filename_tmp);
@@ -210,7 +206,7 @@ void PruneIsolatedRegions(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,dista
 
     for(i=0;i<segmentsx->number;i++)
       {
-       index_t nregionsegments=0,nothersegments=0;
+       int nregionsegments=0,nothersegments=0;
        distance_t total=0;
        SegmentX *segmentx;
        WayX *wayx,tmpwayx;
@@ -440,10 +436,6 @@ void PruneShortSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,distanc
  nodesx->fd=ReOpenFileWriteable(nodesx->filename_tmp);
  segmentsx->fd=ReOpenFileWriteable(segmentsx->filename_tmp);
  waysx->fd=ReOpenFile(waysx->filename_tmp);
-
- InvalidateNodeXCache(nodesx->cache);
- InvalidateSegmentXCache(segmentsx->cache);
- InvalidateWayXCache(waysx->cache);
 #endif
 
  /* Loop through the segments and find the short ones for possible modification */
@@ -461,8 +453,8 @@ void PruneShortSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,distanc
                        :     S2
 
                        :
-      Final state:   ..N3
-                       :
+      Final state:   ..N3        N2 --
+                       :            S2
 
       = OR =
 
@@ -471,15 +463,14 @@ void PruneShortSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,distanc
                        :     S1        S2        S3    :
 
                        :                               :
-      Final state:   ..N1 ------------ N3 ------------ N4..
-                       :       S1               S3     :
+      Final state:   ..N1 ------------ N3 ------------ N4..   N2 --
+                       :       S1               S3     :         S2
 
       Not if N1 is the same as N4.
-      Must not delete N2 (or N3) if S2 (or S3) has different one-way properties from S1.
-      Must not delete N2 (or N3) if S2 (or S3) has different highway properties from S1.
+      Not if S2 has different one-way properties from S1 and S3.
       Must combine N2, S2 and N3 disallowed transports into new N3.
-      Must not delete N2 (or N3) if it is a mini-roundabout.
-      Must not delete N2 (or N3) if it is involved in a turn restriction.
+      Must not delete N2 or N3 if they are mini-roundabouts.
+      Must not delete N2 or N3 if they are part of turn relations.
 
       = OR =
 
@@ -488,14 +479,14 @@ void PruneShortSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,distanc
                        :     S1        S2  :
 
                        :               :
-      Final state:   ..N1 ------------ N3..
-                       :       S1      :
+      Final state:   ..N1 ------------ N3..   N2 --
+                       :       S1      :         S2
 
       Not if N1 is the same as N3.
       Not if S1 has different one-way properties from S2.
       Not if S1 has different highway properties from S2.
       Not if N2 disallows transports allowed on S1 and S2.
-      Not if N2 is a mini-roundabout.
+      Not if N2 is a mini-roundabouts.
       Not if N2 is involved in a turn restriction.
      */
 
@@ -511,7 +502,7 @@ void PruneShortSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,distanc
        node2=segmentx2->node1;
        node3=segmentx2->node2;
 
-       /* Count the segments connected to N2 */
+       /* Count the segments connected to N2 and N3 */
 
        segmentx=FirstSegmentX(segmentsx,node2,4);
 
@@ -534,8 +525,6 @@ void PruneShortSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,distanc
 
           segmentx=NextSegmentX(segmentsx,segmentx,node2);
          }
-
-       /* Count the segments connected to N3 */
 
        segmentx=FirstSegmentX(segmentsx,node3,4);
 
@@ -616,21 +605,6 @@ void PruneShortSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,distanc
           if(!join12 && !join23)
              goto endloop;
 
-          /* Check if allowed due to highway properties */
-
-          wayx1=LookupWayX(waysx,segmentx1->way,1);
-          wayx2=LookupWayX(waysx,segmentx2->way,2);
-          wayx3=LookupWayX(waysx,segmentx3->way,3);
-
-          if(WaysCompare(&wayx1->way,&wayx2->way))
-             join12=0;
-
-          if(WaysCompare(&wayx3->way,&wayx2->way))
-             join23=0;
-
-          if(!join12 && !join23)
-             goto endloop;
-
           /* Check if allowed due to mini-roundabout and turn restriction */
 
           nodex2=LookupNodeX(nodesx,node2,2);
@@ -641,9 +615,6 @@ void PruneShortSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,distanc
 
           if(nodex3->flags&NODE_MINIRNDBT)
              join23=0;
-
-          if(!join12 && !join23)
-             goto endloop;
 
           if(nodex2->flags&NODE_TURNRSTRCT2 || nodex2->flags&NODE_TURNRSTRCT)
              join12=0;
@@ -666,6 +637,10 @@ void PruneShortSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,distanc
              newnode=node2;
              newnodex=nodex2;
             }
+
+          wayx1=LookupWayX(waysx,segmentx1->way,1);
+          wayx2=LookupWayX(waysx,segmentx2->way,2);
+          wayx3=LookupWayX(waysx,segmentx3->way,3);
 
           newnodex->allow=nodex2->allow&nodex3->allow; /* combine the restrictions of the two nodes */
           newnodex->allow&=~((~wayx2->way.allow)&wayx3->way.allow); /* disallow anything blocked by segment2 */
@@ -835,8 +810,8 @@ void PruneStraightHighwayNodes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,
 {
  index_t i;
  index_t npruned=0;
- index_t nalloc;
  BitMask *checked;
+ int nalloc;
  index_t *nodes,*segments;
  double *lats,*lons;
  double maximumf;
@@ -860,10 +835,6 @@ void PruneStraightHighwayNodes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,
  nodesx->fd=ReOpenFile(nodesx->filename_tmp);
  segmentsx->fd=ReOpenFileWriteable(segmentsx->filename_tmp);
  waysx->fd=ReOpenFile(waysx->filename_tmp);
-
- InvalidateNodeXCache(nodesx->cache);
- InvalidateSegmentXCache(segmentsx->cache);
- InvalidateWayXCache(waysx->cache);
 #endif
 
  checked=AllocBitMask(nodesx->number);
@@ -1037,7 +1008,6 @@ void PruneStraightHighwayNodes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,
 
              nodes[upper]=node2;
              segments[upper-1]=segment2;
-             segments[upper]=NO_SEGMENT;
 
              current--;
             }
@@ -1073,24 +1043,11 @@ void PruneStraightHighwayNodes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,
                 segments[upper-1]=segment2;
                }
 
-             segments[upper]=NO_SEGMENT;
-
              current++;
             }
 
           if(nodes[upper]==nodes[lower])
             {
-             if(!lowerbounded && !upperbounded)
-               {
-                nodex=LookupNodeX(nodesx,nodes[lower],1);
-
-                lats[lower]=latlong_to_radians(nodex->latitude);
-                lons[lower]=latlong_to_radians(nodex->longitude);
-               }
-
-             lats[upper]=lats[lower];
-             lons[upper]=lons[lower];
-
              lowerbounded=1;
              upperbounded=1;
             }
@@ -1116,12 +1073,12 @@ void PruneStraightHighwayNodes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,
 
     /* Check for straight highway */
 
-    for(;lower<(upper-1);lower++)
+    while((upper-lower)>=2)
       {
-       for(current=upper;current>(lower+1);current--)
+       index_t bestc=lower;
+
+       for(current=lower+2;current<=upper;current++)
          {
-          SegmentX *segmentx;
-          distance_t dist=0;
           double dist1,dist2,dist3,dist3a,dist3b,distp;
           index_t c;
 
@@ -1150,42 +1107,59 @@ void PruneStraightHighwayNodes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx,
                 break;
             }
 
-          if(c<current) /* not finished */
+          if(c>bestc)
+             bestc=c;
+
+          if(bestc>c)
+             c=bestc;
+
+          if(c==current && current!=upper) /* Can replace at least this far (not finished yet) */
              continue;
 
-          /* Delete some segments and shift along */
-
-          for(c=lower+1;c<current;c++)
+          if((c-lower)<2)       /* first three points are not straight */
             {
-             segmentx=LookupSegmentX(segmentsx,segments[c],1);
-
-             dist+=DISTANCE(segmentx->distance);
-
-             prune_segment(segmentsx,segmentx);
-
-             npruned++;
+             lower=c;
+             break;
             }
-
-          segmentx=LookupSegmentX(segmentsx,segments[lower],1);
-
-          if(nodes[lower]==nodes[current]) /* loop; all within maximum distance */
+          else                  /* delete some segments and shift along */
             {
-             prune_segment(segmentsx,segmentx);
+             SegmentX *segmentx;
+             distance_t distance=0;
 
-             npruned++;
+             current=c;
+
+             for(c=lower+1;c<current;c++)
+               {
+                segmentx=LookupSegmentX(segmentsx,segments[c],1);
+
+                distance+=DISTANCE(segmentx->distance);
+
+                prune_segment(segmentsx,segmentx);
+
+                npruned++;
+               }
+
+             segmentx=LookupSegmentX(segmentsx,segments[lower],1);
+
+             if(nodes[lower]==nodes[current]) /* loop; all within maximum distance */
+               {
+                prune_segment(segmentsx,segmentx);
+
+                npruned++;
+               }
+             else
+               {
+                segmentx->distance+=distance;
+
+                if(segmentx->node1==nodes[lower])
+                   modify_segment(segmentsx,segmentx,nodes[lower],nodes[current]);
+                else /* if(segmentx->node2==nodes[lower]) */
+                   modify_segment(segmentsx,segmentx,nodes[current],nodes[lower]);
+               }
+
+             lower=current;
+             break;
             }
-          else
-            {
-             segmentx->distance+=dist;
-
-             if(segmentx->node1==nodes[lower])
-                modify_segment(segmentsx,segmentx,nodes[lower],nodes[current]);
-             else /* if(segmentx->node2==nodes[lower]) */
-                modify_segment(segmentsx,segmentx,nodes[current],nodes[lower]);
-            }
-
-          lower=current-1;
-          break;
          }
       }
 

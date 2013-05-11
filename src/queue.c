@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -26,14 +26,17 @@
 #include "results.h"
 
 
+/*+ The size of the increment to the allocated memory. +*/
+#define QUEUE_INCREMENT 1024
+
+
 /*+ A queue of results. +*/
 struct _Queue
 {
- int      nincrement;           /*+ The amount to increment the queue when full. +*/
  int      nallocated;           /*+ The number of entries allocated. +*/
  int      noccupied;            /*+ The number of entries occupied. +*/
 
- Result **results;              /*+ The queue of pointers to results. +*/
+ Result **data;                 /*+ The queue of pointers to results. +*/
 };
 
 
@@ -41,22 +44,18 @@ struct _Queue
   Allocate a new queue.
 
   Queue *NewQueueList Returns the queue.
-
-  uint8_t log2bins The base 2 logarithm of the initial number of bins in the queue.
   ++++++++++++++++++++++++++++++++++++++*/
 
-Queue *NewQueueList(uint8_t log2bins)
+Queue *NewQueueList(void)
 {
  Queue *queue;
 
  queue=(Queue*)malloc(sizeof(Queue));
 
- queue->nincrement=1<<log2bins;
-
- queue->nallocated=queue->nincrement;
+ queue->nallocated=QUEUE_INCREMENT;
  queue->noccupied=0;
 
- queue->results=(Result**)malloc(queue->nallocated*sizeof(Result*));
+ queue->data=(Result**)malloc(queue->nallocated*sizeof(Result*));
 
  return(queue);
 }
@@ -70,7 +69,7 @@ Queue *NewQueueList(uint8_t log2bins)
 
 void FreeQueueList(Queue *queue)
 {
- free(queue->results);
+ free(queue->data);
 
  free(queue);
 }
@@ -85,11 +84,9 @@ void FreeQueueList(Queue *queue)
   Queue *queue The queue to insert the result into.
 
   Result *result The result to insert into the queue.
-
-  score_t score The score to use for sorting the node.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void InsertInQueue(Queue *queue,Result *result,score_t score)
+void InsertInQueue(Queue *queue,Result *result)
 {
  int index;
 
@@ -100,36 +97,34 @@ void InsertInQueue(Queue *queue,Result *result,score_t score)
 
     if(queue->noccupied==queue->nallocated)
       {
-       queue->nallocated=queue->nallocated+queue->nincrement;
-       queue->results=(Result**)realloc((void*)queue->results,queue->nallocated*sizeof(Result*));
+       queue->nallocated=queue->nallocated+QUEUE_INCREMENT;
+       queue->data=(Result**)realloc((void*)queue->data,queue->nallocated*sizeof(Result*));
       }
 
-    queue->results[index]=result;
-    queue->results[index]->queued=index;
+    queue->data[index]=result;
+    queue->data[index]->queued=index;
    }
  else
+   {
     index=result->queued;
-
- queue->results[index]->sortby=score;
+   }
 
  /* Bubble up the new value */
 
- while(index>1)
+ while(index>1 &&
+       queue->data[index]->sortby<queue->data[index/2]->sortby)
    {
     int newindex;
     Result *temp;
 
     newindex=index/2;
 
-    if(queue->results[index]->sortby>=queue->results[newindex]->sortby)
-       break;
+    temp=queue->data[index];
+    queue->data[index]=queue->data[newindex];
+    queue->data[newindex]=temp;
 
-    temp=queue->results[index];
-    queue->results[index]=queue->results[newindex];
-    queue->results[newindex]=temp;
-
-    queue->results[index]->queued=index;
-    queue->results[newindex]->queued=newindex;
+    queue->data[index]->queued=index;
+    queue->data[newindex]->queued=newindex;
 
     index=newindex;
    }
@@ -155,58 +150,52 @@ Result *PopFromQueue(Queue *queue)
  if(queue->noccupied==0)
     return(NULL);
 
- retval=queue->results[1];
+ retval=queue->data[1];
  retval->queued=NOT_QUEUED;
 
  index=1;
 
- queue->results[index]=queue->results[queue->noccupied];
-
+ queue->data[index]=queue->data[queue->noccupied];
  queue->noccupied--;
 
  /* Bubble down the newly promoted value */
 
- while((2*index)<queue->noccupied)
+ while((2*index)<queue->noccupied &&
+       (queue->data[index]->sortby>queue->data[2*index  ]->sortby ||
+        queue->data[index]->sortby>queue->data[2*index+1]->sortby))
    {
     int newindex;
     Result *temp;
 
-    newindex=2*index;
+    if(queue->data[2*index]->sortby<queue->data[2*index+1]->sortby)
+       newindex=2*index;
+    else
+       newindex=2*index+1;
 
-    if(queue->results[newindex]->sortby>queue->results[newindex+1]->sortby)
-       newindex=newindex+1;
+    temp=queue->data[newindex];
+    queue->data[newindex]=queue->data[index];
+    queue->data[index]=temp;
 
-    if(queue->results[index]->sortby<=queue->results[newindex]->sortby)
-       break;
-
-    temp=queue->results[newindex];
-    queue->results[newindex]=queue->results[index];
-    queue->results[index]=temp;
-
-    queue->results[index]->queued=index;
-    queue->results[newindex]->queued=newindex;
+    queue->data[index]->queued=index;
+    queue->data[newindex]->queued=newindex;
 
     index=newindex;
    }
 
- if((2*index)==queue->noccupied)
+ if((2*index)==queue->noccupied &&
+    queue->data[index]->sortby>queue->data[2*index]->sortby)
    {
     int newindex;
     Result *temp;
 
     newindex=2*index;
 
-    if(queue->results[index]->sortby<=queue->results[newindex]->sortby)
-       ; /* break */
-    else
-      {
-       temp=queue->results[newindex];
-       queue->results[newindex]=queue->results[index];
-       queue->results[index]=temp;
+    temp=queue->data[newindex];
+    queue->data[newindex]=queue->data[index];
+    queue->data[index]=temp;
 
-       queue->results[index]->queued=index;
-       queue->results[newindex]->queued=newindex;
-      }
+    queue->data[index]->queued=index;
+    queue->data[newindex]->queued=newindex;
    }
 
  return(retval);

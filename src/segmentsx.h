@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,6 @@
 
 #include "typesx.h"
 
-#include "cache.h"
 #include "files.h"
 
 
@@ -68,8 +67,6 @@ struct _SegmentsX
 
  SegmentX   cached[4];          /*+ Four cached extended segments read from the file in slim mode. +*/
  index_t    incache[4];         /*+ The indexes of the cached extended segments. +*/
-
- SegmentXCache *cache;          /*+ A RAM cache of extended segments read from the file. +*/
 
 #endif
 
@@ -125,37 +122,19 @@ void SaveSegmentList(SegmentsX *segmentsx,const char *filename);
 
 #define IndexSegmentX(segmentsx,segmentx)                (index_t)((segmentx)-&(segmentsx)->data[0])
 
-#define PutBackSegmentX(segmentsx,segmentx)              while(0) { /* nop */ }
+#define PutBackSegmentX(segmentsx,segmentx)              /* nop */
 
-#define ReLookupSegmentX(segmentsx,segmentx)             while(0) { /* nop */ }
+#define ReLookupSegmentX(segmentsx,segmentx)             /* nop */
   
 #else
 
-/* Prototypes */
+static SegmentX *LookupSegmentX(SegmentsX *segmentsx,index_t index,int position);
 
-static inline SegmentX *LookupSegmentX(SegmentsX *segmentsx,index_t index,int position);
+static index_t IndexSegmentX(SegmentsX *segmentsx,SegmentX *segmentx);
 
-static inline index_t IndexSegmentX(SegmentsX *segmentsx,SegmentX *segmentx);
+static void PutBackSegmentX(SegmentsX *segmentsx,SegmentX *segmentx);
 
-static inline void PutBackSegmentX(SegmentsX *segmentsx,SegmentX *segmentx);
-
-static inline void ReLookupSegmentX(SegmentsX *segmentsx,SegmentX *segmentx);
-
-CACHE_NEWCACHE_PROTO(SegmentX)
-CACHE_DELETECACHE_PROTO(SegmentX)
-CACHE_FETCHCACHE_PROTO(SegmentX)
-CACHE_REPLACECACHE_PROTO(SegmentX)
-CACHE_INVALIDATECACHE_PROTO(SegmentX)
-
-
-/* Inline functions */
-
-CACHE_STRUCTURE(SegmentX)
-CACHE_NEWCACHE(SegmentX)
-CACHE_DELETECACHE(SegmentX)
-CACHE_FETCHCACHE(SegmentX)
-CACHE_REPLACECACHE(SegmentX)
-CACHE_INVALIDATECACHE(SegmentX)
+static void ReLookupSegmentX(SegmentsX *segmentsx,SegmentX *segmentx);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -172,7 +151,7 @@ CACHE_INVALIDATECACHE(SegmentX)
 
 static inline SegmentX *LookupSegmentX(SegmentsX *segmentsx,index_t index,int position)
 {
- segmentsx->cached[position-1]=*FetchCachedSegmentX(segmentsx->cache,index,segmentsx->fd,0);
+ SeekReadFile(segmentsx->fd,&segmentsx->cached[position-1],sizeof(SegmentX),(off_t)index*sizeof(SegmentX));
 
  segmentsx->incache[position-1]=index;
 
@@ -210,7 +189,7 @@ static inline void PutBackSegmentX(SegmentsX *segmentsx,SegmentX *segmentx)
 {
  int position1=segmentx-&segmentsx->cached[0];
 
- ReplaceCachedSegmentX(segmentsx->cache,segmentx,segmentsx->incache[position1],segmentsx->fd,0);
+ SeekWriteFile(segmentsx->fd,&segmentsx->cached[position1],sizeof(SegmentX),(off_t)segmentsx->incache[position1]*sizeof(SegmentX));
 }
 
 
@@ -226,7 +205,7 @@ static inline void ReLookupSegmentX(SegmentsX *segmentsx,SegmentX *segmentx)
 {
  int position1=segmentx-&segmentsx->cached[0];
 
- segmentsx->cached[position1]=*FetchCachedSegmentX(segmentsx->cache,segmentsx->incache[position1],segmentsx->fd,0);
+ SeekReadFile(segmentsx->fd,&segmentsx->cached[position1],sizeof(SegmentX),(off_t)segmentsx->incache[position1]*sizeof(SegmentX));
 }
 
 #endif /* SLIM */

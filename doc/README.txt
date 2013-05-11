@@ -72,7 +72,7 @@ Demonstration
    A live demonstration of the router for the UK is available on the
    internet:
 
-   http://www.routino.org/uk/
+   http://www.routino.org/uk/router.html
 
    The source code download available also includes a set of files that can
    be used to create your own interactive map.
@@ -143,6 +143,8 @@ Copyright
 ---------
 
    Routino is copyright Andrew M. Bishop 2008-2013.
+
+   Contact amb@gedanken.demon.co.uk for any questions, queries or bug reports.
 
 
 Homepage

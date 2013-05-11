@@ -134,7 +134,8 @@ function map_init()             // called from visualiser.html
  lat =args["lat"];
  zoom=args["zoom"];
 
- // Map URLs and limits are in mapprops.js.
+ // Map properties (North/South and East/West limits and zoom in/out limits) are now in mapprops.js
+ // Map URLs are now in mapprops.js
 
  //
  // Create the map
@@ -209,6 +210,7 @@ function map_init()             // called from visualiser.html
  function limitedUrl(bounds)
  {
   var res = map.getResolution();
+  var res = this.getServerResolution();
 
   var x = Math.round((bounds.left - this.maxExtent.left) / (res * this.tileSize.w));
   var y = Math.round((this.maxExtent.top - bounds.top) / (res * this.tileSize.h));

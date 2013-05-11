@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,6 @@
 #include "segments.h"
 #include "ways.h"
 
-#include "cache.h"
 #include "fakes.h"
 #include "files.h"
 #include "profiles.h"
@@ -45,6 +44,9 @@
 Segments *LoadSegmentList(const char *filename)
 {
  Segments *segments;
+#if SLIM
+ int i;
+#endif
 
  segments=(Segments*)malloc(sizeof(Segments));
 
@@ -68,35 +70,12 @@ Segments *LoadSegmentList(const char *filename)
 
  ReadFile(segments->fd,&segments->file,sizeof(SegmentsFile));
 
- segments->cache=NewSegmentCache();
+ for(i=0;i<sizeof(segments->cached)/sizeof(segments->cached[0]);i++)
+    segments->incache[i]=NO_SEGMENT;
 
 #endif
 
  return(segments);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Destroy the segment list.
-
-  Segments *segments The segment list to destroy.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-void DestroySegmentList(Segments *segments)
-{
-#if !SLIM
-
- segments->data=UnmapFile(segments->data);
-
-#else
-
- segments->fd=CloseFile(segments->fd);
-
- DeleteSegmentCache(segments->cache);
-
-#endif
-
- free(segments);
 }
 
 
@@ -291,17 +270,17 @@ double TurnAngle(Nodes *nodes,Segment *segment1p,Segment *segment2p,index_t node
  if(IsFakeNode(node1))
     GetFakeLatLong(node1,&lat1,&lon1);
  else
-    GetLatLong(nodes,node1,NULL,&lat1,&lon1);
+    GetLatLong(nodes,node1,&lat1,&lon1);
 
  if(IsFakeNode(node))
     GetFakeLatLong(node,&latm,&lonm);
  else
-    GetLatLong(nodes,node,NULL,&latm,&lonm);
+    GetLatLong(nodes,node,&latm,&lonm);
 
  if(IsFakeNode(node2))
     GetFakeLatLong(node2,&lat2,&lon2);
  else
-    GetLatLong(nodes,node2,NULL,&lat2,&lon2);
+    GetLatLong(nodes,node2,&lat2,&lon2);
 
  angle1=atan2((lonm-lon1)*cos(latm),(latm-lat1));
  angle2=atan2((lon2-lonm)*cos(latm),(lat2-latm));
@@ -344,12 +323,12 @@ double BearingAngle(Nodes *nodes,Segment *segmentp,index_t node)
  if(IsFakeNode(node1))
     GetFakeLatLong(node1,&lat1,&lon1);
  else
-    GetLatLong(nodes,node1,NULL,&lat1,&lon1);
+    GetLatLong(nodes,node1,&lat1,&lon1);
 
  if(IsFakeNode(node2))
     GetFakeLatLong(node2,&lat2,&lon2);
  else
-    GetLatLong(nodes,node2,NULL,&lat2,&lon2);
+    GetLatLong(nodes,node2,&lat2,&lon2);
 
  angle=atan2((lat2-lat1),(lon2-lon1)*cos(lat1));
 

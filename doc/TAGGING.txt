@@ -43,11 +43,11 @@ Transport Specific Tags
    a node and specific tags must be used to remove the permissions for the
    transport.
 
-The roundabout Tag
-- - - - - - - - -
+The highway Tag
+- - - - - - - -
 
-   The roundabout tag for mini-roundabouts is recognised and used to
-   improve the description of the route.
+   The highway tag for mini_roundabout is recognised and used to improve
+   the description of the route.
 
 
 Way Tags And Attributes
@@ -314,9 +314,8 @@ Specific Access Permissions
 Mini-roundabouts
 - - - - - - - -
 
-   If the highway tag has the value mini_roundabout or the junction tag
-   has the value roundabout then a junction tag with value roundaboutis
-   passed through.
+   The highway tag for mini_roundabout is passed through without change
+   since it is required for the output route descriptions.
 
 
 Way Tag Transformations

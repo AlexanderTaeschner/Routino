@@ -5,7 +5,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,6 @@
 
 #include "types.h"
 
-#include "cache.h"
 #include "files.h"
 #include "profiles.h"
 
@@ -79,8 +78,6 @@ struct _Segments
  Segment      cached[3];        /*+ Three cached segments read from the file in slim mode. +*/
  index_t      incache[3];       /*+ The indexes of the cached segments. +*/
 
- SegmentCache *cache;           /*+ A RAM cache of segments read from the file. +*/
-
 #endif
 };
 
@@ -88,8 +85,6 @@ struct _Segments
 /* Functions in segments.c */
 
 Segments *LoadSegmentList(const char *filename);
-
-void DestroySegmentList(Segments *segments);
 
 index_t FindClosestSegmentHeading(Nodes *nodes,Segments *segments,Ways *ways,index_t node1,double heading,Profile *profile);
 
@@ -123,7 +118,6 @@ static inline Segment *NextSegment(Segments *segments,Segment *segmentp,index_t 
 
 /*+ Return the other node in the segment that is not the specified node. +*/
 #define OtherNode(xxx,yyy)     ((xxx)->node1==(yyy)?(xxx)->node2:(xxx)->node1)
-
 
 #if !SLIM
 
@@ -168,25 +162,9 @@ static inline Segment *NextSegment(Segments *segments,Segment *segmentp,index_t 
 
 #else
 
-/* Prototypes */
+static Segment *LookupSegment(Segments *segments,index_t index,int position);
 
-static inline Segment *LookupSegment(Segments *segments,index_t index,int position);
-
-static inline index_t IndexSegment(Segments *segments,Segment *segmentp);
-
-CACHE_NEWCACHE_PROTO(Segment)
-CACHE_DELETECACHE_PROTO(Segment)
-CACHE_FETCHCACHE_PROTO(Segment)
-CACHE_INVALIDATECACHE_PROTO(Segment)
-
-
-/* Inline functions */
-
-CACHE_STRUCTURE(Segment)
-CACHE_NEWCACHE(Segment)
-CACHE_DELETECACHE(Segment)
-CACHE_FETCHCACHE(Segment)
-CACHE_INVALIDATECACHE(Segment)
+static index_t IndexSegment(Segments *segments,Segment *segmentp);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -203,9 +181,12 @@ CACHE_INVALIDATECACHE(Segment)
 
 static inline Segment *LookupSegment(Segments *segments,index_t index,int position)
 {
- segments->cached[position-1]=*FetchCachedSegment(segments->cache,index,segments->fd,sizeof(SegmentsFile));
+ if(segments->incache[position-1]!=index)
+   {
+    SeekReadFile(segments->fd,&segments->cached[position-1],sizeof(Segment),sizeof(SegmentsFile)+(off_t)index*sizeof(Segment));
 
- segments->incache[position-1]=index;
+    segments->incache[position-1]=index;
+   }
 
  return(&segments->cached[position-1]);
 }

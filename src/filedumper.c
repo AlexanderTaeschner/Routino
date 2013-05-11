@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -290,7 +290,7 @@ int main(int argc,char** argv)
          {
           item=atoi(&argv[arg][7]);
 
-          if(item<OSMNodes->file.number)
+          if(item>=0 && item<OSMNodes->file.number)
              print_node(OSMNodes,item);
           else
              printf("Invalid node number; minimum=0, maximum=%"Pindex_t".\n",OSMNodes->file.number-1);
@@ -304,7 +304,7 @@ int main(int argc,char** argv)
          {
           item=atoi(&argv[arg][10]);
 
-          if(item<OSMSegments->file.number)
+          if(item>=0 && item<OSMSegments->file.number)
              print_segment(OSMSegments,item);
           else
              printf("Invalid segment number; minimum=0, maximum=%"Pindex_t".\n",OSMSegments->file.number-1);
@@ -318,7 +318,7 @@ int main(int argc,char** argv)
          {
           item=atoi(&argv[arg][6]);
 
-          if(item<OSMWays->file.number)
+          if(item>=0 && item<OSMWays->file.number)
              print_way(OSMWays,item);
           else
              printf("Invalid way number; minimum=0, maximum=%"Pindex_t".\n",OSMWays->file.number-1);
@@ -332,7 +332,7 @@ int main(int argc,char** argv)
          {
           item=atoi(&argv[arg][16]);
 
-          if(item<OSMRelations->file.trnumber)
+          if(item>=0 && item<OSMRelations->file.trnumber)
              print_turn_relation(OSMRelations,item,OSMSegments,OSMNodes);
           else
              printf("Invalid turn relation number; minimum=0, maximum=%"Pindex_t".\n",OSMRelations->file.trnumber-1);
@@ -385,7 +385,7 @@ static void print_node(Nodes *nodes,index_t item)
  Node *nodep=LookupNode(nodes,item,1);
  double latitude,longitude;
 
- GetLatLong(nodes,item,nodep,&latitude,&longitude);
+ GetLatLong(nodes,item,&latitude,&longitude);
 
  printf("Node %"Pindex_t"\n",item);
  printf("  firstseg=%"Pindex_t"\n",nodep->firstseg);
@@ -393,8 +393,6 @@ static void print_node(Nodes *nodes,index_t item)
  printf("  allow=%02x (%s)\n",nodep->allow,AllowedNameList(nodep->allow));
  if(IsSuperNode(nodep))
     printf("  Super-Node\n");
- if(nodep->flags & NODE_MINIRNDBT)
-    printf("  Mini-roundabout\n");
 }
 
 
@@ -604,7 +602,7 @@ static void print_region_osm(Nodes *nodes,Segments *segments,Ways *ways,Relation
                 double olat,olon;
                 index_t oitem=OtherNode(segmentp,item);
 
-                GetLatLong(nodes,oitem,NULL,&olat,&olon);
+                GetLatLong(nodes,oitem,&olat,&olon);
 
                 if(olat>latmin && olat<latmax && olon>lonmin && olon<lonmax)
                    if(item>oitem)
@@ -645,7 +643,7 @@ static void print_node_osm(Nodes *nodes,index_t item)
  double latitude,longitude;
  int i;
 
- GetLatLong(nodes,item,nodep,&latitude,&longitude);
+ GetLatLong(nodes,item,&latitude,&longitude);
 
  if(nodep->allow==Transports_ALL && nodep->flags==0)
     printf("  <node id='%lu' lat='%.7f' lon='%.7f' version='1' />\n",(unsigned long)item+1,radians_to_degrees(latitude),radians_to_degrees(longitude));
@@ -660,7 +658,7 @@ static void print_node_osm(Nodes *nodes,index_t item)
        printf("    <tag k='routino:uturn' v='yes' />\n");
 
     if(nodep->flags & NODE_MINIRNDBT)
-       printf("    <tag k='junction' v='roundabout' />\n");
+       printf("    <tag k='highway' v='mini_roundabout' />\n");
 
     if(nodep->flags & NODE_TURNRSTRCT)
        printf("    <tag k='routino:turnrestriction' v='yes' />\n");

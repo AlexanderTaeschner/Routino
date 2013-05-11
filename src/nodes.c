@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -50,6 +50,7 @@ Nodes *LoadNodeList(const char *filename)
  Nodes *nodes;
 #if SLIM
  size_t sizeoffsets;
+ int i;
 #endif
 
  nodes=(Nodes*)malloc(sizeof(Nodes));
@@ -83,37 +84,12 @@ Nodes *LoadNodeList(const char *filename)
 
  nodes->nodesoffset=sizeof(NodesFile)+sizeoffsets;
 
- nodes->cache=NewNodeCache();
+ for(i=0;i<sizeof(nodes->cached)/sizeof(nodes->cached[0]);i++)
+    nodes->incache[i]=NO_NODE;
 
 #endif
 
  return(nodes);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Destroy the node list.
-
-  Nodes *nodes The node list to destroy.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-void DestroyNodeList(Nodes *nodes)
-{
-#if !SLIM
-
- nodes->data=UnmapFile(nodes->data);
-
-#else
-
- nodes->fd=CloseFile(nodes->fd);
-
- free(nodes->offsets);
-
- DeleteNodeCache(nodes->cache);
-
-#endif
-
- free(nodes);
 }
 
 
@@ -396,7 +372,7 @@ index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double lat
                       distance_t dist2,dist3;
                       double lat2,lon2,dist3a,dist3b,distp;
 
-                      GetLatLong(nodes,OtherNode(segmentp,i),NULL,&lat2,&lon2);
+                      GetLatLong(nodes,OtherNode(segmentp,i),&lat2,&lon2);
 
                       dist2=Distance(lat2,lon2,latitude,longitude);
 
@@ -534,18 +510,16 @@ static int valid_segment_for_profile(Ways *ways,Segment *segmentp,Profile *profi
 
   index_t index The node index.
 
-  Node *nodep A pointer to the node if already available.
-
   double *latitude Returns the latitude.
 
   double *longitude Returns the logitude.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void GetLatLong(Nodes *nodes,index_t index,Node *nodep,double *latitude,double *longitude)
+void GetLatLong(Nodes *nodes,index_t index,double *latitude,double *longitude)
 {
- ll_bin_t latbin,lonbin;
- ll_bin2_t bin=-1;
- ll_bin2_t start,end,mid;
+ Node *nodep=LookupNode(nodes,index,4);
+ ll_bin_t latbin=-1,lonbin=-1;
+ ll_bin_t start,end,mid;
  index_t offset;
 
  /* Binary search - search key nearest match below is required.
@@ -559,47 +533,75 @@ void GetLatLong(Nodes *nodes,index_t index,Node *nodep,double *latitude,double *
   *  # <- end    |  start or end is the wanted one.
   */
 
- /* Search for offset */
+ /* Search for longitude */
 
  start=0;
- end=nodes->file.lonbins*nodes->file.latbins;
+ end=nodes->file.lonbins-1;
 
  do
    {
     mid=(start+end)/2;                  /* Choose mid point */
 
-    offset=LookupNodeOffset(nodes,mid);
+    offset=LookupNodeOffset(nodes,nodes->file.latbins*mid);
 
     if(offset<index)                    /* Mid point is too low for an exact match but could be lower bound */
        start=mid;
     else if(offset>index)               /* Mid point is too high */
        end=mid?(mid-1):mid;
     else                                /* Mid point is correct */
-      {bin=mid;break;}
+      {lonbin=mid;break;}
    }
  while((end-start)>1);
 
- if(bin==-1)
+ if(lonbin==-1)
    {
-    offset=LookupNodeOffset(nodes,end);
+    offset=LookupNodeOffset(nodes,nodes->file.latbins*end);
 
     if(offset>index)
-       bin=start;
+       lonbin=start;
     else
-       bin=end;
+       lonbin=end;
    }
 
- while(bin<=(nodes->file.lonbins*nodes->file.latbins) && 
-       LookupNodeOffset(nodes,bin)==LookupNodeOffset(nodes,bin+1))
-    bin++;
+ while(lonbin<nodes->file.lonbins && 
+       LookupNodeOffset(nodes,lonbin*nodes->file.latbins)==LookupNodeOffset(nodes,(lonbin+1)*nodes->file.latbins))
+    lonbin++;
 
- latbin=bin%nodes->file.latbins;
- lonbin=bin/nodes->file.latbins;
+ /* Search for latitude */
+
+ start=0;
+ end=nodes->file.latbins-1;
+
+ do
+   {
+    mid=(start+end)/2;                  /* Choose mid point */
+
+    offset=LookupNodeOffset(nodes,lonbin*nodes->file.latbins+mid);
+
+    if(offset<index)                    /* Mid point is too low for an exact match but could be lower bound */
+       start=mid;
+    else if(offset>index)               /* Mid point is too high */
+       end=mid?(mid-1):mid;
+    else                                /* Mid point is correct */
+      {latbin=mid;break;}
+   }
+ while((end-start)>1);
+
+ if(latbin==-1)
+   {
+    offset=LookupNodeOffset(nodes,lonbin*nodes->file.latbins+end);
+
+    if(offset>index)
+       latbin=start;
+    else
+       latbin=end;
+   }
+
+ while(latbin<nodes->file.latbins &&
+       LookupNodeOffset(nodes,lonbin*nodes->file.latbins+latbin)==LookupNodeOffset(nodes,lonbin*nodes->file.latbins+latbin+1))
+    latbin++;
 
  /* Return the values */
-
- if(nodep==NULL)
-    nodep=LookupNode(nodes,index,4);
 
  *latitude =latlong_to_radians(bin_to_latlong(nodes->file.latzero+latbin)+off_to_latlong(nodep->latoffset));
  *longitude=latlong_to_radians(bin_to_latlong(nodes->file.lonzero+lonbin)+off_to_latlong(nodep->lonoffset));

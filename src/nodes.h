@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,6 @@
 #include <sys/types.h>
 
 #include "types.h"
-#include "cache.h"
 
 #include "files.h"
 #include "profiles.h"
@@ -86,8 +85,7 @@ struct _Nodes
  off_t     nodesoffset;         /*+ The offset of the nodes within the file. +*/
 
  Node      cached[6];           /*+ Some cached nodes read from the file in slim mode. +*/
-
- NodeCache *cache;              /*+ A RAM cache of nodes read from the file. +*/
+ index_t   incache[6];          /*+ The indexes of the cached nodes. +*/
 
 #endif
 };
@@ -97,8 +95,6 @@ struct _Nodes
 
 Nodes *LoadNodeList(const char *filename);
 
-void DestroyNodeList(Nodes *nodes);
-
 index_t FindClosestNode(Nodes *nodes,Segments *segments,Ways *ways,double latitude,double longitude,
                         distance_t distance,Profile *profile,distance_t *bestdist);
 
@@ -106,7 +102,7 @@ index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double lat
                            distance_t distance,Profile *profile, distance_t *bestdist,
                            index_t *bestnode1,index_t *bestnode2,distance_t *bestdist1,distance_t *bestdist2);
 
-void GetLatLong(Nodes *nodes,index_t index,Node *nodep,double *latitude,double *longitude);
+void GetLatLong(Nodes *nodes,index_t index,double *latitude,double *longitude);
 
 
 /* Macros and inline functions */
@@ -131,23 +127,7 @@ void GetLatLong(Nodes *nodes,index_t index,Node *nodep,double *latitude,double *
 
 #else
 
-/* Prototypes */
-
-static inline Node *LookupNode(Nodes *nodes,index_t index,int position);
-
-CACHE_NEWCACHE_PROTO(Node)
-CACHE_DELETECACHE_PROTO(Node)
-CACHE_FETCHCACHE_PROTO(Node)
-CACHE_INVALIDATECACHE_PROTO(Node)
-
-
-/* Inline functions */
-
-CACHE_STRUCTURE(Node)
-CACHE_NEWCACHE(Node)
-CACHE_DELETECACHE(Node)
-CACHE_FETCHCACHE(Node)
-CACHE_INVALIDATECACHE(Node)
+static Node *LookupNode(Nodes *nodes,index_t index,int position);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -164,7 +144,12 @@ CACHE_INVALIDATECACHE(Node)
 
 static inline Node *LookupNode(Nodes *nodes,index_t index,int position)
 {
- nodes->cached[position-1]=*FetchCachedNode(nodes->cache,index,nodes->fd,nodes->nodesoffset);
+ if(nodes->incache[position-1]!=index)
+   {
+    SeekReadFile(nodes->fd,&nodes->cached[position-1],sizeof(Node),nodes->nodesoffset+(off_t)index*sizeof(Node));
+
+    nodes->incache[position-1]=index;
+   }
 
  return(&nodes->cached[position-1]);
 }

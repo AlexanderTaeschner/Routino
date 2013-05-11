@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -115,10 +115,6 @@ WaysX *NewWayList(int append,int readonly)
  else
     waysx->fd=-1;
 
-#if SLIM
- waysx->cache=NewWayXCache();
-#endif
-
 
  waysx->nfilename_tmp=(char*)malloc(strlen(option_tmpdirname)+32);
 
@@ -155,10 +151,6 @@ void FreeWayList(WaysX *waysx,int keep)
  DeleteFile(waysx->nfilename_tmp);
 
  free(waysx->nfilename_tmp);
-
-#if SLIM
- DeleteWayXCache(waysx->cache);
-#endif
 
  free(waysx);
 }
@@ -712,7 +704,7 @@ void SaveWayList(WaysX *waysx,const char *filename)
 {
  index_t i;
  int fd;
- index_t position=0;
+ int position=0;
  WayX wayx;
  WaysFile waysfile={0};
  highways_t   highways=0;
@@ -754,7 +746,7 @@ void SaveWayList(WaysX *waysx,const char *filename)
 
  while(position<waysx->nlength)
    {
-    size_t len=1024;
+    int len=1024;
     char temp[1024];
 
     if((waysx->nlength-position)<1024)

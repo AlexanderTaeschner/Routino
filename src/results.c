@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -28,34 +28,44 @@
 #include "logging.h"
 
 
-#define HASH_NODE_SEGMENT(node,segment) ((node)^(segment<<4))
-
+/*+ The maximum number of collisions in a bin for the Results 'point' arrays before worrying. +*/
+#define MAX_COLLISIONS 32
+ 
 
 /*++++++++++++++++++++++++++++++++++++++
   Allocate a new results list.
 
   Results *NewResultsList Returns the results list.
 
-  uint8_t log2bins The base 2 logarithm of the initial number of bins in the results array.
+  int nbins The initial number of bins in the results array.
   ++++++++++++++++++++++++++++++++++++++*/
 
-Results *NewResultsList(uint8_t log2bins)
+Results *NewResultsList(int nbins)
 {
  Results *results;
 
  results=(Results*)malloc(sizeof(Results));
 
- results->nbins=1<<log2bins;
- results->mask=results->nbins-1;
- results->ncollisions=log2bins-4;
+ results->nbins=1;
+ results->mask=~0;
+
+ while(nbins>>=1)
+   {
+    results->mask<<=1;
+    results->nbins<<=1;
+   }
+
+ results->mask=~results->mask;
 
  results->number=0;
 
+ results->npoint1=0;
+
  results->count=(uint8_t*)calloc(results->nbins,sizeof(uint8_t));
- results->point=(Result**)calloc(results->nbins,sizeof(Result*));
+ results->point=(Result***)malloc(MAX_COLLISIONS*sizeof(Result**));
 
  results->ndata1=0;
- results->ndata2=results->nbins>>2;
+ results->ndata2=results->nbins;
 
  results->data=NULL;
 
@@ -77,12 +87,15 @@ Results *NewResultsList(uint8_t log2bins)
 
 void FreeResultsList(Results *results)
 {
- uint32_t i;
+ int i;
 
  for(i=0;i<results->ndata1;i++)
     free(results->data[i]);
 
  free(results->data);
+
+ for(i=0;i<results->npoint1;i++)
+    free(results->point[i]);
 
  free(results->point);
 
@@ -107,57 +120,64 @@ void FreeResultsList(Results *results)
 Result *InsertResult(Results *results,index_t node,index_t segment)
 {
  Result *result;
- uint32_t bin=HASH_NODE_SEGMENT(node,segment)&results->mask;
+ int bin=node&results->mask;
 
  /* Check if we have hit the limit on the number of collisions per bin */
 
- if(results->count[bin]==results->ncollisions)
+ if(results->count[bin]>MAX_COLLISIONS && results->count[bin]==results->npoint1)
    {
-    uint32_t i;
+    int i,j,k;
 
     results->nbins<<=1;
-    results->mask=results->nbins-1;
-    results->ncollisions++;
+    results->mask=(results->mask<<1)|1;
 
     results->count=(uint8_t*)realloc((void*)results->count,results->nbins*sizeof(uint8_t));
-    results->point=(Result**)realloc((void*)results->point,results->nbins*sizeof(Result*));
+
+    for(i=0;i<results->npoint1;i++)
+       results->point[i]=(Result**)realloc((void*)results->point[i],results->nbins*sizeof(Result*));
 
     for(i=0;i<results->nbins/2;i++)
       {
-       Result *r=results->point[i];
-       Result **bin1,**bin2;
+       int c=results->count[i];
 
-       results->count[i]                 =0;
        results->count[i+results->nbins/2]=0;
 
-       bin1=&results->point[i];
-       bin2=&results->point[i+results->nbins/2];
-
-       *bin1=NULL;
-       *bin2=NULL;
-
-       while(r)
+       for(j=0,k=0;j<c;j++)
          {
-          Result *rh=r->hashnext;
-          uint32_t newbin=HASH_NODE_SEGMENT(r->node,r->segment)&results->mask;
-
-          r->hashnext=NULL;
+          int newbin=results->point[j][i]->node&results->mask;
 
           if(newbin==i)
-            { *bin1=r; bin1=&r->hashnext; }
+            {
+             if(k!=j)
+                results->point[k][i]=results->point[j][i];
+             k++;
+            }
           else
-            { *bin2=r; bin2=&r->hashnext; }
+            {
+             results->point[results->count[newbin]][newbin]=results->point[j][i];
 
-          results->count[newbin]++;
-
-          r=rh;
+             results->count[newbin]++;
+             results->count[i]--;
+            }
          }
       }
 
-    bin=HASH_NODE_SEGMENT(node,segment)&results->mask;
+    bin=node&results->mask;
    }
 
- /* Check if we need more data space allocated */
+ /* Check that the arrays have enough space or allocate more. */
+
+ if(results->count[bin]==results->npoint1)
+   {
+    logassert(results->npoint1<255,"Results are more numerous than expected (report a bug)");
+
+    results->npoint1++;
+
+    if(results->npoint1>MAX_COLLISIONS)
+       results->point=(Result***)realloc((void*)results->point,results->npoint1*sizeof(Result**));
+
+    results->point[results->npoint1-1]=(Result**)malloc(results->nbins*sizeof(Result*));
+   }
 
  if((results->number%results->ndata2)==0)
    {
@@ -169,17 +189,15 @@ Result *InsertResult(Results *results,index_t node,index_t segment)
 
  /* Insert the new entry */
 
- result=&results->data[results->ndata1-1][results->number%results->ndata2];
-
- result->hashnext=results->point[bin];
-
- results->point[bin]=result;
-
- results->count[bin]++;
+ results->point[results->count[bin]][bin]=&results->data[results->ndata1-1][results->number%results->ndata2];
 
  results->number++;
 
+ results->count[bin]++;
+
  /* Initialise the result */
+
+ result=results->point[results->count[bin]-1][bin];
 
  result->node=node;
  result->segment=segment;
@@ -197,6 +215,34 @@ Result *InsertResult(Results *results,index_t node,index_t segment)
 
 
 /*++++++++++++++++++++++++++++++++++++++
+  Find a result; search by node only (don't care about the segment but find the shortest).
+
+  Result *FindResult1 Returns the result that has been found.
+
+  Results *results The results structure to search.
+
+  index_t node The node that is to be found.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+Result *FindResult1(Results *results,index_t node)
+{
+ int bin=node&results->mask;
+ score_t best_score=INF_SCORE;
+ Result *best_result=NULL;
+ int i;
+
+ for(i=results->count[bin]-1;i>=0;i--)
+    if(results->point[i][bin]->node==node && results->point[i][bin]->score<best_score)
+      {
+       best_score=results->point[i][bin]->score;
+       best_result=results->point[i][bin];
+      }
+
+ return(best_result);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
   Find a result; search by node and segment.
 
   Result *FindResult Returns the result that has been found.
@@ -210,20 +256,14 @@ Result *InsertResult(Results *results,index_t node,index_t segment)
 
 Result *FindResult(Results *results,index_t node,index_t segment)
 {
- Result *r;
- uint32_t bin=HASH_NODE_SEGMENT(node,segment)&results->mask;
+ int bin=node&results->mask;
+ int i;
 
- r=results->point[bin];
+ for(i=results->count[bin]-1;i>=0;i--)
+    if(results->point[i][bin]->segment==segment && results->point[i][bin]->node==node)
+       return(results->point[i][bin]);
 
- while(r)
-   {
-    if(r->segment==segment && r->node==node)
-       break;
-
-    r=r->hashnext;
-   }
-
- return(r);
+ return(NULL);
 }
 
 
@@ -253,17 +293,15 @@ Result *FirstResult(Results *results)
 
 Result *NextResult(Results *results,Result *result)
 {
- uint32_t i;
- size_t j=0;
+ int i,j=0;
 
  for(i=0;i<results->ndata1;i++)
-    if(result>=results->data[i])
-      {
-       j=result-results->data[i];
+   {
+    j=result-results->data[i];
 
-       if(j<results->ndata2)
-          break;
-      }
+    if(j>=0 && j<results->ndata2)
+       break;
+   }
 
  if(++j>=results->ndata2)
    {i++;j=0;}

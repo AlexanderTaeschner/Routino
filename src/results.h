@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2011 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -51,22 +51,21 @@ struct _Result
  score_t   sortby;              /*+ The best possible weighted distance or duration score from the start to the finish. +*/
 
  uint32_t  queued;              /*+ The position of this result in the queue. +*/
-
- Result   *hashnext;            /*+ The next result in the linked list for this hash bin. +*/
 };
 
 /*+ A list of results. +*/
 typedef struct _Results
 {
- uint32_t  nbins;               /*+ The number of bins in the has table. +*/
- uint32_t  mask;                /*+ A bit mask to select the bottom log2(nbins) bits. +*/
+ uint32_t  nbins;               /*+ The number of bins. +*/
+ uint32_t  mask;                /*+ A bit mask to select the bottom 'nbins' bits. +*/
 
  uint32_t  number;              /*+ The total number of occupied results. +*/
 
- uint8_t   ncollisions;         /*+ The number of results allowed in each hash bin. +*/
- uint8_t  *count;               /*+ An array of nbins counters of results in each hash bin. +*/
+ uint8_t   npoint1;             /*+ The amount of space allocated for results
+                                    (the first dimension of the 'point' array). +*/
 
- Result  **point;               /*+ An array of nbins linked lists of results for one hash bin. +*/
+ uint8_t  *count;               /*+ An array of nbins counters of results in each array. +*/
+ Result ***point;               /*+ An array of nbins arrays of pointers to actual results. +*/
 
  uint32_t  ndata1;              /*+ The size of the first dimension of the 'data' array. +*/
  uint32_t  ndata2;              /*+ The size of the second dimension of the 'data' array. +*/
@@ -92,11 +91,12 @@ typedef struct _Queue Queue;
 
 /* Results functions in results.c */
 
-Results *NewResultsList(uint8_t log2bins);
+Results *NewResultsList(int nbins);
 void FreeResultsList(Results *results);
 
 Result *InsertResult(Results *results,index_t node,index_t segment);
 
+Result *FindResult1(Results *results,index_t node);
 Result *FindResult(Results *results,index_t node,index_t segment);
 
 Result *FirstResult(Results *results);
@@ -105,10 +105,10 @@ Result *NextResult(Results *results,Result *result);
 
 /* Queue functions in queue.c */
 
-Queue *NewQueueList(uint8_t log2bins);
+Queue *NewQueueList(void);
 void FreeQueueList(Queue *queue);
 
-void InsertInQueue(Queue *queue,Result *result,score_t score);
+void InsertInQueue(Queue *queue,Result *result);
 Result *PopFromQueue(Queue *queue);
 
 

@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@
 #include "relations.h"
 #include "fakes.h"
 
-#include "cache.h"
 #include "files.h"
 
 
@@ -41,6 +40,9 @@
 Relations *LoadRelationList(const char *filename)
 {
  Relations *relations;
+#if SLIM
+ int i;
+#endif
 
  relations=(Relations*)malloc(sizeof(Relations));
 
@@ -66,7 +68,8 @@ Relations *LoadRelationList(const char *filename)
 
  relations->troffset=sizeof(RelationsFile);
 
- relations->cache=NewTurnRelationCache();
+ for(i=0;i<sizeof(relations->cached)/sizeof(relations->cached[0]);i++)
+    relations->incache[i]=NO_RELATION;
 
 #endif
 
@@ -88,30 +91,6 @@ Relations *LoadRelationList(const char *filename)
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Destroy the relation list.
-
-  Relations *relations The relation list to destroy.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-void DestroyRelationList(Relations *relations)
-{
-#if !SLIM
-
- relations->data=UnmapFile(relations->data);
-
-#else
-
- relations->fd=CloseFile(relations->fd);
-
- DeleteTurnRelationCache(relations->cache);
-
-#endif
-
- free(relations);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
   Find the first turn relation in the file whose 'via' matches a specific node.
 
   index_t FindFirstTurnRelation1 Returns the index of the first turn relation matching.
@@ -127,7 +106,7 @@ index_t FindFirstTurnRelation1(Relations *relations,index_t via)
  index_t start=0;
  index_t end=relations->file.trnumber-1;
  index_t mid;
- index_t match=NO_RELATION;
+ index_t match=-1;
 
  /* Binary search - search key any exact match is required.
   *
@@ -158,7 +137,7 @@ index_t FindFirstTurnRelation1(Relations *relations,index_t via)
    }
  while((end-start)>1);
 
- if(match==NO_RELATION)             /* Check if start matches */
+ if(match==-1)                      /* Check if start matches */
    {
     relation=LookupTurnRelation(relations,start,1);
 
@@ -166,7 +145,7 @@ index_t FindFirstTurnRelation1(Relations *relations,index_t via)
        match=start;
    }
 
- if(match==NO_RELATION)             /* Check if end matches */
+ if(match==-1)                      /* Check if end matches */
    {
     relation=LookupTurnRelation(relations,end,1);
 
@@ -174,8 +153,8 @@ index_t FindFirstTurnRelation1(Relations *relations,index_t via)
        match=end;
    }
 
- if(match==NO_RELATION)
-    return(match);
+ if(match==-1)
+    return(NO_RELATION);
 
  while(match>0)                     /* Search backwards for the first match */
    {
@@ -242,7 +221,7 @@ index_t FindFirstTurnRelation2(Relations *relations,index_t via,index_t from)
  index_t start=0;
  index_t end=relations->file.trnumber-1;
  index_t mid;
- index_t match=NO_RELATION;
+ index_t match=-1;
 
  if(IsFakeSegment(from))
     from=IndexRealSegment(from);
@@ -283,7 +262,7 @@ index_t FindFirstTurnRelation2(Relations *relations,index_t via,index_t from)
    }
  while((end-start)>1);
 
- if(match==NO_RELATION)             /* Check if start matches */
+ if(match==-1)                      /* Check if start matches */
    {
     relation=LookupTurnRelation(relations,start,1);
 
@@ -291,7 +270,7 @@ index_t FindFirstTurnRelation2(Relations *relations,index_t via,index_t from)
        match=start;
    }
 
- if(match==NO_RELATION)             /* Check if end matches */
+ if(match==-1)                      /* Check if end matches */
    {
     relation=LookupTurnRelation(relations,end,1);
 
@@ -299,8 +278,8 @@ index_t FindFirstTurnRelation2(Relations *relations,index_t via,index_t from)
        match=end;
    }
 
- if(match==NO_RELATION)
-    return(match);
+ if(match==-1)
+    return(NO_RELATION);
 
  while(match>0)                     /* Search backwards for the first match */
    {

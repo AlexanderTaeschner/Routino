@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -40,7 +40,6 @@
 
 #include "files.h"
 #include "logging.h"
-#include "logerror.h"
 #include "functions.h"
 #include "osmparser.h"
 #include "tagging.h"
@@ -71,10 +70,10 @@ static void print_usage(int detail,const char *argerr,const char *err);
 int main(int argc,char** argv)
 {
  struct timeval start_time;
- NodesX     *OSMNodes;
- SegmentsX  *OSMSegments,*SuperSegments=NULL,*MergedSegments=NULL;
- WaysX      *OSMWays;
- RelationsX *OSMRelations;
+ NodesX     *Nodes;
+ SegmentsX  *Segments,*SuperSegments=NULL,*MergedSegments=NULL;
+ WaysX      *Ways;
+ RelationsX *Relations;
  int         iteration=0,quit=0;
  int         max_iterations=5;
  char       *dirname=NULL,*prefix=NULL,*tagging=NULL,*errorlog=NULL;
@@ -210,18 +209,18 @@ int main(int argc,char** argv)
 
  /* Create new node, segment, way and relation variables */
 
- OSMNodes=NewNodeList(option_append||option_changes,option_process_only);
+ Nodes=NewNodeList(option_append||option_changes,option_process_only);
 
- OSMSegments=NewSegmentList(option_append||option_changes,option_process_only);
+ Segments=NewSegmentList(option_append||option_changes,option_process_only);
 
- OSMWays=NewWayList(option_append||option_changes,option_process_only);
+ Ways=NewWayList(option_append||option_changes,option_process_only);
 
- OSMRelations=NewRelationList(option_append||option_changes,option_process_only);
+ Relations=NewRelationList(option_append||option_changes,option_process_only);
 
  /* Create the error log file */
 
  if(errorlog)
-    open_errorlog(FileName(dirname,prefix,errorlog),option_append||option_changes||option_process_only,option_keep);
+    open_errorlog(FileName(dirname,prefix,errorlog),option_append||option_changes||option_process_only);
 
  /* Parse the file */
 
@@ -262,12 +261,12 @@ if(!option_process_only)
            }
          else if((p=strstr(filename,".o5c")) && !strcmp(p,".o5c"))
            {
-            if(ParseO5CFile(fd,OSMNodes,OSMSegments,OSMWays,OSMRelations))
+            if(ParseO5CFile(fd,Nodes,Segments,Ways,Relations))
                exit(EXIT_FAILURE);
            }
          else
            {
-            if(ParseOSCFile(fd,OSMNodes,OSMSegments,OSMWays,OSMRelations))
+            if(ParseOSCFile(fd,Nodes,Segments,Ways,Relations))
                exit(EXIT_FAILURE);
            }
         }
@@ -278,17 +277,17 @@ if(!option_process_only)
 
          if((p=strstr(filename,".pbf")) && !strcmp(p,".pbf"))
            {
-            if(ParsePBFFile(fd,OSMNodes,OSMSegments,OSMWays,OSMRelations))
+            if(ParsePBFFile(fd,Nodes,Segments,Ways,Relations))
                exit(EXIT_FAILURE);
            }
          else if((p=strstr(filename,".o5m")) && !strcmp(p,".o5m"))
            {
-            if(ParseO5MFile(fd,OSMNodes,OSMSegments,OSMWays,OSMRelations))
+            if(ParseO5MFile(fd,Nodes,Segments,Ways,Relations))
                exit(EXIT_FAILURE);
            }
          else
            {
-            if(ParseOSMFile(fd,OSMNodes,OSMSegments,OSMWays,OSMRelations))
+            if(ParseOSMFile(fd,Nodes,Segments,Ways,Relations))
                exit(EXIT_FAILURE);
            }
         }
@@ -301,17 +300,17 @@ if(!option_process_only)
    DeleteXMLTaggingRules();
   }
 
- FinishNodeList(OSMNodes);
- FinishSegmentList(OSMSegments);
- FinishWayList(OSMWays);
- FinishRelationList(OSMRelations);
+ FinishNodeList(Nodes);
+ FinishSegmentList(Segments);
+ FinishWayList(Ways);
+ FinishRelationList(Relations);
 
  if(option_parse_only)
    {
-    FreeNodeList(OSMNodes,1);
-    FreeSegmentList(OSMSegments,1);
-    FreeWayList(OSMWays,1);
-    FreeRelationList(OSMRelations,1);
+    FreeNodeList(Nodes,1);
+    FreeSegmentList(Segments,1);
+    FreeWayList(Ways,1);
+    FreeRelationList(Relations,1);
 
     return(0);
    }
@@ -324,16 +323,16 @@ if(!option_process_only)
 
  /* Sort the nodes, segments, ways and relations */
 
- SortNodeList(OSMNodes);
+ SortNodeList(Nodes);
 
  if(option_changes)
-    ApplySegmentChanges(OSMSegments);
+    ApplySegmentChanges(Segments);
 
- SortSegmentList(OSMSegments);
+ SortSegmentList(Segments);
 
- SortWayList(OSMWays);
+ SortWayList(Ways);
 
- SortRelationList(OSMRelations);
+ SortRelationList(Relations);
 
  /* Process the data */
 
@@ -342,41 +341,41 @@ if(!option_process_only)
 
  /* Extract the way names (must be before using the ways) */
 
- ExtractWayNames(OSMWays,option_keep||option_changes);
+ ExtractWayNames(Ways,option_keep||option_changes);
 
  /* Remove bad segments (must be after sorting the nodes, segments and ways) */
 
- RemoveBadSegments(OSMSegments,OSMNodes,OSMWays,option_keep||option_changes);
+ RemoveBadSegments(Segments,Nodes,Ways,option_keep||option_changes);
 
  /* Remove non-highway nodes (must be after removing the bad segments) */
 
- RemoveNonHighwayNodes(OSMNodes,OSMSegments,option_keep||option_changes);
+ RemoveNonHighwayNodes(Nodes,Segments,option_keep||option_changes);
 
  /* Process the route relations and first part of turn relations (must be before compacting the ways) */
 
- ProcessRouteRelations(OSMRelations,OSMWays,option_keep||option_changes);
+ ProcessRouteRelations(Relations,Ways,option_keep||option_changes);
 
- ProcessTurnRelations1(OSMRelations,OSMNodes,OSMWays,option_keep||option_changes);
+ ProcessTurnRelations1(Relations,Nodes,Ways,option_keep||option_changes);
 
  /* Measure the segments and replace node/way id with index (must be after removing non-highway nodes) */
 
- MeasureSegments(OSMSegments,OSMNodes,OSMWays);
+ MeasureSegments(Segments,Nodes,Ways);
 
  /* Index the segments */
 
- IndexSegments(OSMSegments,OSMNodes,OSMWays);
+ IndexSegments(Segments,Nodes,Ways);
 
  /* Convert the turn relations from ways into nodes */
 
- ProcessTurnRelations2(OSMRelations,OSMNodes,OSMSegments,OSMWays);
+ ProcessTurnRelations2(Relations,Nodes,Segments,Ways);
 
  /* Compact the ways (must be after turn relations 2) */
 
- CompactWayList(OSMWays,OSMSegments);
+ CompactWayList(Ways,Segments);
 
  /* Index the segments */
 
- IndexSegments(OSMSegments,OSMNodes,OSMWays);
+ IndexSegments(Segments,Nodes,Ways);
 
  /* Prune unwanted nodes/segments. */
 
@@ -385,33 +384,33 @@ if(!option_process_only)
     printf("\nPrune Unneeded Data\n===================\n\n");
     fflush(stdout);
 
-    StartPruning(OSMNodes,OSMSegments,OSMWays);
-
-    if(option_prune_isolated)
-       PruneIsolatedRegions(OSMNodes,OSMSegments,OSMWays,option_prune_isolated);
-
-    if(option_prune_short)
-       PruneShortSegments(OSMNodes,OSMSegments,OSMWays,option_prune_short);
+    StartPruning(Nodes,Segments,Ways);
 
     if(option_prune_straight)
-       PruneStraightHighwayNodes(OSMNodes,OSMSegments,OSMWays,option_prune_straight);
+       PruneStraightHighwayNodes(Nodes,Segments,Ways,option_prune_straight);
 
-    FinishPruning(OSMNodes,OSMSegments,OSMWays);
+    if(option_prune_isolated)
+       PruneIsolatedRegions(Nodes,Segments,Ways,option_prune_isolated);
+
+    if(option_prune_short)
+       PruneShortSegments(Nodes,Segments,Ways,option_prune_short);
+
+    FinishPruning(Nodes,Segments,Ways);
 
     /* Remove the pruned nodes and segments and update the indexes */
 
-    RemovePrunedNodes(OSMNodes,OSMSegments);
-    RemovePrunedSegments(OSMSegments,OSMWays);
-    CompactWayList(OSMWays,OSMSegments);
-    RemovePrunedTurnRelations(OSMRelations,OSMNodes);
-    IndexSegments(OSMSegments,OSMNodes,OSMWays);
+    RemovePrunedNodes(Nodes,Segments);
+    RemovePrunedSegments(Segments,Ways);
+    CompactWayList(Ways,Segments);
+    RemovePrunedTurnRelations(Relations,Nodes);
+    IndexSegments(Segments,Nodes,Ways);
    }
 
  /* Repeated iteration on Super-Nodes and Super-Segments */
 
  do
    {
-    index_t nsuper;
+    int nsuper;
 
     printf("\nProcess Super-Data (iteration %d)\n================================%s\n\n",iteration,iteration>9?"=":"");
     fflush(stdout);
@@ -420,13 +419,13 @@ if(!option_process_only)
       {
        /* Select the super-nodes */
 
-       ChooseSuperNodes(OSMNodes,OSMSegments,OSMWays);
+       ChooseSuperNodes(Nodes,Segments,Ways);
 
        /* Select the super-segments */
 
-       SuperSegments=CreateSuperSegments(OSMNodes,OSMSegments,OSMWays);
+       SuperSegments=CreateSuperSegments(Nodes,Segments,Ways);
 
-       nsuper=OSMSegments->number;
+       nsuper=Segments->number;
       }
     else
       {
@@ -434,11 +433,11 @@ if(!option_process_only)
 
        /* Select the super-nodes */
 
-       ChooseSuperNodes(OSMNodes,SuperSegments,OSMWays);
+       ChooseSuperNodes(Nodes,SuperSegments,Ways);
 
        /* Select the super-segments */
 
-       SuperSegments2=CreateSuperSegments(OSMNodes,SuperSegments,OSMWays);
+       SuperSegments2=CreateSuperSegments(Nodes,SuperSegments,Ways);
 
        nsuper=SuperSegments->number;
 
@@ -449,11 +448,11 @@ if(!option_process_only)
 
     /* Sort the super-segments and remove duplicates */
 
-    DeduplicateSuperSegments(SuperSegments,OSMWays);
+    DeduplicateSuperSegments(SuperSegments,Ways);
 
     /* Index the segments */
 
-    IndexSegments(SuperSegments,OSMNodes,OSMWays);
+    IndexSegments(SuperSegments,Nodes,Ways);
 
     /* Check for end condition */
 
@@ -474,17 +473,17 @@ if(!option_process_only)
 
  /* Merge the super-segments */
 
- MergedSegments=MergeSuperSegments(OSMSegments,SuperSegments);
+ MergedSegments=MergeSuperSegments(Segments,SuperSegments);
 
- FreeSegmentList(OSMSegments,0);
+ FreeSegmentList(Segments,0);
 
  FreeSegmentList(SuperSegments,0);
 
- OSMSegments=MergedSegments;
+ Segments=MergedSegments;
 
  /* Re-index the merged segments */
 
- IndexSegments(OSMSegments,OSMNodes,OSMWays);
+ IndexSegments(Segments,Nodes,Ways);
 
  /* Cross reference the nodes and segments */
 
@@ -493,17 +492,17 @@ if(!option_process_only)
 
  /* Sort the nodes and segments geographically */
 
- SortNodeListGeographically(OSMNodes);
+ SortNodeListGeographically(Nodes);
 
- SortSegmentListGeographically(OSMSegments,OSMNodes);
+ SortSegmentListGeographically(Segments,Nodes);
 
  /* Re-index the segments */
 
- IndexSegments(OSMSegments,OSMNodes,OSMWays);
+ IndexSegments(Segments,Nodes,Ways);
 
  /* Sort the turn relations geographically */
 
- SortTurnRelationListGeographically(OSMRelations,OSMNodes,OSMSegments);
+ SortTurnRelationListGeographically(Relations,Nodes,Segments);
 
  /* Output the results */
 
@@ -512,35 +511,32 @@ if(!option_process_only)
 
  /* Write out the nodes */
 
- SaveNodeList(OSMNodes,FileName(dirname,prefix,"nodes.mem"),OSMSegments);
+ SaveNodeList(Nodes,FileName(dirname,prefix,"nodes.mem"),Segments);
+
+ FreeNodeList(Nodes,0);
 
  /* Write out the segments */
 
- SaveSegmentList(OSMSegments,FileName(dirname,prefix,"segments.mem"));
+ SaveSegmentList(Segments,FileName(dirname,prefix,"segments.mem"));
+
+ FreeSegmentList(Segments,0);
 
  /* Write out the ways */
 
- SaveWayList(OSMWays,FileName(dirname,prefix,"ways.mem"));
+ SaveWayList(Ways,FileName(dirname,prefix,"ways.mem"));
+
+ FreeWayList(Ways,0);
 
  /* Write out the relations */
 
- SaveRelationList(OSMRelations,FileName(dirname,prefix,"relations.mem"));
+ SaveRelationList(Relations,FileName(dirname,prefix,"relations.mem"));
+
+ FreeRelationList(Relations,0);
 
  /* Close the error log file */
 
  if(errorlog)
     close_errorlog();
-
- /* Free the memory (delete the temporary files) */
-
-#if 0
-
- FreeNodeList(OSMNodes,0);
- FreeSegmentList(OSMSegments,0);
- FreeWayList(OSMWays,0);
- FreeRelationList(OSMRelations,0);
-
-#endif
 
  /* Print the total time */
 

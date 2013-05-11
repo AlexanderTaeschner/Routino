@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2012 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -85,10 +85,6 @@ void ChooseSuperNodes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx)
  nodesx->fd=ReOpenFile(nodesx->filename_tmp);
  segmentsx->fd=ReOpenFile(segmentsx->filename_tmp);
  waysx->fd=ReOpenFile(waysx->filename_tmp);
-
- InvalidateNodeXCache(nodesx->cache);
- InvalidateSegmentXCache(segmentsx->cache);
- InvalidateWayXCache(waysx->cache);
 #endif
 
  /* Find super-nodes */
@@ -236,10 +232,6 @@ SegmentsX *CreateSuperSegments(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx)
  nodesx->fd=ReOpenFile(nodesx->filename_tmp);
  segmentsx->fd=ReOpenFile(segmentsx->filename_tmp);
  waysx->fd=ReOpenFile(waysx->filename_tmp);
-
- InvalidateNodeXCache(nodesx->cache);
- InvalidateSegmentXCache(segmentsx->cache);
- InvalidateWayXCache(waysx->cache);
 #endif
 
  /* Create super-segments for each super-node. */
@@ -374,10 +366,6 @@ SegmentsX *MergeSuperSegments(SegmentsX *segmentsx,SegmentsX *supersegmentsx)
  segmentsx->fd=ReOpenFile(segmentsx->filename_tmp);
  if(supersegmentsx->number>0)
     supersegmentsx->fd=ReOpenFile(supersegmentsx->filename_tmp);
-
- InvalidateSegmentXCache(segmentsx->cache);
- if(supersegmentsx->number>0)
-    InvalidateSegmentXCache(supersegmentsx->cache);
 #endif
 
  /* Loop through and create a new list of combined segments */
@@ -475,12 +463,13 @@ static Results *FindSuperRoutes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx
 
  /* Insert the first node into the queue */
 
- results=NewResultsList(8);
- queue=NewQueueList(8);
+ results=NewResultsList(64);
+
+ queue=NewQueueList();
 
  result1=InsertResult(results,start,NO_SEGMENT);
 
- InsertInQueue(queue,result1,0);
+ InsertInQueue(queue,result1);
 
  /* Loop across all nodes in the queue */
 
@@ -532,19 +521,21 @@ static Results *FindSuperRoutes(NodesX *nodesx,SegmentsX *segmentsx,WaysX *waysx
           result2=InsertResult(results,node2,seg2);
           result2->prev=result1;
           result2->score=cumulative_distance;
+          result2->sortby=cumulative_distance;
 
           /* don't route beyond a super-node. */
           if(!IsBitSet(nodesx->super,node2))
-             InsertInQueue(queue,result2,cumulative_distance);
+             InsertInQueue(queue,result2);
          }
        else if(cumulative_distance<result2->score)
          {
           result2->prev=result1;
           result2->score=cumulative_distance;
+          result2->sortby=cumulative_distance;
 
           /* don't route beyond a super-node. */
           if(!IsBitSet(nodesx->super,node2))
-             InsertInQueue(queue,result2,cumulative_distance);
+             InsertInQueue(queue,result2);
          }
 
       endloop:

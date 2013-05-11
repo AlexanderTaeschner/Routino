@@ -27,13 +27,9 @@
 
       <!-- Not useful barrier types (too generic) -->
 
-      <if k="barrier" v="gate"     > <unset/> </if>
+      <if k="barrier" v="gate">      <unset/> </if>
+      <if k="barrier" v="entrance">  <unset/> </if>
       <if k="barrier" v="lift_gate"> <unset/> </if>
-
-      <!-- Not useful barrier types (generic entrances through barrier ways) -->
-
-      <if k="barrier" v="entrance"  > <unset/> </if>
-      <if k="barrier" v="sally_port"> <unset/> </if>
 
       <!-- Barrier types -->
 
@@ -260,11 +256,7 @@
     <!-- Mini-roundabouts  -->
 
     <if k="highway" v="mini_roundabout">
-      <output k="roundabout" v="yes"/>
-    </if>
-
-    <if k="junction" v="roundabout">
-      <output k="roundabout" v="yes"/>
+      <output/>
     </if>
 
   </node>
@@ -282,19 +274,14 @@
 
     <if k="highway">
 
-      <!-- Not useful highway types (future highways) -->
+      <!-- Not useful highway types -->
 
-      <if k="highway" v="construction"> <unset/> </if>
-      <if k="highway" v="planned"     > <unset/> </if>
       <if k="highway" v="proposed"    > <unset/> </if>
-
-      <!-- Not useful highway types (previous highways) -->
+      <if k="highway" v="construction"> <unset/> </if>
 
       <if k="highway" v="no"          > <unset/> </if>
       <if k="highway" v="abandoned"   > <unset/> </if>
       <if k="highway" v="disused"     > <unset/> </if>
-
-      <!-- Not useful highway types (limited use highways) -->
 
       <if k="highway" v="raceway"     > <unset/> </if>
 
@@ -467,10 +454,6 @@
         <set k="highway" v="service"/>
       </if>
 
-      <if k="highway" v="rest_area">
-        <set k="highway" v="service"/>
-      </if>
-
       <if k="highway" v="layby">
         <set k="highway" v="service"/>
       </if>
@@ -555,12 +538,6 @@
         <output k="paved"      v="yes"/>
       </if>
 
-      <if k="highway" v="trail">
-        <set k="highway"  v="path"/>
-
-        <output k="paved"      v="no"/>
-      </if>
-
       <if k="highway" v="path">
         <output k="highway"/>
 
@@ -597,8 +574,6 @@
       <if v="destination" > <set v="yes"/> </if>
       <if v="true"        > <set v="yes"/> </if>
       <if v="public"      > <set v="yes"/> </if>
-      <if v="customers"   > <set v="yes"/> </if>
-      <if v="customer"    > <set v="yes"/> </if>
       <if v="official"    > <set v="yes"/> </if>
                            
       <if v="unsuitable"  > <set v="no"/> </if>
@@ -626,32 +601,27 @@
 
           <if k="access" v="foot">
             <set k="foot" v="yes"/>
-            <logerror k="access" message="using 'access' = 'no' ; 'foot' = 'yes'"/>
-            <set k="access" v="no"/>
+            <logerror k="access" message="using 'foot' = 'yes'"/>
           </if>
 
           <if k="access" v="wheelchair">
             <set k="wheelchair" v="yes"/>
-            <logerror k="access" message="using 'access' = 'no' ; 'wheelchair' = 'yes'"/>
-            <set k="access" v="no"/>
+            <logerror k="access" message="using 'wheelchair' = 'yes'"/>
           </if>
 
           <if k="access" v="motor_vehicle">
             <set k="motor_vehicle" v="yes"/>
-            <logerror k="access" message="using 'access' = 'no' ; 'motor_vehicle' = 'yes'"/>
-            <set k="access" v="no"/>
+            <logerror k="access" message="using 'motor_vehicle' = 'yes'"/>
           </if>
 
           <if k="access" v="hgv">
             <set k="hgv" v="yes"/>
-            <logerror k="access" message="using 'access' = 'no' ; 'hgv' = 'yes'"/>
-            <set k="access" v="no"/>
+            <logerror k="access" message="using 'hgv' = 'yes'"/>
           </if>
 
           <if k="access" v="psv">
             <set k="psv" v="yes"/>
-            <logerror k="access" message="using 'access' = 'no' ; 'psv' = 'yes'"/>
-            <set k="access" v="no"/>
+            <logerror k="access" message="using 'psv' = 'yes'"/>
           </if>
 
           <ifnot k="access" v="no">
@@ -889,17 +859,7 @@
 
       </if> <!-- k="surface" -->
 
-      <if k="bridge">
-        <ifnot k="bridge" v="no">
-          <set k="bridge" v="yes"/>
-        </ifnot>
-      </if>
-
-      <if k="tunnel">
-        <ifnot k="tunnel" v="no">
-          <set k="tunnel" v="yes"/>
-        </ifnot>
-      </if>
+      <if k="lanes"> <output/> </if>
 
       <if k="junction" v="roundabout">
         <output k="oneway"     v="yes"/>
@@ -908,13 +868,41 @@
 
       <!-- Specific property rules (to override the default ones) -->
 
-      <if k="paved"> <output/> </if>
+      <if k="paved"    > <output/> </if>
+      <if k="multilane"> <output/> </if>
 
-      <if k="lanes"> <output/> </if>
+      <if k="bridge">
 
-      <if k="bridge"> <output/> </if>
+        <if k="bridge" v="arch">            <set v="yes"/> </if>
+        <if k="bridge" v="bascule">         <set v="yes"/> </if>
+        <if k="bridge" v="drawbridge">      <set v="yes"/> </if>
+        <if k="bridge" v="footbridge">      <set v="yes"/> </if>
+        <if k="bridge" v="gangway">         <set v="yes"/> </if>
+        <if k="bridge" v="humpback">        <set v="yes"/> </if>
+        <if k="bridge" v="lifting">         <set v="yes"/> </if>
+        <if k="bridge" v="stepping_stones"> <set v="yes"/> </if>
+        <if k="bridge" v="suspension">      <set v="yes"/> </if>
+        <if k="bridge" v="swing">           <set v="yes"/> </if>
+        <if k="bridge" v="viaduct">         <set v="yes"/> </if>
 
-      <if k="tunnel"> <output/> </if>
+        <if k="bridge">
+          <output/>
+        </if>
+
+      </if>
+
+      <if k="tunnel">
+
+        <if k="tunnel" v="underpass"> <set v="yes"/> </if>
+
+        <if k="tunnel">
+          <output/>
+        </if>
+
+      </if>
+
+      <!-- The "footroute" and "bicycleroute" properties can be set here,
+           but normally they are set by the relation rules. -->
 
       <!-- Output the restriction tags -->
 

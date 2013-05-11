@@ -1,11 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML>
 
-<HEAD>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-<title>Routino : Tagging Rules</title>
-
 <!--
  Routino documentation - tagging
 
@@ -27,7 +22,10 @@
  along with this program.  If not, see http://www.gnu.org/licenses/.
 -->
 
-<link href="style.css" type="text/css" rel="stylesheet">
+<HEAD>
+<TITLE>Routino : Tagging Rules</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<LINK href="style.css" type="text/css" rel="stylesheet">
 </HEAD>
 
 <BODY>
@@ -101,9 +99,9 @@ By default for nodes all types of transport are allowed to pass through a node
 and specific tags must be used to remove the permissions for the transport.
 
 
-<h4><a name="H_1_2_1_2" title="roundabout (node)"></a>The roundabout Tag</h4>
+<h4><a name="H_1_2_1_2" title="highway (node)"></a>The highway Tag</h4>
 
-The <em>roundabout</em> tag for mini-roundabouts is recognised and used to
+The <em>highway</em> tag for <em>mini_roundabout</em> is recognised and used to
 improve the description of the route.
 
 
@@ -229,7 +227,7 @@ The <em>oneway</em> tag is used to specify that traffic is only allowed to
 travel in one direction.
 
 
-<h4><a name="H_1_2_2_12" title="roundabout (way)"></a>The roundabout Tag</h4>
+<h4><a name="H_1_2_2_12" title="roundabout"></a>The roundabout Tag</h4>
 
 The <em>roundabout</em> tag is used to specify that a highway is part of a
 roundabout to improve the description of the calculated route.
@@ -446,9 +444,8 @@ are also accepted here.
 
 <h4><a name="H_1_3_1_5" title="Mini-roundabouts"></a>Mini-roundabouts</h4>
 
-If the <em>highway</em> tag has the value <em>mini_roundabout</em> or
-the <em>junction</em> tag has the value <em>roundabout</em> then
-a <em>junction</em> tag with value <em>roundabout</em>is passed through.
+The <em>highway</em> tag for <em>mini_roundabout</em> is passed through without
+change since it is required for the output route descriptions.
 
 
 <!-- ==================== Way Tag Transformations ==================== -->
@@ -940,7 +937,7 @@ change.
 <hr>
 
 <address>
-&copy; Andrew M. Bishop - <a href="http://www.routino.org/">http://www.routino.org/</a>
+&copy; Andrew M. Bishop = &lt;amb "at" gedanken.demon.co.uk&gt;
 </address>
 
 </div>
