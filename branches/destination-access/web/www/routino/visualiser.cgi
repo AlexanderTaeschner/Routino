@@ -42,7 +42,7 @@ my %legalparams=(
                  "latmax" => "[-0-9.]+",
                  "lonmin" => "[-0-9.]+",
                  "lonmax" => "[-0-9.]+",
-                 "data"   => "(junctions|super|waytype-.*|highway-.*|transport-.*|barrier-.*|turns|speed|weight|height|width|length|property-.*|errorlogs)",
+                 "data"   => "(junctions|super|waytype-.*|highway-.*|transport-.*|destination-.*|barrier-.*|turns|speed|weight|height|width|length|property-.*|errorlogs)",
                  "dump"   => "(node|segment|turn-relation|errorlog)[0-9]+"
                 );
 
@@ -85,20 +85,21 @@ if(defined $data)
    # Parameters to limit range selected
 
    my %limits=(
-               "junctions" => 0.2,
-               "super"     => 0.2,
-               "waytype"   => 0.2,
-               "highway"   => 0.2,
-               "transport" => 0.2,
-               "barrier"   => 0.3,
-               "turns"     => 0.3,
-               "speed"     => 0.3,
-               "weight"    => 0.3,
-               "height"    => 0.3,
-               "width"     => 0.3,
-               "length"    => 0.3,
-               "property"  => 0.3,
-               "errorlogs" => 0.5
+               "junctions"   => 0.2,
+               "super"       => 0.2,
+               "waytype"     => 0.2,
+               "highway"     => 0.2,
+               "transport"   => 0.2,
+               "destination" => 0.2,
+               "barrier"     => 0.3,
+               "turns"       => 0.3,
+               "speed"       => 0.3,
+               "weight"      => 0.3,
+               "height"      => 0.3,
+               "width"       => 0.3,
+               "length"      => 0.3,
+               "property"    => 0.3,
+               "errorlogs"   => 0.5
               );
 
    # Check the parameters
@@ -115,11 +116,12 @@ if(defined $data)
      }
 
    my $subdata=$data;
-   $subdata="waytype"   if($data =~ m%waytype-%);
-   $subdata="highway"   if($data =~ m%highway-%);
-   $subdata="transport" if($data =~ m%transport-%);
-   $subdata="barrier"   if($data =~ m%barrier-%);
-   $subdata="property"  if($data =~ m%property-%);
+   $subdata="waytype"     if($data =~ m%waytype-%);
+   $subdata="highway"     if($data =~ m%highway-%);
+   $subdata="transport"   if($data =~ m%transport-%);
+   $subdata="destination" if($data =~ m%destination-%);
+   $subdata="barrier"     if($data =~ m%barrier-%);
+   $subdata="property"    if($data =~ m%property-%);
 
    if(($latmax-$latmin)>$limits{$subdata} || ($lonmax-$lonmin)>$limits{$subdata})
      {

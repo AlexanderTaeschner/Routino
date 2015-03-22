@@ -39,6 +39,8 @@ void OutputHighway(Nodes *nodes,Segments *segments,Ways *ways,Relations *relatio
 
 void OutputTransport(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax,Transport transport);
 
+void OutputDestination(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax,Transport transport);
+
 void OutputBarrier(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax,Transport transport);
 
 void OutputTurnRestrictions(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,double latmin,double latmax,double lonmin,double lonmax);

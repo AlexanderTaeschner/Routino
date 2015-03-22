@@ -231,6 +231,29 @@
     </div>
 
     <div class="hideshow_box">
+      <span id="hideshow_destination_show" onclick="hideshow_show('destination');" class="hideshow_show">+</span>
+      <span id="hideshow_destination_hide" onclick="hideshow_hide('destination');" class="hideshow_hide">-</span>
+      <input type="button" id="destination" onclick="displayData('destination');" value="@@DESTINATION-BUTTON@@">
+      <div id="hideshow_destination_div" style="display: none;">
+        $$DESTINATION-INFO$$
+        <form name="destinations" id="destinations" action="#" method="get" onsubmit="return false;">
+          <table>
+            <tr><td>@@TRANSPORT-FOOT@@:      <td><input name="destination" type="radio" value="foot"       onchange="displayData('destination');">
+            <tr><td>@@TRANSPORT-HORSE@@:     <td><input name="destination" type="radio" value="horse"      onchange="displayData('destination');">
+            <tr><td>@@TRANSPORT-WHEELCHAIR@@:<td><input name="destination" type="radio" value="wheelchair" onchange="displayData('destination');">
+            <tr><td>@@TRANSPORT-BICYCLE@@:   <td><input name="destination" type="radio" value="bicycle"    onchange="displayData('destination');">
+            <tr><td>@@TRANSPORT-MOPED@@:     <td><input name="destination" type="radio" value="moped"      onchange="displayData('destination');">
+            <tr><td>@@TRANSPORT-MOTORCYCLE@@:<td><input name="destination" type="radio" value="motorcycle" onchange="displayData('destination');">
+            <tr><td>@@TRANSPORT-MOTORCAR@@:  <td><input name="destination" type="radio" value="motorcar"   onchange="displayData('destination');" checked>
+            <tr><td>@@TRANSPORT-GOODS@@:     <td><input name="destination" type="radio" value="goods"      onchange="displayData('destination');">
+            <tr><td>@@TRANSPORT-HGV@@:       <td><input name="destination" type="radio" value="hgv"        onchange="displayData('destination');">
+            <tr><td>@@TRANSPORT-PSV@@:       <td><input name="destination" type="radio" value="psv"        onchange="displayData('destination');">
+          </table>
+        </form>
+      </div>
+    </div>
+
+    <div class="hideshow_box">
       <span id="hideshow_barrier_show" onclick="hideshow_show('barrier');" class="hideshow_show">+</span>
       <span id="hideshow_barrier_hide" onclick="hideshow_hide('barrier');" class="hideshow_hide">-</span>
       <input type="button" id="barrier" onclick="displayData('barrier');" value="@@BARRIER-BUTTON@@">
