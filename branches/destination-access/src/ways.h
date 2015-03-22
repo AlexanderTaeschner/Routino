@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2014 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -41,6 +41,7 @@ struct _Way
  index_t      name;             /*+ The offset of the name of the way in the names array. +*/
 
  transports_t allow;            /*+ The type of traffic allowed on the way. +*/
+ transports_t destination;      /*+ The type of traffic allowed on the way - only for access to waypoints. +*/
 
  highway_t    type;             /*+ The highway type of the way. +*/
 

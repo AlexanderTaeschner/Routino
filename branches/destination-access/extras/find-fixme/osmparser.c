@@ -220,7 +220,7 @@ void ProcessNodeTags(TagList *tags,int64_t node_id,double latitude,double longit
 
  /* Store the node */
 
- AppendNodeList(nodes,id,degrees_to_radians(latitude),degrees_to_radians(longitude),0,0);
+ AppendNodeList(nodes,id,degrees_to_radians(latitude),degrees_to_radians(longitude),0,0,0);
 }
 
 

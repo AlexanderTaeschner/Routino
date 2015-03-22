@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2014 Andrew M. Bishop
+ This file Copyright 2008-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -45,6 +45,8 @@ struct _Node
  ll_off_t     lonoffset;        /*+ The node longitude offset within its bin. +*/
 
  transports_t allow;            /*+ The types of transport that are allowed through the node. +*/
+ transports_t destination;      /*+ The types of transport that are allowed through the node - only for access to waypoints. +*/
+
  nodeflags_t  flags;            /*+ Flags containing extra information (e.g. super-node, turn restriction). +*/
 };
 

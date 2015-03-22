@@ -861,6 +861,7 @@ void SaveWayList(WaysX *waysx,const char *filename)
 
     highways|=HIGHWAYS(wayx.way.type);
     allow   |=wayx.way.allow;
+    allow   |=wayx.way.destination;
     props   |=wayx.way.props;
 
     WriteFileBuffered(fd,&wayx.way,sizeof(Way));

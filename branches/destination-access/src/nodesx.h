@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2014 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -45,8 +45,10 @@ struct _NodeX
  latlong_t    latitude;         /*+ The node latitude. +*/
  latlong_t    longitude;        /*+ The node longitude. +*/
 
- transports_t allow;            /*+ The node allowed traffic. +*/
- nodeflags_t  flags;            /*+ The node flags. +*/
+ transports_t allow;            /*+ The types of transport that are allowed through the node. +*/
+ transports_t destination;      /*+ The types of transport that are allowed through the node - only for access to waypoints. +*/
+
+ nodeflags_t  flags;            /*+ Flags containing extra information (e.g. super-node, turn restriction). +*/
 };
 
 /*+ A structure containing a set of nodes (memory format). +*/
@@ -94,7 +96,7 @@ struct _NodesX
 NodesX *NewNodeList(int append,int readonly);
 void FreeNodeList(NodesX *nodesx,int keep);
 
-void AppendNodeList(NodesX *nodesx,node_t id,double latitude,double longitude,transports_t allow,nodeflags_t flags);
+void AppendNodeList(NodesX *nodesx,node_t id,double latitude,double longitude,transports_t allow,transports_t destination,nodeflags_t flags);
 void FinishNodeList(NodesX *nodesx);
 
 index_t IndexNodeX(NodesX *nodesx,node_t id);
