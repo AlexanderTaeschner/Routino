@@ -173,10 +173,12 @@ void FreeNodeList(NodesX *nodesx,int keep)
 
   transports_t allow The allowed traffic types through the node.
 
+  transports_t destination The allowed traffic types through the node - only for access to waypoints.
+
   nodeflags_t flags The flags to set for this node.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void AppendNodeList(NodesX *nodesx,node_t id,double latitude,double longitude,transports_t allow,nodeflags_t flags)
+void AppendNodeList(NodesX *nodesx,node_t id,double latitude,double longitude,transports_t allow,transports_t destination,nodeflags_t flags)
 {
  NodeX nodex;
 
@@ -184,6 +186,7 @@ void AppendNodeList(NodesX *nodesx,node_t id,double latitude,double longitude,tr
  nodex.latitude =radians_to_latlong(latitude);
  nodex.longitude=radians_to_latlong(longitude);
  nodex.allow=allow;
+ nodex.destination=destination;
  nodex.flags=flags;
 
  WriteFileBuffered(nodesx->fd,&nodex,sizeof(NodeX));
@@ -844,6 +847,7 @@ void SaveNodeList(NodesX *nodesx,const char *filename,SegmentsX *segmentsx)
     node.lonoffset=latlong_to_off(nodex.longitude);
     node.firstseg=segmentsx->firstnode[i];
     node.allow=nodex.allow;
+    node.destination=nodex.destination;
     node.flags=nodex.flags;
 
     if(node.flags&NODE_SUPER)

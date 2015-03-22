@@ -120,6 +120,9 @@ int WaysCompare(Way *way1p,Way *way2p)
  if(way1p->allow!=way2p->allow)
     return((int)way1p->allow - (int)way2p->allow);
 
+ if(way1p->destination!=way2p->destination)
+    return((int)way1p->destination - (int)way2p->destination);
+
  if(way1p->props!=way2p->props)
     return((int)way1p->props - (int)way2p->props);
 

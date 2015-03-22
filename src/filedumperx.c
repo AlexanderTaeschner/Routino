@@ -137,6 +137,7 @@ static void print_nodes(const char *filename)
     printf("Node %"Pnode_t"\n",nodex.id);
     printf("  lat=%d lon=%d\n",nodex.latitude,nodex.longitude);
     printf("  allow=%02x\n",nodex.allow);
+    printf("  destination=%02x\n",nodex.destination);
     printf("  flags=%02x\n",nodex.flags);
    }
 
@@ -197,6 +198,7 @@ static void print_ways(const char *filename)
        printf("  name=%s\n",name);
     printf("  type=%02x\n",wayx.way.type);
     printf("  allow=%02x\n",wayx.way.allow);
+    printf("  destination=%02x\n",wayx.way.destination);
     if(wayx.way.props)
        printf("  props=%02x\n",wayx.way.props);
     if(wayx.way.speed)

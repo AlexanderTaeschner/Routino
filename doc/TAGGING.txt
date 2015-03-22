@@ -300,9 +300,14 @@ Generic Access Permissions
 - - - - - - - - - - - - -
 
    The access tag is used to specify the default access restrictions
-   through the node. If the tag value is no or private or a selection of
-   other values then all transport types are denied access (later tag
-   transformation rules may add specific transport types back again).
+   through the node. If the tag value is no or false or 0 or a selection
+   of other values then all transport types are denied access. If the tag
+   value is destination or privatethen access is only allowed to get to
+   the first or last waypoint. If the tag value is yes or true or 1or a
+   selection of other values then all transport types are allowed access.
+
+   Later tag transformation rules may add specific transport types back
+   again.
 
 Other Access Permissions
 - - - - - - - - - - - -
@@ -553,4 +558,4 @@ Turn Restrictions
 
 --------
 
-Copyright 2008-2014 Andrew M. Bishop.
+Copyright 2008-2015 Andrew M. Bishop.

@@ -166,13 +166,14 @@
 
     <if v="designated"  > <set v="yes"/> </if>
     <if v="permissive"  > <set v="yes"/> </if>
-    <if v="destination" > <set v="yes"/> </if>
     <if v="true"        > <set v="yes"/> </if>
     <if v="public"      > <set v="yes"/> </if>
     <if v="official"    > <set v="yes"/> </if>
-                           
+
+    <if v="destination" > <set v="destination"/> </if>
+    <if v="private"     > <set v="destination"/> </if>
+
     <if v="unsuitable"  > <set v="no"/> </if>
-    <if v="private"     > <set v="no"/> </if>
     <if v="limited"     > <set v="no"/> </if>
     <if v="restricted"  > <set v="no"/> </if>
     <if v="agricultural"> <set v="no"/> </if>
@@ -183,26 +184,41 @@
     <if k="access">
 
       <ifnot k="access" v="yes">
-        <output k="foot"       v="no"/>
-        <output k="horse"      v="no"/>
-        <output k="wheelchair" v="no"/>
-        <output k="bicycle"    v="no"/>
-        <output k="moped"      v="no"/>
-        <output k="motorcycle" v="no"/>
-        <output k="motorcar"   v="no"/>
-        <output k="goods"      v="no"/>
-        <output k="hgv"        v="no"/>
-        <output k="psv"        v="no"/>
+        <ifnot k="access" v="destination">
+          <output k="foot"       v="no"/>
+          <output k="horse"      v="no"/>
+          <output k="wheelchair" v="no"/>
+          <output k="bicycle"    v="no"/>
+          <output k="moped"      v="no"/>
+          <output k="motorcycle" v="no"/>
+          <output k="motorcar"   v="no"/>
+          <output k="goods"      v="no"/>
+          <output k="hgv"        v="no"/>
+          <output k="psv"        v="no"/>
 
-        <if k="access" v="foot">
-          <set k="foot" v="yes"/>
-          <logerror k="access" message="using 'access' = 'no' ; 'foot' = 'yes'"/>
-          <set k="access" v="no"/>
-        </if>
+          <if k="access" v="foot">
+            <set k="foot" v="yes"/>
+            <logerror k="access" message="using 'access' = 'no' ; 'foot' = 'yes'"/>
+            <set k="access" v="no"/>
+          </if>
 
-        <ifnot k="access" v="no">
-          <logerror k="access" message="using 'no'"/>
+          <ifnot k="access" v="no">
+            <logerror k="access" message="using 'no'"/>
+          </ifnot>
         </ifnot>
+
+        <if k="access" v="destination">
+          <output k="foot"       v="destination"/>
+          <output k="horse"      v="destination"/>
+          <output k="wheelchair" v="destination"/>
+          <output k="bicycle"    v="destination"/>
+          <output k="moped"      v="destination"/>
+          <output k="motorcycle" v="destination"/>
+          <output k="motorcar"   v="destination"/>
+          <output k="goods"      v="destination"/>
+          <output k="hgv"        v="destination"/>
+          <output k="psv"        v="destination"/>
+        </if>
       </ifnot>
 
     </if> <!-- k="access" -->
@@ -212,17 +228,29 @@
     <if k="vehicle">
 
       <ifnot k="vehicle" v="yes">
-        <output k="bicycle"    v="no"/>
-        <output k="moped"      v="no"/>
-        <output k="motorcycle" v="no"/>
-        <output k="motorcar"   v="no"/>
-        <output k="goods"      v="no"/>
-        <output k="hgv"        v="no"/>
-        <output k="psv"        v="no"/>
+        <ifnot k="vehicle" v="destination">
+          <output k="bicycle"    v="no"/>
+          <output k="moped"      v="no"/>
+          <output k="motorcycle" v="no"/>
+          <output k="motorcar"   v="no"/>
+          <output k="goods"      v="no"/>
+          <output k="hgv"        v="no"/>
+          <output k="psv"        v="no"/>
 
-        <ifnot k="vehicle" v="no">
-          <logerror k="vehicle" message="using 'no'"/>
+          <ifnot k="vehicle" v="no">
+            <logerror k="vehicle" message="using 'no'"/>
+          </ifnot>
         </ifnot>
+
+        <if k="vehicle" v="destination">
+          <output k="bicycle"    v="destination"/>
+          <output k="moped"      v="destination"/>
+          <output k="motorcycle" v="destination"/>
+          <output k="motorcar"   v="destination"/>
+          <output k="goods"      v="destination"/>
+          <output k="hgv"        v="destination"/>
+          <output k="psv"        v="destination"/>
+        </if>
       </ifnot>
 
     </if> <!-- k="vehicle" -->
@@ -230,16 +258,27 @@
     <if k="motor_vehicle">
 
       <ifnot k="motor_vehicle" v="yes">
-        <output k="moped"      v="no"/>
-        <output k="motorcycle" v="no"/>
-        <output k="motorcar"   v="no"/>
-        <output k="goods"      v="no"/>
-        <output k="hgv"        v="no"/>
-        <output k="psv"        v="no"/>
+        <ifnot k="motor_vehicle" v="destination">
+          <output k="moped"      v="no"/>
+          <output k="motorcycle" v="no"/>
+          <output k="motorcar"   v="no"/>
+          <output k="goods"      v="no"/>
+          <output k="hgv"        v="no"/>
+          <output k="psv"        v="no"/>
 
-        <ifnot k="motor_vehicle" v="no">
-          <logerror k="motor_vehicle" message="using 'no'"/>
+          <ifnot k="motor_vehicle" v="no">
+            <logerror k="motor_vehicle" message="using 'no'"/>
+          </ifnot>
         </ifnot>
+
+        <if k="motor_vehicle" v="destination">
+          <output k="moped"      v="destination"/>
+          <output k="motorcycle" v="destination"/>
+          <output k="motorcar"   v="destination"/>
+          <output k="goods"      v="destination"/>
+          <output k="hgv"        v="destination"/>
+          <output k="psv"        v="destination"/>
+        </if>
       </ifnot>
 
     </if> <!-- k="motor_vehicle" -->
@@ -594,15 +633,16 @@
 
       <if v="designated"  > <set v="yes"/> </if>
       <if v="permissive"  > <set v="yes"/> </if>
-      <if v="destination" > <set v="yes"/> </if>
       <if v="true"        > <set v="yes"/> </if>
       <if v="public"      > <set v="yes"/> </if>
-      <if v="customers"   > <set v="yes"/> </if>
-      <if v="customer"    > <set v="yes"/> </if>
       <if v="official"    > <set v="yes"/> </if>
-                           
+
+      <if v="destination" > <set v="destination"/> </if>
+      <if v="private"     > <set v="destination"/> </if>
+      <if v="customers"   > <set v="destination"/> </if>
+      <if v="customer"    > <set v="destination"/> </if>
+
       <if v="unsuitable"  > <set v="no"/> </if>
-      <if v="private"     > <set v="no"/> </if>
       <if v="limited"     > <set v="no"/> </if>
       <if v="restricted"  > <set v="no"/> </if>
       <if v="agricultural"> <set v="no"/> </if>
@@ -613,54 +653,69 @@
       <if k="access">
 
         <ifnot k="access" v="yes">
-          <output k="foot"       v="no"/>
-          <output k="horse"      v="no"/>
-          <output k="wheelchair" v="no"/>
-          <output k="bicycle"    v="no"/>
-          <output k="moped"      v="no"/>
-          <output k="motorcycle" v="no"/>
-          <output k="motorcar"   v="no"/>
-          <output k="goods"      v="no"/>
-          <output k="hgv"        v="no"/>
-          <output k="psv"        v="no"/>
+          <ifnot k="access" v="destination">
+            <output k="foot"       v="no"/>
+            <output k="horse"      v="no"/>
+            <output k="wheelchair" v="no"/>
+            <output k="bicycle"    v="no"/>
+            <output k="moped"      v="no"/>
+            <output k="motorcycle" v="no"/>
+            <output k="motorcar"   v="no"/>
+            <output k="goods"      v="no"/>
+            <output k="hgv"        v="no"/>
+            <output k="psv"        v="no"/>
 
-          <if k="access" v="foot">
-            <set k="foot" v="yes"/>
-            <logerror k="access" message="using 'access' = 'no' ; 'foot' = 'yes'"/>
-            <set k="access" v="no"/>
-          </if>
+            <if k="access" v="foot">
+              <set k="foot" v="yes"/>
+              <logerror k="access" message="using 'access' = 'no' ; 'foot' = 'yes'"/>
+              <set k="access" v="no"/>
+            </if>
 
-          <if k="access" v="wheelchair">
-            <set k="wheelchair" v="yes"/>
-            <logerror k="access" message="using 'access' = 'no' ; 'wheelchair' = 'yes'"/>
-            <set k="access" v="no"/>
-          </if>
+            <if k="access" v="wheelchair">
+              <set k="wheelchair" v="yes"/>
+              <logerror k="access" message="using 'access' = 'no' ; 'wheelchair' = 'yes'"/>
+              <set k="access" v="no"/>
+            </if>
 
-          <if k="access" v="motor_vehicle">
-            <set k="motor_vehicle" v="yes"/>
-            <logerror k="access" message="using 'access' = 'no' ; 'motor_vehicle' = 'yes'"/>
-            <set k="access" v="no"/>
-          </if>
+            <if k="access" v="motor_vehicle">
+              <set k="motor_vehicle" v="yes"/>
+              <logerror k="access" message="using 'access' = 'no' ; 'motor_vehicle' = 'yes'"/>
+              <set k="access" v="no"/>
+            </if>
 
-          <if k="access" v="hgv">
-            <set k="hgv" v="yes"/>
-            <logerror k="access" message="using 'access' = 'no' ; 'hgv' = 'yes'"/>
-            <set k="access" v="no"/>
-          </if>
+            <if k="access" v="hgv">
+              <set k="hgv" v="yes"/>
+              <logerror k="access" message="using 'access' = 'no' ; 'hgv' = 'yes'"/>
+              <set k="access" v="no"/>
+            </if>
 
-          <if k="access" v="bus">
-            <set v="psv" />
-          </if>
+            <if k="access" v="bus">
+              <set v="psv" />
+            </if>
 
-          <if k="access" v="psv">
-            <set k="psv" v="yes"/>
-            <logerror k="access" message="using 'access' = 'no' ; 'psv' = 'yes'"/>
-            <set k="access" v="no"/>
-          </if>
+            <if k="access" v="psv">
+              <set k="psv" v="yes"/>
+              <logerror k="access" message="using 'access' = 'no' ; 'psv' = 'yes'"/>
+              <set k="access" v="no"/>
+            </if>
 
-          <ifnot k="access" v="no">
-            <logerror k="access" message="using 'no'"/>
+            <ifnot k="access" v="no">
+              <logerror k="access" message="using 'no'"/>
+            </ifnot>
           </ifnot>
+
+          <if k="access" v="destination">
+            <output k="foot"       v="destination"/>
+            <output k="horse"      v="destination"/>
+            <output k="wheelchair" v="destination"/>
+            <output k="bicycle"    v="destination"/>
+            <output k="moped"      v="destination"/>
+            <output k="motorcycle" v="destination"/>
+            <output k="motorcar"   v="destination"/>
+            <output k="goods"      v="destination"/>
+            <output k="hgv"        v="destination"/>
+            <output k="psv"        v="destination"/>
+          </if>
         </ifnot>
 
       </if> <!-- k="access" -->
@@ -670,17 +725,29 @@
       <if k="vehicle">
 
         <ifnot k="vehicle" v="yes">
-          <output k="bicycle"    v="no"/>
-          <output k="moped"      v="no"/>
-          <output k="motorcycle" v="no"/>
-          <output k="motorcar"   v="no"/>
-          <output k="goods"      v="no"/>
-          <output k="hgv"        v="no"/>
-          <output k="psv"        v="no"/>
+          <ifnot k="vehicle" v="destination">
+            <output k="bicycle"    v="no"/>
+            <output k="moped"      v="no"/>
+            <output k="motorcycle" v="no"/>
+            <output k="motorcar"   v="no"/>
+            <output k="goods"      v="no"/>
+            <output k="hgv"        v="no"/>
+            <output k="psv"        v="no"/>
 
-          <ifnot k="vehicle" v="no">
-            <logerror k="vehicle" message="using 'no'"/>
+            <ifnot k="vehicle" v="no">
+              <logerror k="vehicle" message="using 'no'"/>
+            </ifnot>
           </ifnot>
+
+          <if k="vehicle" v="destination">
+            <output k="bicycle"    v="destination"/>
+            <output k="moped"      v="destination"/>
+            <output k="motorcycle" v="destination"/>
+            <output k="motorcar"   v="destination"/>
+            <output k="goods"      v="destination"/>
+            <output k="hgv"        v="destination"/>
+            <output k="psv"        v="destination"/>
+          </if>
         </ifnot>
 
       </if> <!-- k="vehicle" -->
@@ -688,16 +755,27 @@
       <if k="motor_vehicle">
 
         <ifnot k="motor_vehicle" v="yes">
-          <output k="moped"      v="no"/>
-          <output k="motorcycle" v="no"/>
-          <output k="motorcar"   v="no"/>
-          <output k="goods"      v="no"/>
-          <output k="hgv"        v="no"/>
-          <output k="psv"        v="no"/>
+          <ifnot k="motor_vehicle" v="destination">
+            <output k="moped"      v="no"/>
+            <output k="motorcycle" v="no"/>
+            <output k="motorcar"   v="no"/>
+            <output k="goods"      v="no"/>
+            <output k="hgv"        v="no"/>
+            <output k="psv"        v="no"/>
 
-          <ifnot k="motor_vehicle" v="no">
-            <logerror k="motor_vehicle" message="using 'no'"/>
+            <ifnot k="motor_vehicle" v="no">
+              <logerror k="motor_vehicle" message="using 'no'"/>
+            </ifnot>
           </ifnot>
+
+          <if k="motor_vehicle" v="destination">
+            <output k="moped"      v="destination"/>
+            <output k="motorcycle" v="destination"/>
+            <output k="motorcar"   v="destination"/>
+            <output k="goods"      v="destination"/>
+            <output k="hgv"        v="destination"/>
+            <output k="psv"        v="destination"/>
+          </if>
         </ifnot>
 
       </if> <!-- k="motor_vehicle" -->

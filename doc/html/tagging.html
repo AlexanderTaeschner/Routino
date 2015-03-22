@@ -11,7 +11,7 @@
 
  Part of the Routino routing software.
 
- This file Copyright 2008-2014 Andrew M. Bishop
+ This file Copyright 2008-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -428,9 +428,17 @@ a default set of disallowed transport types.
 <h4 id="H_1_3_1_2" title="Generic access">Generic Access Permissions</h4>
 
 The <em>access</em> tag is used to specify the default access restrictions
-through the node.  If the tag value is <em>no</em> or <em>private</em> or a
-selection of other values then all transport types are denied access (later tag
-transformation rules may add specific transport types back again).
+through the node.  If the tag value is <em>no</em> or <em>false</em>
+or <em>0</em> or a selection of other values then all transport types are denied
+access.  If the tag value is <em>destination</em> or <em>private</em>then access
+is only allowed to get to the first or last waypoint.  If the tag value
+is <em>yes</em> or <em>true</em> or <em>1</em>or a selection of other values
+then all transport types are allowed access.
+
+<p>
+
+Later tag transformation rules may add specific transport types back
+again.
 
 
 <h4 id="H_1_3_1_3" title="Other access">Other Access Permissions</h4>
