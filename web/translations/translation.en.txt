@@ -274,6 +274,11 @@ $$TRANSPORT-INFO$$
 Each segment allowed for the chosen type of transport is drawn.
 $$TRANSPORT-INFO$$
 
+@@DESTINATION-BUTTON@@	Display Destination Segments
+$$DESTINATION-INFO$$
+Each segment allowed only for access to waaypoints for the chosen type of transport is drawn.
+$$DESTINATION-INFO$$
+
 @@BARRIER-BUTTON@@	Display Barrier Nodes
 $$BARRIER-INFO$$
 Each barrier blocking the chosen type of transport is drawn.

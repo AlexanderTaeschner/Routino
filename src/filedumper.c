@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2014 Andrew M. Bishop
+ This file Copyright 2008-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -180,6 +180,8 @@ int main(int argc,char** argv)
        OutputHighway(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax,highway);
     else if(!strncmp(option_data,"transport",9) && option_data[9]=='-' && (transport=TransportType(option_data+10))!=Transport_None)
        OutputTransport(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax,transport);
+    else if(!strncmp(option_data,"destination",11) && option_data[11]=='-' && (transport=TransportType(option_data+12))!=Transport_None)
+       OutputDestination(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax,transport);
     else if(!strncmp(option_data,"barrier",7) && option_data[7]=='-' && (transport=TransportType(option_data+8))!=Transport_None)
        OutputBarrier(OSMNodes,OSMSegments,OSMWays,OSMRelations,latmin,latmax,lonmin,lonmax,transport);
     else if(!strcmp(option_data,"turns"))
@@ -506,6 +508,7 @@ static void print_node(Nodes *nodes,index_t item)
  printf("  firstseg=%"Pindex_t"\n",nodep->firstseg);
  printf("  latoffset=%d lonoffset=%d (latitude=%.6f longitude=%.6f)\n",nodep->latoffset,nodep->lonoffset,radians_to_degrees(latitude),radians_to_degrees(longitude));
  printf("  allow=%02x (%s)\n",nodep->allow,AllowedNameList(nodep->allow));
+ printf("  destination=%02x (%s)\n",nodep->destination,AllowedNameList(nodep->destination));
  if(IsSuperNode(nodep))
     printf("  Super-Node\n");
  if(nodep->flags & NODE_MINIRNDBT)
@@ -563,6 +566,7 @@ static void print_way(Ways *ways,index_t item)
                                    wayp->type&Highway_CycleBothWays?",Cycle-Both-Ways":"",
                                    wayp->type&Highway_Roundabout?",Roundabout":"");
  printf("  allow=%02x (%s)\n",wayp->allow,AllowedNameList(wayp->allow));
+ printf("  destination=%02x (%s)\n",wayp->destination,AllowedNameList(wayp->destination));
  if(wayp->props)
     printf("  props=%02x (%s)\n",wayp->props,PropertiesNameList(wayp->props));
  if(wayp->speed)
@@ -795,7 +799,7 @@ static void print_node_osm(Nodes *nodes,index_t item)
 
  GetLatLong(nodes,item,nodep,&latitude,&longitude);
 
- if(nodep->allow==Transports_ALL && nodep->flags==0)
+ if(nodep->allow==Transports_ALL && nodep->destination==Transports_None && nodep->flags==0)
     printf("  <node id='%lu' lat='%.7f' lon='%.7f' version='1' />\n",(unsigned long)item+1,radians_to_degrees(latitude),radians_to_degrees(longitude));
  else
    {
@@ -814,8 +818,12 @@ static void print_node_osm(Nodes *nodes,index_t item)
        printf("    <tag k='routino:turnrestriction' v='yes' />\n");
 
     for(i=1;i<Transport_Count;i++)
-       if(!(nodep->allow & TRANSPORTS(i)))
+      {
+       if(nodep->destination & TRANSPORTS(i))
+          printf("    <tag k='%s' v='destination' />\n",TransportName(i));
+       else if(!(nodep->allow & TRANSPORTS(i)))
           printf("    <tag k='%s' v='no' />\n",TransportName(i));
+      }
 
     printf("  </node>\n");
    }
@@ -874,8 +882,12 @@ static void print_segment_osm(Segments *segments,index_t item,Ways *ways)
     printf("    <tag k='name' v='%s' />\n",ParseXML_Encode_Safe_XML(name));
 
  for(i=1;i<Transport_Count;i++)
-    if(wayp->allow & TRANSPORTS(i))
+   {
+    if(wayp->destination & TRANSPORTS(i))
+       printf("    <tag k='%s' v='destination' />\n",TransportName(i));
+    else if(wayp->allow & TRANSPORTS(i))
        printf("    <tag k='%s' v='yes' />\n",TransportName(i));
+   }
 
  for(i=1;i<Property_Count;i++)
     if(wayp->props & PROPERTIES(i))
@@ -970,7 +982,7 @@ static void print_node_visualiser(Nodes *nodes,index_t item)
 
  GetLatLong(nodes,item,nodep,&latitude,&longitude);
 
- if(nodep->allow==Transports_ALL && nodep->flags==0)
+ if(nodep->allow==Transports_ALL && nodep->destination==Transports_None && nodep->flags==0)
     printf("&lt;routino:node id='%lu' lat='%.7f' lon='%.7f' /&gt;\n",(unsigned long)item+1,radians_to_degrees(latitude),radians_to_degrees(longitude));
  else
    {
@@ -989,8 +1001,12 @@ static void print_node_visualiser(Nodes *nodes,index_t item)
        printf("&nbsp;&nbsp;&nbsp;&lt;tag k='routino:turnrestriction' v='yes' /&gt;\n");
 
     for(i=1;i<Transport_Count;i++)
-       if(!(nodep->allow & TRANSPORTS(i)))
+      {
+       if(nodep->destination & TRANSPORTS(i))
+          printf("&nbsp;&nbsp;&nbsp;&lt;tag k='%s' v='destination' /&gt;\n",TransportName(i));
+       else if(!(nodep->allow & TRANSPORTS(i)))
           printf("&nbsp;&nbsp;&nbsp;&lt;tag k='%s' v='no' /&gt;\n",TransportName(i));
+      }
 
     printf("&lt;/routino:node&gt;\n");
    }
@@ -1049,7 +1065,9 @@ static void print_segment_visualiser(Segments *segments,index_t item,Ways *ways)
     printf("&nbsp;&nbsp;&nbsp;&lt;tag k='name' v='%s' /&gt;\n",ParseXML_Encode_Safe_XML(name));
 
  for(i=1;i<Transport_Count;i++)
-    if(wayp->allow & TRANSPORTS(i))
+    if(wayp->destination & TRANSPORTS(i))
+       printf("&nbsp;&nbsp;&nbsp;&lt;tag k='%s' v='destination' /&gt;\n",TransportName(i));
+    else if(wayp->allow & TRANSPORTS(i))
        printf("&nbsp;&nbsp;&nbsp;&lt;tag k='%s' v='yes' /&gt;\n",TransportName(i));
 
  for(i=1;i<Property_Count;i++)
@@ -1239,20 +1257,22 @@ static void print_usage(int detail,const char *argerr,const char *err)
             "  --data=<data-type>      * the type of data to select.\n"
             "\n"
             "  <data-type> can be selected from:\n"
-            "      junctions   = segment count at each junction.\n"
-            "      super       = super-node and super-segments.\n"
-            "      waytype-*   = segments of oneway, cyclebothways or roundabout type.\n"
-            "      highway-*   = segments of the specified highway type.\n"
-            "      transport-* = segments allowing the specified transport type.\n"
-            "      barrier-*   = nodes disallowing the specified transport type.\n"
-            "      turns       = turn restrictions.\n"
-            "      speed       = speed limits.\n"
-            "      weight      = weight limits.\n"
-            "      height      = height limits.\n"
-            "      width       = width limits.\n"
-            "      length      = length limits.\n"
-            "      property-*  = segments with the specified property.\n"
-            "      errorlogs   = errors logged during parsing.\n"
+            "      junctions     = segment count at each junction.\n"
+            "      super         = super-node and super-segments.\n"
+            "      waytype-*     = segments of oneway, cyclebothways or roundabout type.\n"
+            "      highway-*     = segments of the specified highway type.\n"
+            "      transport-*   = segments allowing the specified transport type.\n"
+            "      destination-* = segments allowing the specified transport type to\n"
+            "                      destinations only (i.e. first and last waypoint).\n"
+            "      barrier-*     = nodes disallowing the specified transport type.\n"
+            "      turns         = turn restrictions.\n"
+            "      speed         = speed limits.\n"
+            "      weight        = weight limits.\n"
+            "      height        = height limits.\n"
+            "      width         = width limits.\n"
+            "      length        = length limits.\n"
+            "      property-*    = segments with the specified property.\n"
+            "      errorlogs     = errors logged during parsing.\n"
             "\n"
             "--dump                    Dump selected contents of the database.\n"
             "  --node=<node>             * the node with the selected index.\n"

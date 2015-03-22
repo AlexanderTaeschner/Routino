@@ -30,6 +30,7 @@ var data_types=[
                 "waytype",
                 "highway",
                 "transport",
+                "destination",
                 "barrier",
                 "turns",
                 "speed",
@@ -620,6 +621,15 @@ function displayData(datatype)  // called from visualiser.html
    case "transport":
     var transport;
     var transports=document.forms["transports"].elements["transport"];
+    for(var t in transports)
+       if(transports[t].checked)
+          transport=transports[t].value;
+    url+="-" + transport;
+    ajaxGET(url, runTransportSuccess, runFailure);
+    break;
+   case "destination":
+    var transport;
+    var transports=document.forms["destinations"].elements["destination"];
     for(var t in transports)
        if(transports[t].checked)
           transport=transports[t].value;

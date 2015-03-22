@@ -524,6 +524,8 @@ filedumper
                o transport-* = segments allowing the specified transport
                  type (e.g. transport-foot to display segments accessible
                  on foot).
+               o destination-* = segments allowing the specified transport
+                 type to destinations only (i.e. first and last waypoint).
                o turns = turn restrictions.
                o speed = speed limits.
                o weight = weight limits.
@@ -645,4 +647,4 @@ filedumperx
 
 --------
 
-Copyright 2008-2014 Andrew M. Bishop.
+Copyright 2008-2015 Andrew M. Bishop.
