@@ -64,7 +64,8 @@ static void print_usage(int detail,const char *argerr,const char *err);
 
 static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,
                                index_t start_node,index_t prev_segment,index_t finish_node,
-                               int start_waypoint,int finish_waypoint);
+                               int start_waypoint,int finish_waypoint,
+                               int allow_start_destination,int allow_finish_destination);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -484,23 +485,20 @@ int main(int argc,char** argv)
     first_waypoint=last_waypoint;
     last_waypoint=temp;
 
-    last_waypoint--;
-
     inc_dec_waypoint=-1;
    }
  else
    {
-    last_waypoint++;
-
     inc_dec_waypoint=1;
    }
 
  /* Loop through all pairs of waypoints */
 
- for(waypoint=first_waypoint;waypoint!=last_waypoint;waypoint+=inc_dec_waypoint)
+ for(waypoint=first_waypoint;waypoint!=(last_waypoint+inc_dec_waypoint);waypoint+=inc_dec_waypoint)
    {
     distance_t distmax=km_to_distance(MAXSEARCH);
     distance_t distmin;
+    int allow_destination;
     index_t segment=NO_SEGMENT;
     index_t node1,node2;
 
@@ -517,15 +515,20 @@ int main(int argc,char** argv)
     start_node=finish_node;
     start_waypoint=finish_waypoint;
 
+    if(waypoint==first_waypoint || (waypoint==last_waypoint && !loop))
+       allow_destination=1;
+    else
+       allow_destination=0;
+
     if(exactnodes)
       {
-       finish_node=FindClosestNode(OSMNodes,OSMSegments,OSMWays,point_lat[waypoint],point_lon[waypoint],distmax,profile,&distmin);
+       finish_node=FindClosestNode(OSMNodes,OSMSegments,OSMWays,point_lat[waypoint],point_lon[waypoint],distmax,profile,&distmin,allow_destination);
       }
     else
       {
        distance_t dist1,dist2;
 
-       segment=FindClosestSegment(OSMNodes,OSMSegments,OSMWays,point_lat[waypoint],point_lon[waypoint],distmax,profile,&distmin,&node1,&node2,&dist1,&dist2);
+       segment=FindClosestSegment(OSMNodes,OSMSegments,OSMWays,point_lat[waypoint],point_lon[waypoint],distmax,profile,&distmin,&node1,&node2,&dist1,&dist2,allow_destination);
 
        if(segment!=NO_SEGMENT)
           finish_node=CreateFakes(OSMNodes,OSMSegments,waypoint,LookupSegment(OSMSegments,segment,1),node1,node2,dist1,dist2);
@@ -576,7 +579,7 @@ int main(int argc,char** argv)
 
     /* Calculate the route */
 
-    results[nresults]=CalculateRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,join_segment,finish_node,start_waypoint,finish_waypoint);
+    results[nresults]=CalculateRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,join_segment,finish_node,start_waypoint,finish_waypoint,(start_waypoint==first_waypoint),(finish_waypoint==last_waypoint));
 
     join_segment=results[nresults]->last_segment;
 
@@ -587,7 +590,7 @@ int main(int argc,char** argv)
 
  if(loop && finish_node!=NO_NODE)
    {
-    results[nresults]=CalculateRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,finish_node,join_segment,first_node,last_waypoint,first_waypoint);
+    results[nresults]=CalculateRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,finish_node,join_segment,first_node,last_waypoint,first_waypoint,0,1);
 
     nresults++;
    }
@@ -660,11 +663,16 @@ int main(int argc,char** argv)
   int start_waypoint The starting waypoint.
 
   int finish_waypoint The finish waypoint.
+
+  int allow_start_destination A flag to indicate if the start of the route can use highways marked as 'destination'.
+
+  int allow_finish_destination A flag to indicate if the finish of the route can use highways marked as 'destination'.
   ++++++++++++++++++++++++++++++++++++++*/
 
 static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,
                                index_t start_node,index_t prev_segment,index_t finish_node,
-                               int start_waypoint,int finish_waypoint)
+                               int start_waypoint,int finish_waypoint,
+                               int allow_start_destination,int allow_finish_destination)
 {
  Results *complete=NULL;
 
@@ -685,7 +693,7 @@ static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
 
        GetLatLong(nodes,start_node,NULL,&lat,&lon);
 
-       prev_segment=FindClosestSegment(nodes,segments,ways,lat,lon,1,profile,&distmin,&node1,&node2,&dist1,&dist2);
+       prev_segment=FindClosestSegment(nodes,segments,ways,lat,lon,1,profile,&distmin,&node1,&node2,&dist1,&dist2,(allow_start_destination||allow_finish_destination));
       }
 
     fake_segment=CreateFakeNullSegment(segments,start_node,prev_segment,finish_waypoint);
@@ -707,14 +715,14 @@ static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
 
     /* Calculate the beginning of the route */
 
-    begin=FindStartRoutes(nodes,segments,ways,relations,profile,start_node,prev_segment,finish_node);
+    begin=FindStartRoutes(nodes,segments,ways,relations,profile,start_node,prev_segment,finish_node,allow_start_destination);
 
     if(begin)
       {
        /* Check if the end of the route was reached */
 
        if(begin->finish_node!=NO_NODE)
-          complete=ExtendStartRoutes(nodes,segments,ways,relations,profile,begin,finish_node);
+          complete=ExtendStartRoutes(nodes,segments,ways,relations,profile,begin,finish_node,allow_start_destination);
       }
     else
       {
@@ -725,7 +733,7 @@ static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
 
           prev_segment=NO_SEGMENT;
 
-          begin=FindStartRoutes(nodes,segments,ways,relations,profile,start_node,prev_segment,finish_node);
+          begin=FindStartRoutes(nodes,segments,ways,relations,profile,start_node,prev_segment,finish_node,allow_start_destination);
          }
 
        if(begin)
@@ -733,7 +741,7 @@ static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
           /* Check if the end of the route was reached */
 
           if(begin->finish_node!=NO_NODE)
-             complete=ExtendStartRoutes(nodes,segments,ways,relations,profile,begin,finish_node);
+             complete=ExtendStartRoutes(nodes,segments,ways,relations,profile,begin,finish_node,allow_start_destination);
          }
        else
          {
@@ -750,7 +758,7 @@ static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
 
        /* Calculate the end of the route */
 
-       end=FindFinishRoutes(nodes,segments,ways,relations,profile,finish_node);
+       end=FindFinishRoutes(nodes,segments,ways,relations,profile,finish_node,allow_finish_destination);
 
        if(!end)
          {
@@ -769,7 +777,7 @@ static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
 
           FreeResultsList(begin);
 
-          begin=FindStartRoutes(nodes,segments,ways,relations,profile,start_node,NO_SEGMENT,finish_node);
+          begin=FindStartRoutes(nodes,segments,ways,relations,profile,start_node,NO_SEGMENT,finish_node,allow_start_destination);
 
           if(begin)
              middle=FindMiddleRoute(nodes,segments,ways,relations,profile,begin,end);

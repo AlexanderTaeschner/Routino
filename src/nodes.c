@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2014 Andrew M. Bishop
+ This file Copyright 2008-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,7 @@
 
 /* Local functions */
 
-static int valid_segment_for_profile(Ways *ways,Segment *segmentp,Profile *profile);
+static int valid_segment_for_profile(Ways *ways,Segment *segmentp,Profile *profile,int allow_destination);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -142,10 +142,12 @@ void DestroyNodeList(Nodes *nodes)
   Profile *profile The profile of the mode of transport.
 
   distance_t *bestdist Returns the distance to the best node.
+
+  int allow_destination The option to allow routing to follow highways tagged as 'destination'.
   ++++++++++++++++++++++++++++++++++++++*/
 
 index_t FindClosestNode(Nodes *nodes,Segments *segments,Ways *ways,double latitude,double longitude,
-                        distance_t distance,Profile *profile,distance_t *bestdist)
+                        distance_t distance,Profile *profile,distance_t *bestdist,int allow_destination)
 {
  ll_bin_t   latbin=latlong_to_bin(radians_to_latlong(latitude ))-nodes->file.latzero;
  ll_bin_t   lonbin=latlong_to_bin(radians_to_latlong(longitude))-nodes->file.lonzero;
@@ -236,7 +238,7 @@ index_t FindClosestNode(Nodes *nodes,Segments *segments,Ways *ways,double latitu
 
                 do
                   {
-                   if(IsNormalSegment(segmentp) && valid_segment_for_profile(ways,segmentp,profile))
+                   if(IsNormalSegment(segmentp) && valid_segment_for_profile(ways,segmentp,profile,allow_destination))
                      {
                       bestn=i;
                       bestd=dist;
@@ -294,11 +296,14 @@ index_t FindClosestNode(Nodes *nodes,Segments *segments,Ways *ways,double latitu
   distance_t *bestdist1 Returns the distance along the segment to the node at one end.
 
   distance_t *bestdist2 Returns the distance along the segment to the node at the other end.
+
+  int allow_destination The option to allow routing to follow highways tagged as 'destination'.
   ++++++++++++++++++++++++++++++++++++++*/
 
 index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double latitude,double longitude,
                            distance_t distance,Profile *profile, distance_t *bestdist,
-                           index_t *bestnode1,index_t *bestnode2,distance_t *bestdist1,distance_t *bestdist2)
+                           index_t *bestnode1,index_t *bestnode2,distance_t *bestdist1,distance_t *bestdist2,
+                           int allow_destination)
 {
  ll_bin_t   latbin=latlong_to_bin(radians_to_latlong(latitude ))-nodes->file.latzero;
  ll_bin_t   lonbin=latlong_to_bin(radians_to_latlong(longitude))-nodes->file.lonzero;
@@ -390,7 +395,7 @@ index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double lat
 
                 do
                   {
-                   if(IsNormalSegment(segmentp) && valid_segment_for_profile(ways,segmentp,profile))
+                   if(IsNormalSegment(segmentp) && valid_segment_for_profile(ways,segmentp,profile,allow_destination))
                      {
                       distance_t dist2,dist3;
                       double lat2,lon2,dist3a,dist3b,distp;
@@ -495,16 +500,18 @@ index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double lat
   Segment *segmentp The segment to check.
 
   Profile *profile The profile to check.
+
+  int allow_destination The option to allow routing to follow highways tagged as 'destination'.
   ++++++++++++++++++++++++++++++++++++++*/
 
-static int valid_segment_for_profile(Ways *ways,Segment *segmentp,Profile *profile)
+static int valid_segment_for_profile(Ways *ways,Segment *segmentp,Profile *profile,int allow_destination)
 {
  Way *wayp=LookupWay(ways,segmentp->way,1);
  score_t segment_pref;
  int i;
 
- /* mode of transport must be allowed on the highway */
- if(!(wayp->allow&profile->allow))
+ /* mode of transport must be allowed on the highway (optionally as destination only) */
+ if(!(wayp->allow&profile->allow) && !(allow_destination && wayp->destination&profile->allow))
     return(0);
 
  /* must obey weight restriction (if exists) */

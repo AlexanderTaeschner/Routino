@@ -102,11 +102,12 @@ Nodes *LoadNodeList(const char *filename);
 void DestroyNodeList(Nodes *nodes);
 
 index_t FindClosestNode(Nodes *nodes,Segments *segments,Ways *ways,double latitude,double longitude,
-                        distance_t distance,Profile *profile,distance_t *bestdist);
+                        distance_t distance,Profile *profile,distance_t *bestdist,int allow_destination);
 
 index_t FindClosestSegment(Nodes *nodes,Segments *segments,Ways *ways,double latitude,double longitude,
                            distance_t distance,Profile *profile, distance_t *bestdist,
-                           index_t *bestnode1,index_t *bestnode2,distance_t *bestdist1,distance_t *bestdist2);
+                           index_t *bestnode1,index_t *bestnode2,distance_t *bestdist1,distance_t *bestdist2,
+                           int allow_destination);
 
 void GetLatLong(Nodes *nodes,index_t index,Node *nodep,double *latitude,double *longitude);
 
