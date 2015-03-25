@@ -916,9 +916,11 @@ static Results *FindSuperRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
   index_t prev_segment The previous segment before the start node.
 
   index_t finish_node The finish node.
+
+  int allow_destination The option to allow routing to follow highways tagged as 'destination'.
   ++++++++++++++++++++++++++++++++++++++*/
 
-Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t start_node,index_t prev_segment,index_t finish_node)
+Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t start_node,index_t prev_segment,index_t finish_node,int allow_destination)
 {
  Results *results;
  Queue   *queue;
@@ -1041,8 +1043,8 @@ Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
 
        wayp=LookupWay(ways,segmentp->way,1);
 
-       /* mode of transport must be allowed on the highway */
-       if(!(wayp->allow&profile->allow))
+       /* mode of transport must be allowed on the highway (optionally as destination only) */
+       if(!(wayp->allow&profile->allow) && !(allow_destination && wayp->destination&profile->allow))
           goto endloop;
 
        /* must obey weight restriction (if exists) */
@@ -1077,8 +1079,8 @@ Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
        if(!IsFakeNode(node2))
           node2p=LookupNode(nodes,node2,2);
 
-       /* mode of transport must be allowed through node2 unless it is the final node */
-       if(node2p && node2!=finish_node && !(node2p->allow&profile->allow))
+       /* mode of transport must be allowed through node2 unless it is the final node (optionally as destination only) */
+       if(node2p && node2!=finish_node && !(node2p->allow&profile->allow) && !(allow_destination && node2p->destination&profile->allow))
           goto endloop;
 
        /* calculate the score for the segment and cumulative */
@@ -1235,9 +1237,11 @@ Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
   Results *begin The partial set of routes already computed.
 
   index_t finish_node The finish node.
+
+  int allow_destination The option to allow routing to follow highways tagged as 'destination'.
   ++++++++++++++++++++++++++++++++++++++*/
 
-Results *ExtendStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,Results *begin,index_t finish_node)
+Results *ExtendStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,Results *begin,index_t finish_node,int allow_destination)
 {
  Results *results=begin;
  Queue   *queue;
@@ -1358,8 +1362,8 @@ Results *ExtendStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations 
 
        wayp=LookupWay(ways,segmentp->way,1);
 
-       /* mode of transport must be allowed on the highway */
-       if(!(wayp->allow&profile->allow))
+       /* mode of transport must be allowed on the highway (optionally as destination only) */
+       if(!(wayp->allow&profile->allow) && !(allow_destination && wayp->destination&profile->allow))
           goto endloop;
 
        /* must obey weight restriction (if exists) */
@@ -1394,8 +1398,8 @@ Results *ExtendStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations 
        if(!IsFakeNode(node2))
           node2p=LookupNode(nodes,node2,2);
 
-       /* mode of transport must be allowed through node2 unless it is the final node */
-       if(node2p && node2!=finish_node && !(node2p->allow&profile->allow))
+       /* mode of transport must be allowed through node2 unless it is the final node (optionally as destination only) */
+       if(node2p && node2!=finish_node && !(node2p->allow&profile->allow) && !(allow_destination && node2p->destination&profile->allow))
           goto endloop;
 
        /* calculate the score for the segment and cumulative */
@@ -1501,9 +1505,11 @@ Results *ExtendStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations 
   Profile *profile The profile containing the transport type, speeds and allowed highways.
 
   index_t finish_node The finishing node.
+
+  int allow_destination The option to allow routing to follow highways tagged as 'destination'.
   ++++++++++++++++++++++++++++++++++++++*/
 
-Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t finish_node)
+Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t finish_node,int allow_destination)
 {
  Results *results,*results2;
  Queue   *queue;
@@ -1629,8 +1635,8 @@ Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *
 
        wayp=LookupWay(ways,segmentp->way,1);
 
-       /* mode of transport must be allowed on the highway */
-       if(!(wayp->allow&profile->allow))
+       /* mode of transport must be allowed on the highway (optionally as destination only) */
+       if(!(wayp->allow&profile->allow) && !(allow_destination && wayp->destination&profile->allow))
           goto endloop;
 
        /* must obey weight restriction (if exists) */
@@ -1665,8 +1671,8 @@ Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *
        if(!IsFakeNode(node2))
           node2p=LookupNode(nodes,node2,2);
 
-       /* mode of transport must be allowed through node2 */
-       if(node2p && !(node2p->allow&profile->allow))
+       /* mode of transport must be allowed through node2 (optionally as destination only) */
+       if(node2p && !(node2p->allow&profile->allow) && !(allow_destination && node2p->destination&profile->allow))
           goto endloop;
 
        /* calculate the score for the segment and cumulative */
