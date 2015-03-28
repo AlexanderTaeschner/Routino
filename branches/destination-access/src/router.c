@@ -711,7 +711,7 @@ static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
    }
  else
    {
-    Results *begin,*end;
+    Results *begin;
 
     /* Calculate the beginning of the route */
 
@@ -722,7 +722,7 @@ static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
        /* Check if the end of the route was reached */
 
        if(begin->finish_node!=NO_NODE)
-          complete=ExtendStartRoutes(nodes,segments,ways,relations,profile,begin,finish_node,allow_start_destination);
+          complete=begin;
       }
     else
       {
@@ -741,7 +741,7 @@ static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
           /* Check if the end of the route was reached */
 
           if(begin->finish_node!=NO_NODE)
-             complete=ExtendStartRoutes(nodes,segments,ways,relations,profile,begin,finish_node,allow_start_destination);
+             complete=begin;
          }
        else
          {
@@ -754,7 +754,7 @@ static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
 
     if(!complete)
       {
-       Results *middle;
+       Results *middle,*end;
 
        /* Calculate the end of the route */
 
