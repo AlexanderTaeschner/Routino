@@ -1171,7 +1171,7 @@ Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
             }
          }
 
-       if(finish_result || (node2p && !IsSuperNode(node2p)))
+       if(finish_result || (node2p && !IsSuperNode(node2p)) || (allow_destination && wayp->destination&profile->allow))
           InsertInQueue(queue,result2,result2->score);
        else if(node2p && IsSuperNode(node2p))
           InsertInQueue(superqueue,result2,result2->score);
@@ -1342,7 +1342,7 @@ Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *
           goto endloop;
 
        /* must be a super segment if node1 is a super-node to give starting super-segment for finding middle route. */
-       if((!IsFakeNode(node1) && IsSuperNode(node1p)) && !IsSuperSegment(segmentp))
+       if((!IsFakeNode(node1) && IsSuperNode(node1p)) && !IsSuperSegment(segmentp) && !allow_destination)
           goto endloop;
 
        /* must obey one-way restrictions (unless profile allows) */
@@ -1397,6 +1397,10 @@ Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *
          }
 
        wayp=LookupWay(ways,segmentp->way,1);
+
+       /* keep normal segments beyond the super-node if destination access is allowed and available */
+       if(allow_destination && (!IsFakeNode(node1) && IsSuperNode(node1p)) && IsNormalSegment(segmentp) && !(wayp->destination&profile->allow))
+          goto endloop;
 
        /* mode of transport must be allowed on the highway (optionally as destination only) */
        if(!(wayp->allow&profile->allow) && !(allow_destination && wayp->destination&profile->allow))
@@ -1467,7 +1471,7 @@ Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *
        else
           goto endloop;
 
-       if(IsFakeNode(node1) || !IsSuperNode(node1p))
+       if(IsFakeNode(node1) || !IsSuperNode(node1p) || (allow_destination && wayp->destination&profile->allow))
           InsertInQueue(queue,result2,result2->score);
 
       endloop:
