@@ -73,7 +73,7 @@ struct _Nodes
 
 #if !SLIM
 
- void     *data;                /*+ The memory mapped data in the file. +*/
+ char     *data;                /*+ The memory mapped data in the file. +*/
 
  index_t  *offsets;             /*+ A pointer to the array of offsets in the file. +*/
 
