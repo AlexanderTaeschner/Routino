@@ -35,7 +35,11 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <string.h>
+#if !defined(_MSC_VER)
 #include <strings.h>
+#else
+#define strcasecmp _stricmp
+#endif
 #include <ctype.h>
 
 #include "xmlparse.h"
