@@ -616,7 +616,7 @@ int SkipFileBuffered(int fd,off_t skip)
 
  if((filebuffers[fd]->pointer+skip)>filebuffers[fd]->length)
    {
-    skip-=filebuffers[fd]->length-filebuffers[fd]->pointer;
+    skip-=(off_t)(filebuffers[fd]->length-filebuffers[fd]->pointer);
 
     filebuffers[fd]->pointer=0;
     filebuffers[fd]->length=0;
