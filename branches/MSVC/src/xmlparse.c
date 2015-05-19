@@ -23,7 +23,14 @@
 
 
 #include <stdio.h>
+
+#if defined(_MSC_VER)
+#include <io.h>
+#define read(fd,address,length)  _read(fd,address,(unsigned int)(length))
+#else
 #include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <inttypes.h>
 #include <stdint.h>
