@@ -20,7 +20,19 @@
  ***************************************/
 
 
+#if defined(_MSC_VER)
+#include <io.h>
+typedef unsigned __int64  ssize_t;
+#define read(fd,address,length)  _read(fd,address,(unsigned int)(length))
+#define write(fd,address,length) _write(fd,address,(unsigned int)(length))
+#define lseek       _lseeki64
+#define open        _open
+#define close       _close
+#define unlink      _unlink
+#else
 #include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -352,7 +364,11 @@ int OpenFileBufferedNew(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER)
+ fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC);
+#else
  fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+#endif
 
  if(fd<0)
    {
@@ -380,7 +396,11 @@ int OpenFileBufferedAppend(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER)
+ fd=open(filename,O_WRONLY|O_CREAT|O_APPEND);
+#else
  fd=open(filename,O_WRONLY|O_CREAT|O_APPEND,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+#endif
 
  if(fd<0)
    {
