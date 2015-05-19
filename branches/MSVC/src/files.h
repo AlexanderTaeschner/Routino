@@ -51,10 +51,14 @@
 
 char *FileName(const char *dirname,const char *prefix, const char *name);
 
+#if !defined(_MSC_VER)
+
 void *MapFile(const char *filename);
 void *MapFileWriteable(const char *filename);
 
 void *UnmapFile(const void *address);
+
+#endif
 
 int SlimMapFile(const char *filename);
 int SlimMapFileWriteable(const char *filename);

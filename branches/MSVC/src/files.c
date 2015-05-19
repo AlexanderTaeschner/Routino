@@ -39,7 +39,9 @@ typedef unsigned __int64  ssize_t;
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
+#if !defined(_MSC_VER)
 #include <sys/mman.h>
+#endif
 #include <sys/types.h>
 
 #include "files.h"
@@ -54,12 +56,15 @@ struct mmapinfo
        size_t length;           /*+ The length of the file. +*/
 };
 
+#if !defined(_MSC_VER)
+
 /*+ The list of memory mapped files. +*/
 static struct mmapinfo *mappedfiles;
 
 /*+ The number of mapped files. +*/
 static int nmappedfiles=0;
 
+#endif
 
 #define BUFFLEN 4096
 
@@ -106,6 +111,8 @@ char *FileName(const char *dirname,const char *prefix, const char *name)
  return(filename);
 }
 
+
+#if !defined(_MSC_VER)
 
 /*++++++++++++++++++++++++++++++++++++++
   Open a file read-only and map it into memory.
@@ -276,6 +283,8 @@ void *UnmapFile(const void *address)
 
  return(NULL);
 }
+
+#endif /* !defined(_MSC_VER) */
 
 
 /*++++++++++++++++++++++++++++++++++++++
