@@ -29,6 +29,7 @@
 #if defined(_MSC_VER)
 
 #include <WinSock2.h>
+#include <stdint.h>
 
 static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
 
