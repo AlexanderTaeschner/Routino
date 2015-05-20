@@ -313,7 +313,7 @@ int main(int argc,char** argv)
        if(highway==Highway_None)
           print_usage(0,argv[arg],NULL);
 
-       profile->highway[highway]=atof(equal+1);
+       profile->highway[highway]=(score_t)atof(equal+1);
 
        free(string);
       }
@@ -355,7 +355,7 @@ int main(int argc,char** argv)
        if(property==Property_None)
           print_usage(0,argv[arg],NULL);
 
-       profile->props_yes[property]=atof(equal+1);
+       profile->props_yes[property]=(score_t)atof(equal+1);
 
        free(string);
       }
