@@ -40,7 +40,7 @@ typedef unsigned __int64  ssize_t;
 #include <errno.h>
 #include <sys/stat.h>
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #include "mman-win32.h"
 #else
 #include <sys/mman.h>
@@ -373,7 +373,11 @@ int OpenFileBufferedNew(const char *filename)
 #if defined(_MSC_VER)
  fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC);
 #else
+#if defined(__MINGW32__)
+ fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC,S_IRUSR|S_IWUSR);
+#else
  fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+#endif
 #endif
 
  if(fd<0)
@@ -405,7 +409,11 @@ int OpenFileBufferedAppend(const char *filename)
 #if defined(_MSC_VER)
  fd=open(filename,O_WRONLY|O_CREAT|O_APPEND);
 #else
+#if defined(__MINGW32__)
+ fd=open(filename,O_WRONLY|O_CREAT|O_APPEND,S_IRUSR|S_IWUSR);
+#else
  fd=open(filename,O_WRONLY|O_CREAT|O_APPEND,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+#endif
 #endif
 
  if(fd<0)
