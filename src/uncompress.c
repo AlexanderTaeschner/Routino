@@ -52,7 +52,9 @@
 
 /* Local functions */
 
+#if (defined(USE_BZIP2) && USE_BZIP2) || (defined(USE_GZIP) && USE_GZIP) || (defined(USE_XZ) && USE_XZ)
 static int pipe_and_fork(int filefd,int *pipefd);
+#endif
 
 #if defined(USE_BZIP2) && USE_BZIP2
 static void uncompress_bzip2_pipe(int filefd,int pipefd);
@@ -160,6 +162,8 @@ int Uncompress_Xz(int filefd)
 }
 
 
+#if (defined(USE_BZIP2) && USE_BZIP2) || (defined(USE_GZIP) && USE_GZIP) || (defined(USE_XZ) && USE_XZ)
+
 /*++++++++++++++++++++++++++++++++++++++
   Create a pipe and then fork returning in the parent and child with a different end of the pipe.
 
@@ -232,6 +236,8 @@ static int pipe_and_fork(int filefd,int *pipefd)
     return(1);
    }
 }
+
+#endif /* (defined(USE_BZIP2) && USE_BZIP2) || (defined(USE_GZIP) && USE_GZIP) || (defined(USE_XZ) && USE_XZ) */
 
 
 #if defined(USE_BZIP2) && USE_BZIP2
