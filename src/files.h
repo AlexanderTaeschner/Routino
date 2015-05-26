@@ -27,7 +27,7 @@
  * will need to change this line to the value 0 so that seek() and
  * read()/write() are used instead of pread()/pwrite(). */
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #define HAVE_PREAD_PWRITE 0
 #else
 #define HAVE_PREAD_PWRITE 1
@@ -122,7 +122,7 @@ static inline int SlimReplace(int fd,const void *address,size_t length,off_t pos
  if(lseek(fd,position,SEEK_SET)!=position)
     return(-1);
 
- if(write(fd,address,length)!=length)
+ if(write(fd,address,length)!=(ssize_t)length)
     return(-1);
 
 #endif
@@ -159,7 +159,7 @@ static inline int SlimFetch(int fd,void *address,size_t length,off_t position)
  if(lseek(fd,position,SEEK_SET)!=position)
     return(-1);
 
- if(read(fd,address,length)!=length)
+ if(read(fd,address,length)!=(ssize_t)length)
     return(-1);
 
 #endif
