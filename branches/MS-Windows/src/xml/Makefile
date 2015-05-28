@@ -98,17 +98,17 @@ install:
 clean:
 	rm -f *~
 	rm -f *.o
+	rm -f $(EXE) *.exe
+	rm -f $(E) test-skeleton
+	rm -f $(D) .deps/test-skeleton.d
+	rm -f $(C) test-skeleton.c
+	rm -fr .deps
 	rm -f core
 	rm -f *.gcda *.gcno *.gcov gmon.out
 
 ########
 
 distclean: clean
-	-rm -f $(EXE) *.exe
-	-rm -f $(E) test-skeleton
-	-rm -f $(D) .deps/test-skeleton.d
-	-rm -f $(C) test-skeleton.c
-	-rm -fr .deps
 
 ########
 
