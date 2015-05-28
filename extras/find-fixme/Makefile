@@ -167,18 +167,18 @@ install:
 clean:
 	rm -f *~
 	rm -f *.o
+	cd $(WEBBINDIR) && rm -f $(EXE) *.exe
+	cd $(WEBDATADIR) && rm -f $(DATA)
+	cd $(WEBWWWDIR) && rm -f $(WWW_COPY)
+	cd $(WEBWWWDIR) && rm -f $(DOC_COPY)
+	rm -f $(EXE) *.exe
+	rm -f $(D)
+	rm -fr .deps
 	rm -f core
 
 ########
 
 distclean: clean
-	-cd $(WEBBINDIR) && rm -f $(EXE)
-	-cd $(WEBDATADIR) && rm -f $(DATA)
-	-cd $(WEBWWWDIR) && rm -f $(WWW_COPY)
-	-cd $(WEBWWWDIR) && rm -f $(DOC_COPY)
-	-rm -f $(EXE) *.exe
-	-rm -f $(D)
-	-rm -fr .deps
 
 ########
 

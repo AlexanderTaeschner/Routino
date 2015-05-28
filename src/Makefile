@@ -205,6 +205,9 @@ clean: clean-local
 clean-local:
 	rm -f *~
 	rm -f *.o
+	rm -f $(EXE) *.exe
+	rm -f $(D)
+	rm -fr .deps
 	rm -f core
 	rm -f *.gcda *.gcno *.gcov gmon.out
 
@@ -216,9 +219,6 @@ distclean: distclean-local
 	done
 
 distclean-local: clean-local
-	-rm -f $(EXE) *.exe
-	-rm -f $(D)
-	-rm -fr .deps
 
 ########
 

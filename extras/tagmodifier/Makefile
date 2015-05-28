@@ -70,14 +70,14 @@ install:
 clean:
 	rm -f *~
 	rm -f *.o
+	rm -f $(EXE) *.exe
+	rm -f $(D)
+	rm -fr .deps
 	rm -f core
 
 ########
 
 distclean: clean
-	-rm -f $(EXE) *.exe
-	-rm -f $(D)
-	-rm -fr .deps
 
 ########
 
