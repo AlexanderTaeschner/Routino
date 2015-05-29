@@ -48,26 +48,61 @@
 <div class="content">
 
 
-<h2 id="H_1_1">Compiling</h2>
+<h2 id="H_1_1">Using Cygwin</h2>
+
+Cygwin is a large collection of GNU and Open Source tools which provide
+functionality similar to a Linux distribution on Windows.  A Cygwin DLL
+provides substantial POSIX API functionality therefore providing direct
+compatibility for most UNIX source code.
+
+<p>
+
+Since Cygwin aims to replicate a Linux-like system on Windows it is the simplest
+method of compiling Routino.  The disadvantage is that all programs compiled
+with Cygwin require a number of runtime Cygwin libraries which may introduce a
+runtime speed penalty.
+
+<p>
+
+The installer for Cygwin can be downloaded from <tt>http://cygwin.org/</tt>;
+there are 32-bit and 64-bit versions available.  For compiling Routino the
+Cygwin installer should be run and the following packages selected (any
+dependencies will be automatically be selected at the next step):
+
+<ul>
+  <li><i>base packages</i>
+  <li>gcc-core (in 'Devel' menu)
+  <li>make (in 'Devel' menu)
+  <li>libbz2-devel (in 'Libs' menu)
+  <li>zlib-devel (in 'Libs' menu)
+  <li>perl (in 'Perl' menu)
+</ul>
+
+<p>
+
+To compile Routino open the "Cygwin Terminal" change to the Routino source
+directory and compile using the <tt>make</tt> command.
+
+
+<h2 id="H_1_2">Native Compilation</h2>
 
 Routino has limited support in the source code for compiling on Microsoft
-Windows.  This is much more complicated than compiling on Linux or other UNIX
-system and has some limitations.
+Windows.  This includes a set of functions that can replace the <tt>mmap()</tt>
+and <tt>munmap()</tt> UNIX functions which are not available on Microsoft
+Windows.
 
 <p>
 
 The source code should be downloaded, either as a release version file or from
 subversion - no instructions are provided for this step.  The release versions
-includes some files (mainly the web icons) which are not included in the
+include some files (mainly the web icons) which are not included in the
 subversion source (and which may be difficult to create on Windows).
 
 
-<h3 id="H_1_1_1">Using Microsoft Visual C</h3>
+<h3 id="H_1_2_1">Using Microsoft Visual C</h3>
 
 The Routino source code (for the router at least) has been modified so that it
-will compile with the Microsoft Visual C compiler.  This includes a set of
-functions that can replace the <tt>mmap()</tt> and <tt>munmap()</tt> UNIX
-functions which are not available on Microsoft Windows.
+will compile with the Microsoft Visual C compiler.
 
 <p>
 
@@ -83,7 +118,7 @@ must be set and for non-slim mode <tt>SLIM=1</tt> must be set.
 <p>
 
 The default directory for the Routino data files must be set in the
-<tt>ROUTINO_DATADIR</tt> pre-processor variable.  If the command line
+<tt>ROUTINO_DATADIR</tt> pre-processor variable.  If the router command line
 <tt>--data</tt> option is going to be used then this variable can be set to any
 value.
 
@@ -95,7 +130,7 @@ done by passing in the command line option <tt>-Dinline=__inline</tt> to the C
 compiler.
 
 
-<h3 id="H_1_1_2">Using MinGW</h3>
+<h3 id="H_1_2_2">Using MinGW</h3>
 
 MinGW is the "Minimalist GNU for Windows" which includes some of the common GNU
 programs; principally gcc and related programs for software development.
@@ -124,11 +159,11 @@ MinGW and MSYS software.  For example if MinGW was installed in the
 <p>
 
 From within this DOS command window change to the Routino source directory and
-compile Routino using the MinGW version of <tt>make</tt> with this
-command <tt>mingw32-make MINGW=1</tt>.
+compile using the MinGW version of <tt>make</tt> with this command
+<tt>mingw32-make MINGW=1</tt>.
 
 
-<h3 id="H_1_1_3">Using MinGW-W64</h3>
+<h3 id="H_1_2_3">Using MinGW-W64</h3>
 
 MinGW-w64 is an alernative implementation of the same concept as MinGW but
 allows for compilation to 32-bit or 64-bit executables.
@@ -143,7 +178,13 @@ are available from <tt>http://win-builds.org/</tt>.
 The compilation method for MinGW-w64 should be the same as for MinGW.
 
 
-<h2 id="H_1_2">Limitations</h2>
+<h3 id="H_1_2_4">Limitations</h3>
+
+A native Microsoft Windows compilation of Routino is more complicated than
+compiling on Linux, other UNIX system or Cygwin.  This is probably not an option
+if you are unfamiliar with software development on Microsoft Windows.
+
+<p>
 
 The size of files that can be accessed with an MSVC or MinGW compiled version of
 Routino is limited to 32-bits (about 2 GB).  The MinGW-w64 compiler on 64-bit
@@ -151,9 +192,10 @@ windows might be able to handle larger files but has not been tested.
 
 <p>
 
-The Windows operating system does not have a function equivalent to
-the <tt>fork()</tt> function on UNIX.  This means that it is not possible to use
-the <tt>planetsplitter</tt> program's built-in file decompression functions.
+The Windows operating system does not have a function equivalent to the
+<tt>fork()</tt> function on UNIX.  This means that it is not possible to use
+the <tt>planetsplitter</tt> program's built-in file decompression with an MSVC
+or MinGW compiled version of Routino.
 
 
 <h2 id="H_1_3">Example Web Pages</h2>
