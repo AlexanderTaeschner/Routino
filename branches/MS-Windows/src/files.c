@@ -130,7 +130,11 @@ void *MapFile(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDONLY|O_BINARY);
+#else
  fd=open(filename,O_RDONLY);
+#endif
 
  if(fd<0)
    {
@@ -194,7 +198,11 @@ void *MapFileWriteable(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDWR|O_BINARY);
+#else
  fd=open(filename,O_RDWR);
+#endif
 
  if(fd<0)
    {
@@ -298,7 +306,11 @@ int SlimMapFile(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDONLY|O_BINARY);
+#else
  fd=open(filename,O_RDONLY);
+#endif
 
  if(fd<0)
    {
@@ -326,7 +338,11 @@ int SlimMapFileWriteable(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDWR|O_BINARY);
+#else
  fd=open(filename,O_RDWR);
+#endif
 
  if(fd<0)
    {
@@ -371,12 +387,12 @@ int OpenFileBufferedNew(const char *filename)
  /* Open the file */
 
 #if defined(_MSC_VER)
- fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC);
+ fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC|O_BINARY);
 #else
 #if defined(__MINGW32__)
- fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC,S_IRUSR|S_IWUSR);
+ fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,S_IRUSR|S_IWUSR);
 #else
- fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+ fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC         ,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 #endif
 #endif
 
@@ -407,12 +423,12 @@ int OpenFileBufferedAppend(const char *filename)
  /* Open the file */
 
 #if defined(_MSC_VER)
- fd=open(filename,O_WRONLY|O_CREAT|O_APPEND);
+ fd=open(filename,O_WRONLY|O_CREAT|O_APPEND|O_BINARY);
 #else
 #if defined(__MINGW32__)
- fd=open(filename,O_WRONLY|O_CREAT|O_APPEND,S_IRUSR|S_IWUSR);
+ fd=open(filename,O_WRONLY|O_CREAT|O_APPEND|O_BINARY,S_IRUSR|S_IWUSR);
 #else
- fd=open(filename,O_WRONLY|O_CREAT|O_APPEND,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+ fd=open(filename,O_WRONLY|O_CREAT|O_APPEND         ,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 #endif
 #endif
 
@@ -442,7 +458,11 @@ int ReOpenFileBuffered(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDONLY|O_BINARY);
+#else
  fd=open(filename,O_RDONLY);
+#endif
 
  if(fd<0)
    {
@@ -739,7 +759,11 @@ int OpenFile(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDONLY|O_BINARY);
+#else
  fd=open(filename,O_RDONLY);
+#endif
 
  if(fd<0)
    {
