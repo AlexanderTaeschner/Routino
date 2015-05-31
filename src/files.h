@@ -66,6 +66,8 @@ int OpenFileBufferedAppend(const char *filename);
 
 int ReOpenFileBuffered(const char *filename);
 
+int ReplaceFileBuffered(const char *filename,int *oldfd);
+
 int WriteFileBuffered(int fd,const void *address,size_t length);
 int ReadFileBuffered(int fd,void *address,size_t length);
 
