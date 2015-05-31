@@ -77,7 +77,7 @@ SegmentsX *NewSegmentList(void)
 
  logassert(segmentsx,"Failed to allocate memory (try using slim mode?)"); /* Check calloc() worked */
 
- segmentsx->filename_tmp=(char*)malloc(strlen(option_tmpdirname)+32);
+ segmentsx->filename_tmp=(char*)malloc(strlen(option_tmpdirname)+40); /* allow %p to be up to 20 bytes */
 
  sprintf(segmentsx->filename_tmp,"%s/segmentsx.%p.tmp",option_tmpdirname,(void*)segmentsx);
 
