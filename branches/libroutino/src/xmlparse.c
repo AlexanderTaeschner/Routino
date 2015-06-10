@@ -1280,7 +1280,7 @@ char *ParseXML_Decode_Char_Ref(const char *string)
 /*++++++++++++++++++++++++++++++++++++++
   Convert a string into something that is safe to output in an XML file.
 
-  char *ParseXML_Encode_Safe_XML Returns a pointer to the replacement encoded string (or the original if no change needed).
+  char *ParseXML_Encode_Safe_XML Returns a pointer to a static replacement encoded string (or the original if no change needed).
 
   const char *string The string to convert.
   ++++++++++++++++++++++++++++++++++++++*/
@@ -1288,8 +1288,8 @@ char *ParseXML_Decode_Char_Ref(const char *string)
 char *ParseXML_Encode_Safe_XML(const char *string)
 {
  static const char hexstring[17]="0123456789ABCDEF";
+ static char *result=NULL;
  int i=0,j=0,len;
- char *result;
 
  for(i=0;string[i];i++)
     if(string[i]=='<' || string[i]=='>' || string[i]=='&' || string[i]=='\'' || string[i]=='"' || string[i]<32 || (unsigned char)string[i]>127)
@@ -1300,7 +1300,7 @@ char *ParseXML_Encode_Safe_XML(const char *string)
 
  len=i+256-6;
 
- result=(char*)malloc(len+7);
+ result=(char*)realloc((void*)result,len+7);
  strncpy(result,string,j=i);
 
  do
