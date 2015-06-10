@@ -416,7 +416,7 @@ int main(int argc,char** argv)
  if(option_html==0 && option_gpx_track==0 && option_gpx_route==0 && option_text==0 && option_text_all==0 && option_none==0)
     option_html=option_gpx_track=option_gpx_route=option_text=option_text_all=1;
 
- if(option_html || option_gpx_route || option_gpx_track)
+ if(option_html || option_gpx_route || option_gpx_track || option_text || option_text_all)
    {
     if(translations)
       {
