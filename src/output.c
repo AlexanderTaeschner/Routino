@@ -810,9 +810,6 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
                 prev_wayname=strcpy((char*)malloc(strlen(next_wayname)+1),next_wayname);
              else
                 prev_wayname=NULL;
-
-             if(next_wayname && next_wayname!=next_waynameraw)
-                free(next_wayname);
             }
 
           if(gpxroutefile)
