@@ -29,46 +29,55 @@
 #include "xmlparse.h"
 
 
-/* Global variables - default English values - Must not require any UTF-8 encoding */
+/* Default English translations - Must not require any UTF-8 encoding */
 
-char *translate_raw_copyright_creator[2]={"Creator","Routino - http://www.routino.org/"};
-char *translate_raw_copyright_source[2] ={NULL,NULL};
-char *translate_raw_copyright_license[2]={NULL,NULL};
+static Translation default_translation=
+{
+ .raw_copyright_creator = {"Creator","Routino - http://www.routino.org/"},
+ .raw_copyright_source  = {NULL,NULL},
+ .raw_copyright_license = {NULL,NULL},
 
-char *translate_xml_copyright_creator[2]={"Creator","Routino - http://www.routino.org/"};
-char *translate_xml_copyright_source[2] ={NULL,NULL};
-char *translate_xml_copyright_license[2]={NULL,NULL};
+ .xml_copyright_creator = {"Creator","Routino - http://www.routino.org/"},
+ .xml_copyright_source  = {NULL,NULL},
+ .xml_copyright_license = {NULL,NULL},
 
-char *translate_xml_heading[9] ={"South","South-West","West","North-West","North","North-East","East","South-East","South"};
-char *translate_xml_turn[9]    ={"Very sharp left","Sharp left","Left","Slight left","Straight on","Slight right","Right","Sharp right","Very sharp right"};
-char *translate_xml_ordinal[10]={"First","Second","Third","Fourth","Fifth","Sixth","Seventh","Eighth","Ninth","Tenth"};
+ .xml_heading = {"South","South-West","West","North-West","North","North-East","East","South-East","South"},
+ .xml_turn    = {"Very sharp left","Sharp left","Left","Slight left","Straight on","Slight right","Right","Sharp right","Very sharp right"},
+ .xml_ordinal = {"First","Second","Third","Fourth","Fifth","Sixth","Seventh","Eighth","Ninth","Tenth"},
 
-char *translate_raw_highway[Highway_Count]={"","motorway","trunk road","primary road","secondary road","tertiary road","unclassified road","residential road","service road","track","cycleway","path","steps","ferry"};
+ .raw_highway = {"","motorway","trunk road","primary road","secondary road","tertiary road","unclassified road","residential road","service road","track","cycleway","path","steps","ferry"},
 
-char *translate_xml_route_shortest="Shortest";
-char *translate_xml_route_quickest="Quickest";
+ .xml_route_shortest = "Shortest",
+ .xml_route_quickest = "Quickest",
 
-char *translate_html_waypoint  ="<span class='w'>Waypoint</span>"; /* span tag added when reading XML translations file */
-char *translate_html_junction  ="Junction";
-char *translate_html_roundabout="Roundabout";
+ .html_waypoint   = "<span class='w'>Waypoint</span>", /* span tag added when reading XML translations file */
+ .html_junction   = "Junction",
+ .html_roundabout = "Roundabout",
 
-char *translate_html_title     ="%s Route";
-char *translate_html_start[2]  ={"Start" ,"At %s, head <span class='b'>%s</span>"}; /* span tag added when reading XML translations file */
-char *translate_html_node[2]   ={"At"    ,"%s, go <span class='t'>%s</span> heading <span class='b'>%s</span>"}; /* span tag added when reading XML translations file */
-char *translate_html_rbnode[2] ={"Leave" ,"%s, take the <span class='b'>%s</span> exit heading <span class='b'>%s</span>"}; /* span tag added when reading XML translations file */
-char *translate_html_segment[2]={"Follow","<span class='h'>%s</span> for <span class='d'>%.3f km, %.1f min</span>"}; /* span tag added when reading XML translations file */
-char *translate_html_stop[2]   ={"Stop"  ,"At %s"};
-char *translate_html_total[2]  ={"Total" ,"%.1f km, %.0f minutes"};
+ .html_title   = "%s Route",
+ .html_start   = {"Start" ,"At %s, head <span class='b'>%s</span>"}, /* span tag added when reading XML translations file */
+ .html_node    = {"At"    ,"%s, go <span class='t'>%s</span> heading <span class='b'>%s</span>"}, /* span tag added when reading XML translations file */
+ .html_rbnode  = {"Leave" ,"%s, take the <span class='b'>%s</span> exit heading <span class='b'>%s</span>"}, /* span tag added when reading XML translations file */
+ .html_segment = {"Follow","<span class='h'>%s</span> for <span class='d'>%.3f km, %.1f min</span>"}, /* span tag added when reading XML translations file */
+ .html_stop    = {"Stop"  ,"At %s"},
+ .html_total   = {"Total" ,"%.1f km, %.0f minutes"},
 
-char *translate_gpx_desc ="%s route between 'start' and 'finish' waypoints";
-char *translate_gpx_name ="%s route";
-char *translate_gpx_step ="%s on '%s' for %.3f km, %.1f min";
-char *translate_gpx_final="Total Journey %.1f km, %.0f minutes";
+ .gpx_desc  = "%s route between 'start' and 'finish' waypoints",
+ .gpx_name  = "%s route",
+ .gpx_step  = "%s on '%s' for %.3f km, %.1f min",
+ .gpx_final = "Total Journey %.1f km, %.0f minutes",
 
-char *translate_gpx_start ="START";
-char *translate_gpx_inter ="INTER";
-char *translate_gpx_trip  ="TRIP";
-char *translate_gpx_finish="FINISH";
+ .gpx_start  = "START",
+ .gpx_inter  = "INTER",
+ .gpx_trip   = "TRIP",
+ .gpx_finish = "FINISH"
+};
+
+
+/* Global variables */
+
+/*+ The set of parsed translations. +*/
+Translation *translation=&default_translation;
 
 
 /* Local variables */
@@ -466,7 +475,7 @@ static int TurnType_function(const char *_tag_,int _type_,const char *direction,
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
 
-    translate_xml_turn[d]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->xml_turn[d]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
    }
 
  return(0);
@@ -504,7 +513,7 @@ static int HeadingType_function(const char *_tag_,int _type_,const char *directi
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
 
-    translate_xml_heading[d]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->xml_heading[d]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
    }
 
  return(0);
@@ -540,7 +549,7 @@ static int OrdinalType_function(const char *_tag_,int _type_,const char *number,
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
 
-    translate_xml_ordinal[n-1]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->xml_ordinal[n-1]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
    }
 
  return(0);
@@ -575,7 +584,7 @@ static int HighwayType_function(const char *_tag_,int _type_,const char *type,co
     if(highway==Highway_None)
        XMLPARSE_INVALID(_tag_,type);
 
-    translate_raw_highway[highway]=strcpy(malloc(strlen(string)+1),string);
+    translation->raw_highway[highway]=strcpy(malloc(strlen(string)+1),string);
    }
 
  return(0);
@@ -608,9 +617,9 @@ static int RouteType_function(const char *_tag_,int _type_,const char *type,cons
     xmlstring=ParseXML_Encode_Safe_XML(string);
 
     if(!strcmp(type,"shortest"))
-       translate_xml_route_shortest=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+       translation->xml_route_shortest=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
     else if(!strcmp(type,"quickest"))
-       translate_xml_route_quickest=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+       translation->xml_route_quickest=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
     else
        XMLPARSE_INVALID(_tag_,type);
    }
@@ -674,14 +683,14 @@ static int CopyrightCreatorType_function(const char *_tag_,int _type_,const char
     XMLPARSE_ASSERT_STRING(_tag_,string);
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
-    translate_raw_copyright_creator[0]=strcpy(malloc(strlen(string)+1),string);
-    translate_raw_copyright_creator[1]=strcpy(malloc(strlen(text)+1)  ,text);
+    translation->raw_copyright_creator[0]=strcpy(malloc(strlen(string)+1),string);
+    translation->raw_copyright_creator[1]=strcpy(malloc(strlen(text)+1)  ,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
     xmltext  =ParseXML_Encode_Safe_XML(text);
 
-    translate_xml_copyright_creator[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    translate_xml_copyright_creator[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
+    translation->xml_copyright_creator[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->xml_copyright_creator[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
    }
 
  return(0);
@@ -711,14 +720,14 @@ static int CopyrightSourceType_function(const char *_tag_,int _type_,const char 
     XMLPARSE_ASSERT_STRING(_tag_,string);
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
-    translate_raw_copyright_source[0]=strcpy(malloc(strlen(string)+1),string);
-    translate_raw_copyright_source[1]=strcpy(malloc(strlen(text)+1)  ,text);
+    translation->raw_copyright_source[0]=strcpy(malloc(strlen(string)+1),string);
+    translation->raw_copyright_source[1]=strcpy(malloc(strlen(text)+1)  ,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
     xmltext  =ParseXML_Encode_Safe_XML(text);
 
-    translate_xml_copyright_source[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    translate_xml_copyright_source[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
+    translation->xml_copyright_source[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->xml_copyright_source[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
    }
 
  return(0);
@@ -748,14 +757,14 @@ static int CopyrightLicenseType_function(const char *_tag_,int _type_,const char
     XMLPARSE_ASSERT_STRING(_tag_,string);
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
-    translate_raw_copyright_license[0]=strcpy(malloc(strlen(string)+1),string);
-    translate_raw_copyright_license[1]=strcpy(malloc(strlen(text)+1)  ,text);
+    translation->raw_copyright_license[0]=strcpy(malloc(strlen(string)+1),string);
+    translation->raw_copyright_license[1]=strcpy(malloc(strlen(text)+1)  ,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
     xmltext  =ParseXML_Encode_Safe_XML(text);
 
-    translate_xml_copyright_license[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    translate_xml_copyright_license[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
+    translation->xml_copyright_license[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->xml_copyright_license[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
    }
 
  return(0);
@@ -789,13 +798,13 @@ static int HTMLWaypointType_function(const char *_tag_,int _type_,const char *ty
 
     if(!strcmp(type,"waypoint"))
       {
-       translate_html_waypoint=malloc(strlen(xmlstring)+1+sizeof("<span class='w'>")+sizeof("</span>"));
-       sprintf(translate_html_waypoint,"<span class='w'>%s</span>",xmlstring);
+       translation->html_waypoint=malloc(strlen(xmlstring)+1+sizeof("<span class='w'>")+sizeof("</span>"));
+       sprintf(translation->html_waypoint,"<span class='w'>%s</span>",xmlstring);
       }
     else if(!strcmp(type,"junction"))
-       translate_html_junction=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+       translation->html_junction=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
     else if(!strcmp(type,"roundabout"))
-       translate_html_roundabout=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+       translation->html_roundabout=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
     else
        XMLPARSE_INVALID(_tag_,type);
    }
@@ -826,7 +835,7 @@ static int HTMLTitleType_function(const char *_tag_,int _type_,const char *text)
 
     xmltext=ParseXML_Encode_Safe_XML(text);
 
-    translate_html_title=strcpy(malloc(strlen(xmltext)+1),xmltext);
+    translation->html_title=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
  return(0);
@@ -859,9 +868,9 @@ static int HTMLStartType_function(const char *_tag_,int _type_,const char *strin
     xmlstring=ParseXML_Encode_Safe_XML(string);
     xmltext  =ParseXML_Encode_Safe_XML(text);
 
-    translate_html_start[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    translate_html_start[1]=malloc(strlen(xmltext)+1+sizeof("<span class='b'>")+sizeof("</span>"));
-    sprintf(translate_html_start[1],xmltext,"%s","<span class='b'>%s</span>");
+    translation->html_start[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->html_start[1]=malloc(strlen(xmltext)+1+sizeof("<span class='b'>")+sizeof("</span>"));
+    sprintf(translation->html_start[1],xmltext,"%s","<span class='b'>%s</span>");
    }
 
  return(0);
@@ -894,9 +903,9 @@ static int HTMLNodeType_function(const char *_tag_,int _type_,const char *string
     xmlstring=ParseXML_Encode_Safe_XML(string);
     xmltext  =ParseXML_Encode_Safe_XML(text);
 
-    translate_html_node[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    translate_html_node[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
-    sprintf(translate_html_node[1],xmltext,"%s","<span class='t'>%s</span>","<span class='b'>%s</span>");
+    translation->html_node[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->html_node[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
+    sprintf(translation->html_node[1],xmltext,"%s","<span class='t'>%s</span>","<span class='b'>%s</span>");
    }
 
  return(0);
@@ -929,9 +938,9 @@ static int HTMLRBNodeType_function(const char *_tag_,int _type_,const char *stri
     xmlstring=ParseXML_Encode_Safe_XML(string);
     xmltext  =ParseXML_Encode_Safe_XML(text);
 
-    translate_html_rbnode[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    translate_html_rbnode[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
-    sprintf(translate_html_rbnode[1],xmltext,"%s","<span class='t'>%s</span>","<span class='b'>%s</span>");
+    translation->html_rbnode[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->html_rbnode[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
+    sprintf(translation->html_rbnode[1],xmltext,"%s","<span class='t'>%s</span>","<span class='b'>%s</span>");
    }
 
  return(0);
@@ -966,11 +975,11 @@ static int HTMLSegmentType_function(const char *_tag_,int _type_,const char *str
     xmlstring=ParseXML_Encode_Safe_XML(string);
     xmltext  =ParseXML_Encode_Safe_XML(text);
 
-    translate_html_segment[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    translate_html_segment[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
+    translation->html_segment[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->html_segment[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
 
     p=xmltext;
-    q=translate_html_segment[1];
+    q=translation->html_segment[1];
 
     while(*p!='%' && *(p+1)!='s')
        *q++=*p++;
@@ -1017,8 +1026,8 @@ static int HTMLStopType_function(const char *_tag_,int _type_,const char *string
     xmlstring=ParseXML_Encode_Safe_XML(string);
     xmltext  =ParseXML_Encode_Safe_XML(text);
 
-    translate_html_stop[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    translate_html_stop[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
+    translation->html_stop[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->html_stop[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
    }
 
  return(0);
@@ -1051,8 +1060,8 @@ static int HTMLTotalType_function(const char *_tag_,int _type_,const char *strin
     xmlstring=ParseXML_Encode_Safe_XML(string);
     xmltext  =ParseXML_Encode_Safe_XML(text);
 
-    translate_html_total[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    translate_html_total[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
+    translation->html_total[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+    translation->html_total[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
    }
 
  return(0);
@@ -1085,13 +1094,13 @@ static int GPXWaypointType_function(const char *_tag_,int _type_,const char *typ
     xmlstring=ParseXML_Encode_Safe_XML(string);
 
     if(!strcmp(type,"start"))
-       translate_gpx_start=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+       translation->gpx_start=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
     else if(!strcmp(type,"inter"))
-       translate_gpx_inter=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+       translation->gpx_inter=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
     else if(!strcmp(type,"trip"))
-       translate_gpx_trip=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+       translation->gpx_trip=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
     else if(!strcmp(type,"finish"))
-       translate_gpx_finish=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+       translation->gpx_finish=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
     else
        XMLPARSE_INVALID(_tag_,type);
    }
@@ -1122,7 +1131,7 @@ static int GPXDescType_function(const char *_tag_,int _type_,const char *text)
 
     xmltext=ParseXML_Encode_Safe_XML(text);
 
-    translate_gpx_desc=strcpy(malloc(strlen(xmltext)+1),xmltext);
+    translation->gpx_desc=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
  return(0);
@@ -1151,7 +1160,7 @@ static int GPXNameType_function(const char *_tag_,int _type_,const char *text)
 
     xmltext=ParseXML_Encode_Safe_XML(text);
 
-    translate_gpx_name=strcpy(malloc(strlen(xmltext)+1),xmltext);
+    translation->gpx_name=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
  return(0);
@@ -1180,7 +1189,7 @@ static int GPXStepType_function(const char *_tag_,int _type_,const char *text)
 
     xmltext=ParseXML_Encode_Safe_XML(text);
 
-    translate_gpx_step=strcpy(malloc(strlen(xmltext)+1),xmltext);
+    translation->gpx_step=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
  return(0);
@@ -1209,7 +1218,7 @@ static int GPXFinalType_function(const char *_tag_,int _type_,const char *text)
 
     xmltext=ParseXML_Encode_Safe_XML(text);
 
-    translate_gpx_final=strcpy(malloc(strlen(xmltext)+1),xmltext);
+    translation->gpx_final=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
  return(0);
@@ -1241,6 +1250,13 @@ int ParseXMLTranslations(const char *filename,const char *language)
 
  fd=OpenFile(filename);
 
+ if(translation!=&default_translation)
+    FreeXMLTranslations();
+
+ translation=calloc(sizeof(Translation),1);
+
+ *translation=default_translation;
+
  retval=ParseXML(fd,xml_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_ERRNONAME|XMLPARSE_RETURN_ATTR_ENCODED);
 
  CloseFile(fd);
@@ -1252,4 +1268,73 @@ int ParseXMLTranslations(const char *filename,const char *language)
     fprintf(stderr,"Warning: Cannot find translations for language '%s' using English instead.\n",language);
 
  return(0);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Free the memory that has been allocated for the translations.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+void FreeXMLTranslations()
+{
+ int i;
+
+ if(translation==&default_translation)
+    return;
+
+ for(i=0;i<2;i++)
+   {
+    if(translation->raw_copyright_creator[i] != default_translation.raw_copyright_creator[i]) free(translation->raw_copyright_creator[i]);
+    if(translation->raw_copyright_source[i]  != default_translation.raw_copyright_source[i])  free(translation->raw_copyright_source[i]);
+    if(translation->raw_copyright_license[i] != default_translation.raw_copyright_license[i]) free(translation->raw_copyright_license[i]);
+
+    if(translation->xml_copyright_creator[i] != default_translation.xml_copyright_creator[i]) free(translation->xml_copyright_creator[i]);
+    if(translation->xml_copyright_source[i]  != default_translation.xml_copyright_source[i])  free(translation->xml_copyright_source[i]);
+    if(translation->xml_copyright_license[i] != default_translation.xml_copyright_license[i]) free(translation->xml_copyright_license[i]);
+   }
+
+ for(i=0;i<9;i++)
+   {
+    if(translation->xml_heading[i] != default_translation.xml_heading[i]) free(translation->xml_heading[i]);
+    if(translation->xml_turn[i]    != default_translation.xml_turn[i])    free(translation->xml_turn[i]);
+   }
+
+ for(i=0;i<10;i++)
+    if(translation->xml_ordinal[i] != default_translation.xml_ordinal[i]) free(translation->xml_ordinal[i]);
+
+ for(i=0;i<Highway_Count;i++)
+    if(translation->raw_highway[i] != default_translation.raw_highway[i]) free(translation->raw_highway[i]);
+
+ if(translation->xml_route_shortest != default_translation.xml_route_shortest) free(translation->xml_route_shortest);
+ if(translation->xml_route_quickest != default_translation.xml_route_quickest) free(translation->xml_route_quickest);
+
+ if(translation->html_waypoint   != default_translation.html_waypoint)   free(translation->html_waypoint);
+ if(translation->html_junction   != default_translation.html_junction)   free(translation->html_junction);
+ if(translation->html_roundabout != default_translation.html_roundabout) free(translation->html_roundabout);
+
+ if(translation->html_title != default_translation.html_title) free(translation->html_title);
+
+ for(i=0;i<2;i++)
+   {
+    if(translation->html_start[i]   != default_translation.html_start[i])   free(translation->html_start[i]);
+    if(translation->html_segment[i] != default_translation.html_segment[i]) free(translation->html_segment[i]);
+    if(translation->html_node[i]    != default_translation.html_node[i])    free(translation->html_node[i]);
+    if(translation->html_rbnode[i]  != default_translation.html_rbnode[i])  free(translation->html_rbnode[i]);
+    if(translation->html_stop[i]    != default_translation.html_stop[i])    free(translation->html_stop[i]);
+    if(translation->html_total[i]   != default_translation.html_total[i])   free(translation->html_total[i]);
+   }
+
+ if(translation->gpx_desc  != default_translation.gpx_desc)  free(translation->gpx_desc);
+ if(translation->gpx_name  != default_translation.gpx_name)  free(translation->gpx_name);
+ if(translation->gpx_step  != default_translation.gpx_step)  free(translation->gpx_step);
+ if(translation->gpx_final != default_translation.gpx_final) free(translation->gpx_final);
+
+ if(translation->gpx_start  != default_translation.gpx_start)  free(translation->gpx_start);
+ if(translation->gpx_inter  != default_translation.gpx_inter)  free(translation->gpx_inter);
+ if(translation->gpx_trip   != default_translation.gpx_trip)   free(translation->gpx_trip);
+ if(translation->gpx_finish != default_translation.gpx_finish) free(translation->gpx_finish);
+
+ free(translation);
+
+ translation=&default_translation;
 }
