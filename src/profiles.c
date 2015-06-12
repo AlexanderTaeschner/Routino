@@ -651,18 +651,38 @@ int ParseXMLProfiles(const char *filename)
 
  if(retval)
    {
-    int i;
-
-    for(i=0;i<nloaded_profiles;i++)
-       free(loaded_profiles[i]);
-    free(loaded_profiles);
-
-    nloaded_profiles=0;
+    FreeXMLProfiles();
 
     return(1);
    }
 
  return(0);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Free the memory allocated when reading the profiles.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+void FreeXMLProfiles(void)
+{
+ int i;
+
+ if(!loaded_profiles)
+    return;
+
+ for(i=0;i<nloaded_profiles;i++)
+   {
+    if(loaded_profiles[i]->name)
+       free(loaded_profiles[i]->name);
+
+    free(loaded_profiles[i]);
+   }
+
+ free(loaded_profiles);
+
+ loaded_profiles=NULL;
+ nloaded_profiles=0;
 }
 
 

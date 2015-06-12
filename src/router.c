@@ -625,6 +625,8 @@ int main(int argc,char** argv)
  DestroyWayList(OSMWays);
  DestroyRelationList(OSMRelations);
 
+ FreeXMLProfiles();
+
  FreeXMLTranslations();
 
 #endif
