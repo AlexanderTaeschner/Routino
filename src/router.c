@@ -193,14 +193,19 @@ int main(int argc,char** argv)
    }
  else
    {
-    if(ExistsFile(FileName(dirname,prefix,"profiles.xml")))
-       profiles=FileName(dirname,prefix,"profiles.xml");
-    else if(ExistsFile(FileName(ROUTINO_DATADIR,NULL,"profiles.xml")))
-       profiles=FileName(ROUTINO_DATADIR,NULL,"profiles.xml");
-    else
+    profiles=FileName(dirname,prefix,"profiles.xml");
+
+    if(!ExistsFile(profiles))
       {
-       fprintf(stderr,"Error: The '--profiles' option was not used and the default 'profiles.xml' does not exist.\n");
-       exit(EXIT_FAILURE);
+       free(profiles);
+
+       profiles=FileName(ROUTINO_DATADIR,NULL,"profiles.xml");
+
+       if(!ExistsFile(profiles))
+         {
+          fprintf(stderr,"Error: The '--profiles' option was not used and the default 'profiles.xml' does not exist.\n");
+          exit(EXIT_FAILURE);
+         }
       }
    }
 
@@ -428,14 +433,19 @@ int main(int argc,char** argv)
       }
     else
       {
-       if(ExistsFile(FileName(dirname,prefix,"translations.xml")))
-          translations=FileName(dirname,prefix,"translations.xml");
-       else if(ExistsFile(FileName(ROUTINO_DATADIR,NULL,"translations.xml")))
-          translations=FileName(ROUTINO_DATADIR,NULL,"translations.xml");
-       else
+       translations=FileName(dirname,prefix,"translations.xml");
+
+       if(!ExistsFile(translations))
          {
-          fprintf(stderr,"Error: The '--translations' option was not used and the default 'translations.xml' does not exist.\n");
-          exit(EXIT_FAILURE);
+          free(translations);
+
+          translations=FileName(ROUTINO_DATADIR,NULL,"translations.xml");
+
+          if(!ExistsFile(translations))
+            {
+             fprintf(stderr,"Error: The '--translations' option was not used and the default 'translations.xml' does not exist.\n");
+             exit(EXIT_FAILURE);
+            }
          }
       }
 

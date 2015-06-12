@@ -137,9 +137,9 @@ int main(int argc,char** argv)
    }
  else
    {
-    if(ExistsFile(FileName(dirname,prefix,"tagging.xml")))
-       tagging=FileName(dirname,prefix,"tagging.xml");
-    else
+    tagging=FileName(dirname,prefix,"tagging.xml");
+
+    if(!ExistsFile(tagging))
       {
        fprintf(stderr,"Error: The '--tagging' option was not used and the default 'tagging.xml' does not exist.\n");
        exit(EXIT_FAILURE);
