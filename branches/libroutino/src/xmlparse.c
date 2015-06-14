@@ -1230,7 +1230,7 @@ char *ParseXML_Decode_Entity_Ref(const char *string)
 
 char *ParseXML_Decode_Char_Ref(const char *string)
 {
- static char result[5]="";
+ static char result[5]=""; /* static allocation of return value (set each call) */
  long int unicode;
 
  if(string[2]=='x') unicode=strtol(string+3,NULL,16);
@@ -1287,8 +1287,8 @@ char *ParseXML_Decode_Char_Ref(const char *string)
 
 char *ParseXML_Encode_Safe_XML(const char *string)
 {
- static const char hexstring[17]="0123456789ABCDEF";
- static char *result=NULL;
+ static const char hexstring[17]="0123456789ABCDEF"; /* local lookup table */
+ static char *result=NULL;                           /* static allocation of return value */
  int i=0,j=0,len;
 
  for(i=0;string[i];i++)

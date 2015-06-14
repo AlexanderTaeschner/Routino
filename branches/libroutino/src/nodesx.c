@@ -351,9 +351,9 @@ static int sort_by_id(NodeX *a,NodeX *b)
 
 static int deduplicate_and_index_by_id(NodeX *nodex,index_t index)
 {
- static node_t previd=NO_NODE_ID;
+ static node_t previd; /* internal variable (reset by first call in each sort; index==0) */
 
- if(nodex->id!=previd)
+ if(index==0 || nodex->id!=previd)
    {
     previd=nodex->id;
 
