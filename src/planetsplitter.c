@@ -381,7 +381,7 @@ if(!option_process_only)
 
  /* Sort the turn relations geographically */
 
- SortTurnRelationListGeographically(OSMRelations,OSMNodes,OSMSegments);
+ SortTurnRelationListGeographically(OSMRelations,OSMNodes,OSMSegments,0);
 
  /* Prune unwanted nodes/segments */
 
@@ -531,7 +531,7 @@ if(!option_process_only)
 
  /* Sort the turn relations geographically */
 
- SortTurnRelationListGeographically(OSMRelations,OSMNodes,OSMSegments);
+ SortTurnRelationListGeographically(OSMRelations,OSMNodes,OSMSegments,1);
 
  /* Output the results */
 

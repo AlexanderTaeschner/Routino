@@ -255,7 +255,7 @@ static int tagType_function(const char *_tag_,int _type_,const char *k,const cha
 
 static int nodeType_function(const char *_tag_,int _type_,const char *id,const char *lat,const char *lon,const char *timestamp,const char *uid,const char *user,const char *visible,const char *version,const char *action)
 {
- static int64_t llid;
+ static int64_t llid; /* static variable to store attributes from <node> tag until </node> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {
@@ -377,7 +377,7 @@ static int memberType_function(const char *_tag_,int _type_,const char *type,con
 
 static int wayType_function(const char *_tag_,int _type_,const char *id,const char *timestamp,const char *uid,const char *user,const char *visible,const char *version,const char *action)
 {
- static int64_t llid;
+ static int64_t llid; /* static variable to store attributes from <way> tag until </way> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {
@@ -449,7 +449,7 @@ static int wayType_function(const char *_tag_,int _type_,const char *id,const ch
 
 static int relationType_function(const char *_tag_,int _type_,const char *id,const char *timestamp,const char *uid,const char *user,const char *visible,const char *version,const char *action)
 {
- static int64_t llid;
+ static int64_t llid; /* static variable to store attributes from <relation> tag until </relation> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {

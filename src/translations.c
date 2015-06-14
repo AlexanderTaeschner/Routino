@@ -402,20 +402,16 @@ static xmltag GPXFinalType_tag=
 
 static int LanguageType_function(const char *_tag_,int _type_,const char *lang)
 {
- static int first=1;
-
  if(_type_&XMLPARSE_TAG_START)
    {
     XMLPARSE_ASSERT_STRING(_tag_,lang);
 
-    if(!store_lang && first)
+    if(!store_lang && !stored)
        store=1;
     else if(store_lang && !strcmp(store_lang,lang))
        store=1;
     else
        store=0;
-
-    first=0;
    }
 
  if(_type_&XMLPARSE_TAG_END && store)
@@ -1240,8 +1236,6 @@ int ParseXMLTranslations(const char *filename,const char *language)
  int fd;
  int retval;
 
- store_lang=language;
-
  if(!ExistsFile(filename))
    {
     fprintf(stderr,"Error: Specified translations file '%s' does not exist.\n",filename);
@@ -1250,12 +1244,23 @@ int ParseXMLTranslations(const char *filename,const char *language)
 
  fd=OpenFile(filename);
 
+ /* Start with a copy of the default translations */
+
  if(translation!=&default_translation)
     FreeXMLTranslations();
 
  translation=calloc(sizeof(Translation),1);
 
  *translation=default_translation;
+
+ /* Initialise variables used for parsing */
+
+ store_lang=language;
+
+ store=0;
+ stored=0;
+
+ /* Parse the file */
 
  retval=ParseXML(fd,xml_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_ERRNONAME|XMLPARSE_RETURN_ATTR_ENCODED);
 

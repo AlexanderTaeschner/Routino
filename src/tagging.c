@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2010-2014 Andrew M. Bishop
+ This file Copyright 2010-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -740,7 +740,7 @@ void DeleteTag(TagList *tags,const char *k)
 
 char *StringifyTag(TagList *tags)
 {
- static char *string=NULL;
+ static char *string=NULL; /* static allocation of return value */
  int i,length=0,used=0;
 
  for(i=0;i<tags->ntags;i++)

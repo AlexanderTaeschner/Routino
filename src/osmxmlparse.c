@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -414,8 +414,8 @@ static int deleteType_function(const char *_tag_,int _type_)
 
 static int nodeType_function(const char *_tag_,int _type_,const char *id,const char *lat,const char *lon)
 {
- static int64_t llid;
- static double latitude,longitude;
+ static int64_t llid;              /* static variable to store attributes from <node> tag until </node> tag */
+ static double latitude,longitude; /* static variable to store attributes from <node> tag until </node> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {
@@ -465,7 +465,7 @@ static int nodeType_function(const char *_tag_,int _type_,const char *id,const c
 
 static int wayType_function(const char *_tag_,int _type_,const char *id)
 {
- static int64_t llid;
+ static int64_t llid; /* static variable to store attributes from <way> tag until </way> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {
@@ -511,7 +511,7 @@ static int wayType_function(const char *_tag_,int _type_,const char *id)
 
 static int relationType_function(const char *_tag_,int _type_,const char *id)
 {
- static int64_t llid;
+ static int64_t llid; /* static variable to store attributes from <relation> tag until </relation> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {
