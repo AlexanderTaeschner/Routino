@@ -43,7 +43,7 @@ extern char *option_tmpdirname;
 
 /* Local variables */
 
-/*+ Temporary file-local variables for use by the sort functions. +*/
+/*+ Temporary file-local variables for use by the sort functions (re-initialised for each sort). +*/
 static WaysX *sortwaysx;
 static SegmentsX *sortsegmentsx;
 

@@ -31,13 +31,13 @@
 #include "logging.h"
 
 
-/* Local variables */
+/* Local parsing variables (re-initialised for each file) */
 
 static int current_mode=MODE_NORMAL;
 
-static uint64_t nnodes=0,nways=0,nrelations=0;
+static uint64_t nnodes,nways,nrelations;
 
-static TagList *current_tags=NULL;
+static TagList *current_tags;
 
 
 /* The XML tag processing function prototypes */
@@ -659,6 +659,10 @@ int ParseOSMFile(int fd,NodesX *OSMNodes,WaysX *OSMWays,RelationsX *OSMRelations
 
  /* Parse the file */
 
+ nnodes=0,nways=0,nrelations=0;
+
+ current_tags=NULL;
+
  retval=ParseXML(fd,xml_osm_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_IGNORE);
 
  /* Cleanup the parser */
@@ -692,6 +696,10 @@ int ParseOSCFile(int fd,NodesX *OSMNodes,WaysX *OSMWays,RelationsX *OSMRelations
  InitialiseParser(OSMNodes,OSMWays,OSMRelations);
 
  /* Parse the file */
+
+ nnodes=0,nways=0,nrelations=0;
+
+ current_tags=NULL;
 
  retval=ParseXML(fd,xml_osc_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_IGNORE);
 
