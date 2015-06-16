@@ -100,7 +100,7 @@ typedef uint64_t ssize_t;
 #define LEX_ERROR_CALLBACK       255
 
 
-/* Parsing variables and functions */
+/* Parsing variables and functions (re-initialised for each file) */
 
 static uint64_t lineno;
 

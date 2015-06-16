@@ -80,16 +80,16 @@ static Translation default_translation=
 Translation *translation=&default_translation;
 
 
-/* Local variables */
+/* Local variables (re-initialised for each file) */
 
 /*+ The language that is to be stored. +*/
-static const char *store_lang=NULL;
+static const char *store_lang;
 
 /*+ This current language is to be stored. +*/
-static int store=0;
+static int store;
 
 /*+ The chosen language has been stored. +*/
-static int stored=0;
+static int stored;
 
 
 /* The XML tag processing function prototypes */

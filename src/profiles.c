@@ -33,10 +33,10 @@
 #include "xmlparse.h"
 
 
-/* Local variables */
+/* Local variables (re-intialised by FreeXMLProfiles() function) */
 
 /*+ The profiles that have been loaded from file. +*/
-static Profile **loaded_profiles=NULL;
+static Profile **loaded_profiles;
 
 /*+ The number of profiles that have been loaded from file. +*/
 static int nloaded_profiles=0;

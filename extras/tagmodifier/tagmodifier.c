@@ -34,11 +34,11 @@
 #include "uncompress.h"
 
 
-/* Local variables */
+/* Local variables (re-initialised for each file) */
 
-static uint64_t nnodes=0,nways=0,nrelations=0;
+static uint64_t nnodes,nways,nrelations;
 
-TagList *current_tags=NULL;
+TagList *current_tags;
 
 
 /* Local functions */
@@ -627,6 +627,12 @@ int main(int argc,char **argv)
     open_errorlog(errorlog,0,0);
 
  /* Parse the file */
+
+ nnodes=0;
+ nways=0;
+ nrelations=0;
+
+ current_tags=NULL;
 
  fprintf_first(stderr,"Reading: Lines=0 Nodes=0 Ways=0 Relations=0");
 
