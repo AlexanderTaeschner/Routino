@@ -566,6 +566,8 @@ int main(int argc,char **argv)
        option_loggable=1;
     else if(!strcmp(argv[arg],"--logtime"))
        option_logtime=1;
+    else if(!strcmp(argv[arg],"--logmemory"))
+       option_logmemory=1;
     else if(!strcmp(argv[arg],"--errorlog"))
        errorlog="error.log";
     else if(!strncmp(argv[arg],"--errorlog=",11))
@@ -668,7 +670,7 @@ static void print_usage(int detail,const char *argerr,const char *err)
  fprintf(stderr,
          "Usage: tagmodifier [--help]\n"
          "                   [--tagging=<filename>]\n"
-         "                   [--loggable] [--logtime]\n"
+         "                   [--loggable] [--logtime] [--logmemory]\n"
          "                   [--errorlog[=<name>]]\n"
          "                   <filename.osm>"
 #if defined(USE_BZIP2) && USE_BZIP2
@@ -702,6 +704,7 @@ static void print_usage(int detail,const char *argerr,const char *err)
             "\n"
             "--loggable                Print progress messages suitable for logging to file.\n"
             "--logtime                 Print the elapsed time for the processing.\n"
+            "--logmemory               Print the max allocated/mapped memory for each step.\n"
             "--errorlog[=<name>]       Log parsing errors to 'error.log' or the given name.\n"
             "\n"
             "<filename.osm>            The name of the file to process.\n"
