@@ -43,6 +43,8 @@ D=$(wildcard .deps/*.d)
 
 EXE=planetsplitter planetsplitter-slim router router-slim filedumperx filedumper filedumper-slim
 
+LIB=libroutino.so libroutino-slim.so
+
 ########
 
 all: all-local
@@ -50,7 +52,7 @@ all: all-local
 	   ( cd $$dir && $(MAKE) $@ ); \
 	done
 
-all-local: $(EXE)
+all-local: $(EXE) $(LIB)
 
 ########
 
@@ -168,6 +170,46 @@ filedumper-slim : $(FILEDUMPER_SLIM_OBJ)
 
 ########
 
+LIBROUTINO_OBJ=routino-lib.o \
+	        nodes-lib.o segments-lib.o ways-lib.o relations-lib.o types-lib.o fakes-lib.o \
+	        optimiser-lib.o output-lib.o \
+	        files-lib.o profiles-lib.o xmlparse-lib.o \
+	        results-lib.o queue-lib.o translations-lib.o
+
+ifdef MINGW
+LIBROUTINO_OBJ+=mman-win32.o
+endif
+
+libroutino.so : $(LIBROUTINO_OBJ)
+	$(LD) $(LIBROUTINO_OBJ) -o $@ $(LDFLAGS) $(LDFLAGS_LIB)
+
+########
+
+LIBROUTINO_SLIM_OBJ=routino-slim-lib.o \
+	        nodes-slim-lib.o segments-slim-lib.o ways-slim-lib.o relations-slim-lib.o types-lib.o fakes-slim-lib.o \
+	        optimiser-slim-lib.o output-slim-lib.o \
+	        files-lib.o profiles-lib.o xmlparse-lib.o \
+	        results-lib.o queue-lib.o translations-lib.o
+
+ifdef MINGW
+LIBROUTINO_SLIM_OBJ+=mman-win32.o
+endif
+
+libroutino-slim.so : $(LIBROUTINO_SLIM_OBJ)
+	$(LD) $(LIBROUTINO_SLIM_OBJ) -o $@ $(LDFLAGS) $(LDFLAGS_LIB)
+
+########
+
+%-lib.o : %.c
+	@[ -d .deps ] || mkdir .deps
+	$(CC) -c $(CFLAGS) $(CFLAGS_LIB) -DSLIM=0 -DLIBROUTINO $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
+
+%-slim-lib.o : %.c
+	@[ -d .deps ] || mkdir .deps
+	$(CC) -c $(CFLAGS) $(CFLAGS_LIB) -DSLIM=1 -DLIBROUTINO $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
+
+########
+
 test: test-local
 	for dir in $(SUBDIRS); do \
 	   ( cd $$dir && $(MAKE) $@ ); \
@@ -206,6 +248,7 @@ clean-local:
 	rm -f *~
 	rm -f *.o
 	rm -f $(EXE) *.exe
+	rm -f $(LIB)
 	rm -f $(D)
 	rm -fr .deps
 	rm -f core
