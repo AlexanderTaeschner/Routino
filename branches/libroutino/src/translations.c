@@ -1238,7 +1238,9 @@ int ParseXMLTranslations(const char *filename,const char *language)
 
  if(!ExistsFile(filename))
    {
+#ifndef LIBROUTINO
     fprintf(stderr,"Error: Specified translations file '%s' does not exist.\n",filename);
+#endif
     return(1);
    }
 
@@ -1270,7 +1272,11 @@ int ParseXMLTranslations(const char *filename,const char *language)
     return(1);
 
  if(language && !stored)
+#ifdef LIBROUTINO
+    return(1);
+#else
     fprintf(stderr,"Warning: Cannot find translations for language '%s' using English instead.\n",language);
+#endif
 
  return(0);
 }

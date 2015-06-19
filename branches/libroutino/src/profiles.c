@@ -639,7 +639,9 @@ int ParseXMLProfiles(const char *filename)
 
  if(!ExistsFile(filename))
    {
+#ifndef LIBROUTINO
     fprintf(stderr,"Error: Specified profiles file '%s' does not exist.\n",filename);
+#endif
     return(1);
    }
 
