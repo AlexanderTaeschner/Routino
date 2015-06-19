@@ -154,6 +154,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
        if(option_text_all)
           textallfile =fopen("shortest-all.txt",open_mode);
 
+#ifndef LIBROUTINO
        if(option_html && !htmlfile)
           fprintf(stderr,"Warning: Cannot open file 'shortest.html' for writing [%s].\n",strerror(errno));
        if(option_gpx_track && !gpxtrackfile)
@@ -164,6 +165,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
           fprintf(stderr,"Warning: Cannot open file 'shortest.txt' for writing [%s].\n",strerror(errno));
        if(option_text_all && !textallfile)
           fprintf(stderr,"Warning: Cannot open file 'shortest-all.txt' for writing [%s].\n",strerror(errno));
+#endif
       }
     else
       {
@@ -180,6 +182,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
        if(option_text_all)
           textallfile =fopen("quickest-all.txt",open_mode);
 
+#ifndef LIBROUTINO
        if(option_html && !htmlfile)
           fprintf(stderr,"Warning: Cannot open file 'quickest.html' for writing [%s].\n",strerror(errno));
        if(option_gpx_track && !gpxtrackfile)
@@ -190,6 +193,7 @@ void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,W
           fprintf(stderr,"Warning: Cannot open file 'quickest.txt' for writing [%s].\n",strerror(errno));
        if(option_text_all && !textallfile)
           fprintf(stderr,"Warning: Cannot open file 'quickest-all.txt' for writing [%s].\n",strerror(errno));
+#endif
       }
    }
 

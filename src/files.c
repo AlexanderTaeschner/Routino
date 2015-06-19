@@ -161,16 +161,24 @@ void *MapFile(const char *filename)
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  /* Get its size */
 
  if(stat(filename,&buf))
    {
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot stat file '%s' [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  size=buf.st_size;
@@ -183,8 +191,12 @@ void *MapFile(const char *filename)
    {
     close(fd);
 
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot mmap file '%s' for reading [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  log_mmap(size);
@@ -229,16 +241,24 @@ void *MapFileWriteable(const char *filename)
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading and writing [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  /* Get its size */
 
  if(stat(filename,&buf))
    {
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot stat file '%s' [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  size=buf.st_size;
@@ -251,8 +271,12 @@ void *MapFileWriteable(const char *filename)
    {
     close(fd);
 
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot mmap file '%s' for reading and writing [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  log_mmap(size);
@@ -290,8 +314,12 @@ void *UnmapFile(const void *address)
 
  if(i==nmappedfiles)
    {
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"The data at address %p was not mapped using MapFile().\n",address);
     exit(EXIT_FAILURE);
+#endif
    }
 
  /* Close the file */
@@ -337,8 +365,12 @@ int SlimMapFile(const char *filename)
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  CreateFileBuffer(fd,0);
@@ -369,8 +401,12 @@ int SlimMapFileWriteable(const char *filename)
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading and writing [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  CreateFileBuffer(fd,0);
@@ -421,8 +457,12 @@ int OpenFileBufferedNew(const char *filename)
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for writing [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  CreateFileBuffer(fd,-1);
@@ -461,8 +501,12 @@ int OpenFileBufferedAppend(const char *filename)
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for appending [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  CreateFileBuffer(fd,-1);
@@ -497,8 +541,12 @@ int ReOpenFileBuffered(const char *filename)
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  CreateFileBuffer(fd,1);
@@ -746,8 +794,12 @@ off_t SizeFile(const char *filename)
 
  if(stat(filename,&buf))
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot stat file '%s' [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  return(buf.st_size);
@@ -768,8 +820,12 @@ off_t SizeFileFD(int fd)
 
  if(fstat(fd,&buf))
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot stat file descriptor '%d' [%s].\n",fd,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  return(buf.st_size);
@@ -854,8 +910,12 @@ int OpenFile(const char *filename)
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
