@@ -45,14 +45,14 @@ typedef struct _xmltag xmltag;
 /*+ A structure to hold the definition of a tag. +*/
 struct _xmltag
 {
- char *name;                            /*+ The name of the tag - must be in lower case. +*/
+ const char * const name;                            /*+ The name of the tag - must be in lower case. +*/
 
- int  nattributes;                      /*+ The number of valid attributes for the tag. +*/
- char *attributes[XMLPARSE_MAX_ATTRS];  /*+ The valid attributes for the tag. +*/
+ const int  nattributes;                             /*+ The number of valid attributes for the tag. +*/
+ const char * const attributes[XMLPARSE_MAX_ATTRS];  /*+ The valid attributes for the tag. +*/
 
- int  (*callback)();                    /*+ The callback function when the tag is seen. +*/
+ int  (*callback)();                                 /*+ The callback function when the tag is seen. +*/
 
- xmltag *subtags[XMLPARSE_MAX_SUBTAGS]; /*+ The list of valid tags contained within this one (null terminated). +*/
+ const xmltag * const subtags[XMLPARSE_MAX_SUBTAGS]; /*+ The list of valid tags contained within this one (null terminated). +*/
 };
 
 
@@ -69,7 +69,7 @@ struct _xmltag
 
 /* XML parser functions */
 
-int ParseXML(int fd,xmltag **tags,int options);
+int ParseXML(int fd,const xmltag * const *tags,int options);
 
 uint64_t ParseXML_LineNumber(void);
 
