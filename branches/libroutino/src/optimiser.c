@@ -379,7 +379,7 @@ Results *FindMiddleRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
  printf("  FindMiddleRoute(...,[begin has %d nodes],[end has %d nodes])\n",begin->number,end->number);
 #endif
 
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
  if(!option_quiet)
     printf_first("Finding Middle Route: Super-Nodes checked = 0");
 #endif
@@ -654,7 +654,7 @@ Results *FindMiddleRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
     printf("    Failed\n");
 #endif
 
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
     if(!option_quiet)
        printf_last("Found Middle Route: Super-Nodes checked = %d - Fail",results->number);
 #endif
@@ -681,7 +681,7 @@ Results *FindMiddleRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
    }
 #endif
 
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
  if(!option_quiet)
     printf_last("Found Middle Route: Super-Nodes checked = %d",results->number);
 #endif
@@ -956,7 +956,7 @@ Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
  printf("  FindStartRoutes(...,start_node=%"Pindex_t" prev_segment=%"Pindex_t" finish_node=%"Pindex_t")\n",start_node,prev_segment,finish_node);
 #endif
 
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
  if(!option_quiet)
     printf_first("Finding Start Route: Nodes checked = 0");
 #endif
@@ -1201,7 +1201,7 @@ Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
     printf("    Failed (%d results, %d super)\n",results->number,nsuper);
 #endif
 
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
     if(!option_quiet)
        printf_last("Found Start Route: Nodes checked = %d - Fail",results->number);
 #endif
@@ -1241,7 +1241,7 @@ Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *r
    }
 #endif
 
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
  if(!option_quiet)
     printf_last("Found Start Route: Nodes checked = %d",results->number);
 #endif
@@ -1278,7 +1278,7 @@ Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *
  printf("  FindFinishRoutes(...,finish_node=%"Pindex_t")\n",finish_node);
 #endif
 
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
  if(!option_quiet)
     printf_first("Finding Finish Route: Nodes checked = 0");
 #endif
@@ -1485,7 +1485,7 @@ Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *
     printf("    Failed\n");
 #endif
 
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
  if(!option_quiet)
     printf_last("Found Finish Route: Nodes checked = %d - Fail",results->number);
 #endif
@@ -1556,7 +1556,7 @@ Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *
    }
 #endif
 
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
  if(!option_quiet)
     printf_last("Found Finish Route: Nodes checked = %d",results->number);
 #endif
@@ -1598,7 +1598,7 @@ Results *CombineRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *rel
  printf("  CombineRoutes(...,[begin has %d nodes],[middle has %d nodes],[end has %d nodes])\n",begin->number,middle->number,end->number);
 #endif
 
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
  if(!option_quiet)
     printf_first("Finding Combined Route: Nodes = 0");
 #endif
@@ -1658,7 +1658,7 @@ Results *CombineRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *rel
 
     if(!results)
       {
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
        if(!option_quiet)
           printf_last("Found Combined Route: Nodes = %d - Fail",combined->number);
 #endif
@@ -1749,7 +1749,7 @@ Results *CombineRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *rel
    }
 #endif
 
-#if !DEBUG && !LIBROUTINO
+#if !DEBUG && !defined(LIBROUTINO)
  if(!option_quiet)
     printf_last("Found Combined Route: Nodes = %d",combined->number);
 #endif
