@@ -25,12 +25,6 @@
 
 /* Limit the exported symbols in the library */
 
-#if __GNUC__ >= 4
-  #ifdef LIBROUTINO
-    #define DLL_PUBLIC __attribute__ ((visibility ("default")))
-  #endif
-#endif
-
 #if defined(_MSC_VER)
   #ifdef LIBROUTINO
     #define DLL_PUBLIC __declspec(dllexport)
@@ -39,11 +33,17 @@
   #endif
 #endif
 
-#if defined(__MINGW32__) || defined(__CYGWIN__)
-  #ifdef LIBROUTINO
-    #define DLL_PUBLIC __attribute__ ((dllexport))
+#if defined(__GNUC__) && __GNUC__ >= 4
+  #if defined(__MINGW32__) || defined(__CYGWIN__)
+    #ifdef LIBROUTINO
+      #define DLL_PUBLIC __attribute__ ((dllexport))
+    #else
+      #define DLL_PUBLIC __attribute__ ((dllimport))
+    #endif
   #else
-    #define DLL_PUBLIC __attribute__ ((dllimport))
+    #ifdef LIBROUTINO
+      #define DLL_PUBLIC __attribute__ ((visibility ("default")))
+    #endif
   #endif
 #endif
 
