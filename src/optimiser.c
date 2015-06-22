@@ -1797,7 +1797,9 @@ void FixForwardRoute(Results *results,Result *finish_result)
 
        result1=FindResult(results,node1,seg1);
 
+#ifdef LIBROUTINO
        logassert(!result1->next,"Unable to reverse route through results (report a bug)"); /* Bugs elsewhere can lead to infinite loop here. */
+#endif
 
        result1->next=result2;
 

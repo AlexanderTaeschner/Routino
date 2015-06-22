@@ -199,7 +199,9 @@ void *MapFile(const char *filename)
 #endif
    }
 
+#ifndef LIBROUTINO
  log_mmap(size);
+#endif
 
  /* Store the information about the mapped file */
 
@@ -279,7 +281,9 @@ void *MapFileWriteable(const char *filename)
 #endif
    }
 
+#ifndef LIBROUTINO
  log_mmap(size);
+#endif
 
  /* Store the information about the mapped file */
 
@@ -330,7 +334,9 @@ void *UnmapFile(const void *address)
 
  munmap(mappedfiles[i].address,mappedfiles[i].length);
 
+#ifndef LIBROUTINO
  log_munmap(mappedfiles[i].length);
+#endif
 
  /* Shuffle the list of files */
 
@@ -615,11 +621,13 @@ int ReplaceFileBuffered(const char *filename,int *oldfd)
 
 int WriteFileBuffered(int fd,const void *address,size_t length)
 {
+#ifndef LIBROUTINO
  logassert(fd!=-1,"File descriptor is in error - report a bug");
 
  logassert(fd<nfilebuffers && filebuffers[fd],"File descriptor has no buffer - report a bug");
 
  logassert(!filebuffers[fd]->reading,"File descriptor was not opened for writing - report a bug");
+#endif
 
  /* Write the data */
 
@@ -661,11 +669,13 @@ int WriteFileBuffered(int fd,const void *address,size_t length)
 
 int ReadFileBuffered(int fd,void *address,size_t length)
 {
+#ifndef LIBROUTINO
  logassert(fd!=-1,"File descriptor is in error - report a bug");
 
  logassert(fd<nfilebuffers && filebuffers[fd],"File descriptor has no buffer - report a bug");
 
  logassert(filebuffers[fd]->reading,"File descriptor was not opened for reading - report a bug");
+#endif
 
  /* Read the data */
 
@@ -723,9 +733,11 @@ int ReadFileBuffered(int fd,void *address,size_t length)
 
 int SeekFileBuffered(int fd,off_t position)
 {
+#ifndef LIBROUTINO
  logassert(fd!=-1,"File descriptor is in error - report a bug");
 
  logassert(fd<nfilebuffers && filebuffers[fd],"File descriptor has no buffer - report a bug");
+#endif
 
  /* Seek the data - doesn't need to be highly optimised */
 
@@ -755,11 +767,13 @@ int SeekFileBuffered(int fd,off_t position)
 
 int SkipFileBuffered(int fd,off_t skip)
 {
+#ifndef LIBROUTINO
  logassert(fd!=-1,"File descriptor is in error - report a bug");
 
  logassert(fd<nfilebuffers && filebuffers[fd],"File descriptor has no buffer - report a bug");
 
  logassert(filebuffers[fd]->reading,"File descriptor was not opened for reading - report a bug");
+#endif
 
  /* Skip the data - needs to be optimised */
 
@@ -861,7 +875,9 @@ int ExistsFile(const char *filename)
 
 int CloseFileBuffered(int fd)
 {
+#ifndef LIBROUTINO
  logassert(fd<nfilebuffers && filebuffers[fd],"File descriptor has no buffer - report a bug");
+#endif
 
  if(!filebuffers[fd]->reading)
     if(write(fd,filebuffers[fd]->buffer,filebuffers[fd]->pointer)!=(ssize_t)filebuffers[fd]->pointer)
@@ -874,7 +890,9 @@ int CloseFileBuffered(int fd)
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
 
+#ifndef LIBROUTINO
  logassert(fd<nopenedfiles && openedfiles[fd],"File descriptor has no record of opening - report a bug");
+#endif
 
  if(openedfiles[fd]->delete)
     unlink(openedfiles[fd]->filename);
@@ -938,7 +956,9 @@ void CloseFile(int fd)
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
 
+#ifndef LIBROUTINO
  logassert(fd<nopenedfiles && openedfiles[fd],"File descriptor has no record of opening - report a bug");
+#endif
 
  if(openedfiles[fd]->delete)
     unlink(openedfiles[fd]->filename);
