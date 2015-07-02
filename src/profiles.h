@@ -60,7 +60,7 @@ typedef struct _Profile
 
 /* Functions in profiles.c */
 
-int ParseXMLProfiles(const char *filename);
+int ParseXMLProfiles(const char *filename,const char *name,int all);
 
 void FreeXMLProfiles(void);
 

@@ -26,6 +26,7 @@
 #include "types.h"
 
 #include "profiles.h"
+#include "translations.h"
 #include "results.h"
 
 
@@ -46,7 +47,7 @@ void FixForwardRoute(Results *results,Result *finish_result);
 
 /* Functions in output.c */
 
-void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile);
+void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile,Translation *translation);
 
 
 #endif /* FUNCTIONS_H */
