@@ -100,9 +100,11 @@ static const char junction_other_way[Highway_Count][Highway_Count]=
   Ways *ways The set of ways to use.
 
   Profile *profile The profile containing the transport type, speeds and allowed highways.
+
+  Translation *translation The set of translated strings.
   ++++++++++++++++++++++++++++++++++++++*/
 
-void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile)
+void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile,Translation *translation)
 {
  FILE *htmlfile=NULL,*gpxtrackfile=NULL,*gpxroutefile=NULL,*textfile=NULL,*textallfile=NULL;
 

@@ -36,10 +36,22 @@
 /* Local variables (re-intialised by FreeXMLProfiles() function) */
 
 /*+ The profiles that have been loaded from file. +*/
-static Profile **loaded_profiles;
+static Profile **loaded_profiles=NULL;
 
 /*+ The number of profiles that have been loaded from file. +*/
 static int nloaded_profiles=0;
+
+
+/* Local variables (re-initialised for each file) */
+
+/*+ Store all of the profiles. +*/
+static int store_all;
+
+/*+ The profile name that is to be stored. +*/
+static const char *store_name;
+
+/*+ This current profile is to be stored. +*/
+static int store;
 
 
 /* The XML tag processing function prototypes */
@@ -261,27 +273,41 @@ static int profileType_function(const char *_tag_,int _type_,const char *name,co
     int i;
 
     XMLPARSE_ASSERT_STRING(_tag_,name);
-    XMLPARSE_ASSERT_STRING(_tag_,transport);
 
-    for(i=0;i<nloaded_profiles;i++)
-       if(!strcmp(name,loaded_profiles[i]->name))
-          XMLPARSE_MESSAGE(_tag_,"profile name must be unique");
+    if(store_all)
+       store=1;
+    else if(store_name && !strcmp(store_name,name))
+       store=1;
+    else
+       store=0;
 
-    transporttype=TransportType(transport);
+    if(store)
+      {
+       for(i=0;i<nloaded_profiles;i++)
+          if(!strcmp(name,loaded_profiles[i]->name))
+             XMLPARSE_MESSAGE(_tag_,"profile name must be unique");
 
-    if(transporttype==Transport_None)
-       XMLPARSE_INVALID(_tag_,transport);
+       XMLPARSE_ASSERT_STRING(_tag_,transport);
 
-    if((nloaded_profiles%16)==0)
-       loaded_profiles=(Profile**)realloc((void*)loaded_profiles,(nloaded_profiles+16)*sizeof(Profile*));
+       transporttype=TransportType(transport);
 
-    nloaded_profiles++;
+       if(transporttype==Transport_None)
+          XMLPARSE_INVALID(_tag_,transport);
 
-    loaded_profiles[nloaded_profiles-1]=(Profile*)calloc(1,sizeof(Profile));
+       if((nloaded_profiles%16)==0)
+          loaded_profiles=(Profile**)realloc((void*)loaded_profiles,(nloaded_profiles+16)*sizeof(Profile*));
 
-    loaded_profiles[nloaded_profiles-1]->name=strcpy(malloc(strlen(name)+1),name);
-    loaded_profiles[nloaded_profiles-1]->transport=transporttype;
+       nloaded_profiles++;
+
+       loaded_profiles[nloaded_profiles-1]=(Profile*)calloc(1,sizeof(Profile));
+
+       loaded_profiles[nloaded_profiles-1]->name=strcpy(malloc(strlen(name)+1),name);
+       loaded_profiles[nloaded_profiles-1]->transport=transporttype;
+      }
    }
+
+ if(_type_&XMLPARSE_TAG_END && store)
+    store=0;
 
  return(0);
 }
@@ -367,7 +393,7 @@ static int profileType_function(const char *_tag_,int _type_,const char *name,co
 
 static int speedType_function(const char *_tag_,int _type_,const char *highway,const char *kph)
 {
- if(_type_&XMLPARSE_TAG_START)
+ if(_type_&XMLPARSE_TAG_START && store)
    {
     double speed;
     Highway highwaytype;
@@ -404,7 +430,7 @@ static int speedType_function(const char *_tag_,int _type_,const char *highway,c
 
 static int preferenceType_function(const char *_tag_,int _type_,const char *highway,const char *percent)
 {
- if(_type_&XMLPARSE_TAG_START)
+ if(_type_&XMLPARSE_TAG_START && store)
    {
     Highway highwaytype;
     double p;
@@ -441,7 +467,7 @@ static int preferenceType_function(const char *_tag_,int _type_,const char *high
 
 static int propertyType_function(const char *_tag_,int _type_,const char *type,const char *percent)
 {
- if(_type_&XMLPARSE_TAG_START)
+ if(_type_&XMLPARSE_TAG_START && store)
    {
     Property property;
     double p;
@@ -476,7 +502,7 @@ static int propertyType_function(const char *_tag_,int _type_,const char *type,c
 
 static int onewayType_function(const char *_tag_,int _type_,const char *obey)
 {
- if(_type_&XMLPARSE_TAG_START)
+ if(_type_&XMLPARSE_TAG_START && store)
    {
     int o;
 
@@ -503,7 +529,7 @@ static int onewayType_function(const char *_tag_,int _type_,const char *obey)
 
 static int turnsType_function(const char *_tag_,int _type_,const char *obey)
 {
- if(_type_&XMLPARSE_TAG_START)
+ if(_type_&XMLPARSE_TAG_START && store)
    {
     int o;
 
@@ -530,7 +556,7 @@ static int turnsType_function(const char *_tag_,int _type_,const char *obey)
 
 static int weightType_function(const char *_tag_,int _type_,const char *limit)
 {
- if(_type_&XMLPARSE_TAG_START)
+ if(_type_&XMLPARSE_TAG_START && store)
    {
     double l;
 
@@ -557,7 +583,7 @@ static int weightType_function(const char *_tag_,int _type_,const char *limit)
 
 static int heightType_function(const char *_tag_,int _type_,const char *limit)
 {
- if(_type_&XMLPARSE_TAG_START)
+ if(_type_&XMLPARSE_TAG_START && store)
    {
     double l;
 
@@ -584,7 +610,7 @@ static int heightType_function(const char *_tag_,int _type_,const char *limit)
 
 static int widthType_function(const char *_tag_,int _type_,const char *limit)
 {
- if(_type_&XMLPARSE_TAG_START)
+ if(_type_&XMLPARSE_TAG_START && store)
    {
     double l;
 
@@ -611,7 +637,7 @@ static int widthType_function(const char *_tag_,int _type_,const char *limit)
 
 static int lengthType_function(const char *_tag_,int _type_,const char *limit)
 {
- if(_type_&XMLPARSE_TAG_START)
+ if(_type_&XMLPARSE_TAG_START && store)
    {
     double l;
 
@@ -630,22 +656,36 @@ static int lengthType_function(const char *_tag_,int _type_,const char *limit)
   int ParseXMLProfiles Returns 0 if OK or something else in case of an error.
 
   const char *filename The name of the file to read.
+
+  const char *name The name of the profile to read.
+
+  int all Set to true to load all the profiles.
   ++++++++++++++++++++++++++++++++++++++*/
 
-int ParseXMLProfiles(const char *filename)
+int ParseXMLProfiles(const char *filename,const char *name,int all)
 {
  int fd;
  int retval;
 
  if(!ExistsFile(filename))
-   {
-#ifndef LIBROUTINO
-    fprintf(stderr,"Error: Specified profiles file '%s' does not exist.\n",filename);
-#endif
     return(1);
-   }
 
  fd=OpenFile(filename);
+
+ /* Delete the existing profiles */
+
+ if(nloaded_profiles)
+    FreeXMLProfiles();
+
+ /* Initialise variables used for parsing */
+
+ store_all=all;
+
+ store_name=name;
+
+ store=0;
+
+ /* Parse the file */
 
  retval=ParseXML(fd,xml_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_ERRNONAME);
 

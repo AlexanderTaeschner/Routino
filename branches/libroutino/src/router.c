@@ -73,26 +73,27 @@ static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relati
 
 int main(int argc,char** argv)
 {
- Nodes     *OSMNodes;
- Segments  *OSMSegments;
- Ways      *OSMWays;
- Relations *OSMRelations;
- Results   *results[NWAYPOINTS+1]={NULL};
- int        point_used[NWAYPOINTS+1]={0};
- double     point_lon[NWAYPOINTS+1],point_lat[NWAYPOINTS+1];
- double     heading=-999;
- int        help_profile=0,help_profile_xml=0,help_profile_json=0,help_profile_pl=0;
- char      *dirname=NULL,*prefix=NULL;
- char      *profiles=NULL,*profilename=NULL;
- char      *translations=NULL,*language=NULL;
- int        exactnodes=0,reverse=0,loop=0;
- Transport  transport=Transport_None;
- Profile   *profile=NULL;
- index_t    start_node,finish_node=NO_NODE,first_node=NO_NODE;
- index_t    join_segment=NO_SEGMENT;
- int        arg,nresults=0;
- waypoint_t start_waypoint,finish_waypoint=NO_WAYPOINT;
- waypoint_t first_waypoint=NWAYPOINTS,last_waypoint=1,inc_dec_waypoint,waypoint;
+ Nodes       *OSMNodes;
+ Segments    *OSMSegments;
+ Ways        *OSMWays;
+ Relations   *OSMRelations;
+ Results     *results[NWAYPOINTS+1]={NULL};
+ int          point_used[NWAYPOINTS+1]={0};
+ double       point_lon[NWAYPOINTS+1],point_lat[NWAYPOINTS+1];
+ double       heading=-999;
+ int          help_profile=0,help_profile_xml=0,help_profile_json=0,help_profile_pl=0;
+ char        *dirname=NULL,*prefix=NULL;
+ char        *profiles=NULL,*profilename=NULL;
+ char        *translations=NULL,*language=NULL;
+ int          exactnodes=0,reverse=0,loop=0;
+ Transport    transport=Transport_None;
+ Profile     *profile=NULL;
+ Translation *translation=NULL;
+ index_t      start_node,finish_node=NO_NODE,first_node=NO_NODE;
+ index_t      join_segment=NO_SEGMENT;
+ int          arg,nresults=0;
+ waypoint_t   start_waypoint,finish_waypoint=NO_WAYPOINT;
+ waypoint_t   first_waypoint=NWAYPOINTS,last_waypoint=1,inc_dec_waypoint,waypoint;
 
 #if !DEBUG
  printf_program_start();
@@ -178,7 +179,7 @@ int main(int argc,char** argv)
     exit(EXIT_FAILURE);
    }
 
- /* Load in the profiles */
+ /* Load in the selected profiles */
 
  if(transport==Transport_None)
     transport=Transport_Motorcar;
@@ -209,29 +210,21 @@ int main(int argc,char** argv)
       }
    }
 
- if(ParseXMLProfiles(profiles))
+ if(!profilename)
+    profilename=(char*)TransportName(transport);
+
+ if(ParseXMLProfiles(profiles,profilename,(help_profile_xml|help_profile_json|help_profile_pl)))
    {
     fprintf(stderr,"Error: Cannot read the profiles in the file '%s'.\n",profiles);
     exit(EXIT_FAILURE);
    }
 
- /* Choose the selected profile. */
-
- if(profilename)
-   {
-    profile=GetProfile(profilename);
-
-    if(!profile)
-      {
-       fprintf(stderr,"Error: Cannot find a profile called '%s' in '%s'.\n",profilename,profiles);
-       exit(EXIT_FAILURE);
-      }
-   }
- else
-    profile=GetProfile(TransportName(transport));
+ profile=GetProfile(profilename);
 
  if(!profile)
    {
+    fprintf(stderr,"Error: Cannot find a profile called '%s' in '%s'.\n",profilename,profiles);
+
     profile=(Profile*)calloc(1,sizeof(Profile));
     profile->transport=transport;
    }
@@ -416,7 +409,7 @@ int main(int argc,char** argv)
  if(first_waypoint>=last_waypoint)
     print_usage(0,NULL,"At least two waypoints must be specified.");
 
- /* Load in the translations */
+ /* Load in the selected translation */
 
  if(option_html==0 && option_gpx_track==0 && option_gpx_route==0 && option_text==0 && option_text_all==0 && option_none==0)
     option_html=option_gpx_track=option_gpx_route=option_text=option_text_all=1;
@@ -449,10 +442,19 @@ int main(int argc,char** argv)
          }
       }
 
-    if(ParseXMLTranslations(translations,language))
+    if(ParseXMLTranslations(translations,language,0))
       {
        fprintf(stderr,"Error: Cannot read the translations in the file '%s'.\n",translations);
        exit(EXIT_FAILURE);
+      }
+
+    translation=GetTranslation(language);
+
+    if(!translation)
+      {
+       fprintf(stderr,"Warning: Cannot find a translation called '%s' in '%s'.\n",language,translations);
+
+       translation=GetTranslation(NULL);
       }
    }
 
@@ -616,7 +618,7 @@ int main(int argc,char** argv)
 #endif
 
  if(!option_none)
-    PrintRoute(results,nresults,OSMNodes,OSMSegments,OSMWays,profile);
+    PrintRoute(results,nresults,OSMNodes,OSMSegments,OSMWays,profile,translation);
 
 #if !DEBUG
  if(!option_quiet)

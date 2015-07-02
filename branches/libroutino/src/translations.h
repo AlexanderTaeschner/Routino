@@ -30,6 +30,8 @@
 
 typedef struct _Translation
 {
+ char *language;
+
  char *raw_copyright_creator[2];
  char *raw_copyright_source[2];
  char *raw_copyright_license[2];
@@ -72,14 +74,11 @@ typedef struct _Translation
  Translation;
 
 
-/* Global variable declaration */
-
-extern Translation *translation;
-
-
 /* Functions in translations.c */
 
-int ParseXMLTranslations(const char *filename,const char *language);
+int ParseXMLTranslations(const char *filename,const char *language,int all);
+
+Translation *GetTranslation(const char *language);
 
 void FreeXMLTranslations(void);
 
