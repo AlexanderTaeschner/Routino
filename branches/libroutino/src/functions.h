@@ -32,17 +32,9 @@
 
 /* Functions in optimiser.c */
 
-Results *FindNormalRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t start_node,index_t prev_segment,index_t finish_node);
-
-Results *FindMiddleRoute(Nodes *supernodes,Segments *supersegments,Ways *superways,Relations *relations,Profile *profile,Results *begin,Results *end);
-
-Results *FindStartRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t start_node,index_t prev_segment,index_t finish_node);
-
-Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,index_t finish_node);
-
-Results *CombineRoutes(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,Results *begin,Results *middle,Results *end);
-
-void FixForwardRoute(Results *results,Result *finish_result);
+Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,
+                        index_t start_node,index_t prev_segment,index_t finish_node,
+                        int start_waypoint,int finish_waypoint);
 
 
 /* Functions in output.c */
