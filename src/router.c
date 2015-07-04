@@ -39,9 +39,6 @@
 #include "profiles.h"
 
 
-/*+ To help when debugging +*/
-#define DEBUG 0
-
 /*+ The maximum distance from the specified point to search for a node or segment (in km). +*/
 #define MAXSEARCH  1
 
@@ -61,10 +58,6 @@ int option_quickest=0;
 /* Local functions */
 
 static void print_usage(int detail,const char *argerr,const char *err);
-
-static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,
-                               index_t start_node,index_t prev_segment,index_t finish_node,
-                               int start_waypoint,int finish_waypoint);
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -95,9 +88,7 @@ int main(int argc,char** argv)
  waypoint_t   start_waypoint,finish_waypoint=NO_WAYPOINT;
  waypoint_t   first_waypoint=NWAYPOINTS,last_waypoint=1,inc_dec_waypoint,waypoint;
 
-#if !DEBUG
  printf_program_start();
-#endif
 
  /* Parse the command line arguments */
 
@@ -460,10 +451,8 @@ int main(int argc,char** argv)
 
  /* Load in the data - Note: No error checking because Load*List() will call exit() in case of an error. */
 
-#if !DEBUG
  if(!option_quiet)
     printf_first("Loading Files:");
-#endif
 
  OSMNodes=LoadNodeList(FileName(dirname,prefix,"nodes.mem"));
 
@@ -473,10 +462,8 @@ int main(int argc,char** argv)
 
  OSMRelations=LoadRelationList(FileName(dirname,prefix,"relations.mem"));
 
-#if !DEBUG
  if(!option_quiet)
     printf_last("Loaded Files: nodes, segments, ways & relations");
-#endif
 
  /* Check the profile compared to the types of ways available */
 
@@ -519,10 +506,8 @@ int main(int argc,char** argv)
     if(point_used[waypoint]!=3)
        continue;
 
-#if !DEBUG
     if(!option_quiet)
        printf_first("Finding Closest Point: Waypoint %d",waypoint);
-#endif
 
     /* Find the closest point */
 
@@ -545,10 +530,8 @@ int main(int argc,char** argv)
           finish_node=NO_NODE;
       }
 
-#if !DEBUG
     if(!option_quiet)
        printf_last("Found Closest Point: Waypoint %d",waypoint);
-#endif
 
     if(finish_node==NO_NODE)
       {
@@ -590,6 +573,9 @@ int main(int argc,char** argv)
 
     results[nresults]=CalculateRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,join_segment,finish_node,start_waypoint,finish_waypoint);
 
+    if(!results[nresults])
+       exit(EXIT_FAILURE);
+
     join_segment=results[nresults]->last_segment;
 
     nresults++;
@@ -612,18 +598,14 @@ int main(int argc,char** argv)
 
  /* Print out the combined route */
 
-#if !DEBUG
  if(!option_quiet)
     printf_first("Generating Result Outputs");
-#endif
 
  if(!option_none)
     PrintRoute(results,nresults,OSMNodes,OSMSegments,OSMWays,profile,translation);
 
-#if !DEBUG
  if(!option_quiet)
     printf_last("Generated Result Outputs");
-#endif
 
  /* Destroy the remaining results lists and data structures */
 
@@ -643,191 +625,10 @@ int main(int argc,char** argv)
 
 #endif
 
-#if !DEBUG
  if(!option_quiet)
     printf_program_end();
-#endif
 
  exit(EXIT_SUCCESS);
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Find a complete route from a specified node to another node.
-
-  Results *CalculateRoute Returns a set of results.
-
-  Nodes *nodes The set of nodes to use.
-
-  Segments *segments The set of segments to use.
-
-  Ways *ways The set of ways to use.
-
-  Relations *relations The set of relations to use.
-
-  Profile *profile The profile containing the transport type, speeds and allowed highways.
-
-  index_t start_node The start node.
-
-  index_t prev_segment The previous segment before the start node.
-
-  index_t finish_node The finish node.
-
-  int start_waypoint The starting waypoint.
-
-  int finish_waypoint The finish waypoint.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-static Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *relations,Profile *profile,
-                               index_t start_node,index_t prev_segment,index_t finish_node,
-                               int start_waypoint,int finish_waypoint)
-{
- Results *complete=NULL;
-
- /* A special case if the first and last nodes are the same */
-
- if(start_node==finish_node)
-   {
-    index_t fake_segment;
-    Result *result1,*result2;
-
-    complete=NewResultsList(8);
-
-    if(prev_segment==NO_SEGMENT)
-      {
-       double lat,lon;
-       distance_t distmin,dist1,dist2;
-       index_t node1,node2;
-
-       GetLatLong(nodes,start_node,NULL,&lat,&lon);
-
-       prev_segment=FindClosestSegment(nodes,segments,ways,lat,lon,1,profile,&distmin,&node1,&node2,&dist1,&dist2);
-      }
-
-    fake_segment=CreateFakeNullSegment(segments,start_node,prev_segment,finish_waypoint);
-
-    result1=InsertResult(complete,start_node,prev_segment);
-    result2=InsertResult(complete,finish_node,fake_segment);
-
-    result1->next=result2;
-
-    complete->start_node=start_node;
-    complete->prev_segment=prev_segment;
-
-    complete->finish_node=finish_node;
-    complete->last_segment=fake_segment;
-   }
- else
-   {
-    Results *begin;
-
-    /* Calculate the beginning of the route */
-
-    begin=FindStartRoutes(nodes,segments,ways,relations,profile,start_node,prev_segment,finish_node);
-
-    if(begin)
-      {
-       /* Check if the end of the route was reached */
-
-       if(begin->finish_node!=NO_NODE)
-          complete=begin;
-      }
-    else
-      {
-       if(prev_segment!=NO_SEGMENT)
-         {
-          /* Try again but allow a U-turn at the start waypoint -
-             this solves the problem of facing a dead-end that contains no super-nodes. */
-
-          prev_segment=NO_SEGMENT;
-
-          begin=FindStartRoutes(nodes,segments,ways,relations,profile,start_node,prev_segment,finish_node);
-         }
-
-       if(begin)
-         {
-          /* Check if the end of the route was reached */
-
-          if(begin->finish_node!=NO_NODE)
-             complete=begin;
-         }
-       else
-         {
-          fprintf(stderr,"Error: Cannot find initial section of route compatible with profile.\n");
-          exit(EXIT_FAILURE);
-         }
-      }
-
-    /* Calculate the rest of the route */
-
-    if(!complete)
-      {
-       Results *middle,*end;
-
-       /* Calculate the end of the route */
-
-       end=FindFinishRoutes(nodes,segments,ways,relations,profile,finish_node);
-
-       if(!end)
-         {
-          fprintf(stderr,"Error: Cannot find final section of route compatible with profile.\n");
-          exit(EXIT_FAILURE);
-         }
-
-       /* Calculate the middle of the route */
-
-       middle=FindMiddleRoute(nodes,segments,ways,relations,profile,begin,end);
-
-       if(!middle && prev_segment!=NO_SEGMENT)
-         {
-          /* Try again but allow a U-turn at the start waypoint -
-             this solves the problem of facing a dead-end that contains some super-nodes. */
-
-          FreeResultsList(begin);
-
-          begin=FindStartRoutes(nodes,segments,ways,relations,profile,start_node,NO_SEGMENT,finish_node);
-
-          if(begin)
-             middle=FindMiddleRoute(nodes,segments,ways,relations,profile,begin,end);
-         }
-
-       if(!middle)
-         {
-          fprintf(stderr,"Error: Cannot find super-route compatible with profile.\n");
-          exit(EXIT_FAILURE);
-         }
-
-       complete=CombineRoutes(nodes,segments,ways,relations,profile,begin,middle,end);
-
-       if(!complete)
-         {
-          fprintf(stderr,"Error: Cannot create combined route following super-route.\n");
-          exit(EXIT_FAILURE);
-         }
-
-       FreeResultsList(begin);
-       FreeResultsList(middle);
-       FreeResultsList(end);
-      }
-   }
-
- complete->start_waypoint=start_waypoint;
- complete->finish_waypoint=finish_waypoint;
-
-#if DEBUG
- Result *r=FindResult(complete,complete->start_node,complete->prev_segment);
-
- printf("The final route is:\n");
-
- while(r)
-   {
-    printf("  node=%"Pindex_t" segment=%"Pindex_t" score=%f\n",r->node,r->segment,r->score);
-
-    r=r->next;
-   }
-#endif
-
- return(complete);
 }
 
 
