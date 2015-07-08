@@ -1325,35 +1325,37 @@ Translation *GetTranslation(const char *language)
 
 void FreeXMLTranslations()
 {
- int i;
+ int i,j;
 
  if(!loaded_translations)
     return;
 
  for(i=0;i<nloaded_translations;i++)
    {
-    for(i=0;i<2;i++)
-      {
-       if(loaded_translations[i]->raw_copyright_creator[i] != default_translation.raw_copyright_creator[i]) free(loaded_translations[i]->raw_copyright_creator[i]);
-       if(loaded_translations[i]->raw_copyright_source[i]  != default_translation.raw_copyright_source[i])  free(loaded_translations[i]->raw_copyright_source[i]);
-       if(loaded_translations[i]->raw_copyright_license[i] != default_translation.raw_copyright_license[i]) free(loaded_translations[i]->raw_copyright_license[i]);
+    free(loaded_translations[i]->language);
 
-       if(loaded_translations[i]->xml_copyright_creator[i] != default_translation.xml_copyright_creator[i]) free(loaded_translations[i]->xml_copyright_creator[i]);
-       if(loaded_translations[i]->xml_copyright_source[i]  != default_translation.xml_copyright_source[i])  free(loaded_translations[i]->xml_copyright_source[i]);
-       if(loaded_translations[i]->xml_copyright_license[i] != default_translation.xml_copyright_license[i]) free(loaded_translations[i]->xml_copyright_license[i]);
+    for(j=0;j<2;j++)
+      {
+       if(loaded_translations[i]->raw_copyright_creator[j] != default_translation.raw_copyright_creator[j]) free(loaded_translations[i]->raw_copyright_creator[j]);
+       if(loaded_translations[i]->raw_copyright_source[j]  != default_translation.raw_copyright_source[j])  free(loaded_translations[i]->raw_copyright_source[j]);
+       if(loaded_translations[i]->raw_copyright_license[j] != default_translation.raw_copyright_license[j]) free(loaded_translations[i]->raw_copyright_license[j]);
+
+       if(loaded_translations[i]->xml_copyright_creator[j] != default_translation.xml_copyright_creator[j]) free(loaded_translations[i]->xml_copyright_creator[j]);
+       if(loaded_translations[i]->xml_copyright_source[j]  != default_translation.xml_copyright_source[j])  free(loaded_translations[i]->xml_copyright_source[j]);
+       if(loaded_translations[i]->xml_copyright_license[j] != default_translation.xml_copyright_license[j]) free(loaded_translations[i]->xml_copyright_license[j]);
       }
 
-    for(i=0;i<9;i++)
+    for(j=0;j<9;j++)
       {
-       if(loaded_translations[i]->xml_heading[i] != default_translation.xml_heading[i]) free(loaded_translations[i]->xml_heading[i]);
-       if(loaded_translations[i]->xml_turn[i]    != default_translation.xml_turn[i])    free(loaded_translations[i]->xml_turn[i]);
+       if(loaded_translations[i]->xml_heading[j] != default_translation.xml_heading[j]) free(loaded_translations[i]->xml_heading[j]);
+       if(loaded_translations[i]->xml_turn[j]    != default_translation.xml_turn[j])    free(loaded_translations[i]->xml_turn[j]);
       }
 
-    for(i=0;i<10;i++)
-       if(loaded_translations[i]->xml_ordinal[i] != default_translation.xml_ordinal[i]) free(loaded_translations[i]->xml_ordinal[i]);
+    for(j=0;j<10;j++)
+       if(loaded_translations[i]->xml_ordinal[j] != default_translation.xml_ordinal[j]) free(loaded_translations[i]->xml_ordinal[j]);
 
-    for(i=0;i<Highway_Count;i++)
-       if(loaded_translations[i]->raw_highway[i] != default_translation.raw_highway[i]) free(loaded_translations[i]->raw_highway[i]);
+    for(j=0;j<Highway_Count;j++)
+       if(loaded_translations[i]->raw_highway[j] != default_translation.raw_highway[j]) free(loaded_translations[i]->raw_highway[j]);
 
     if(loaded_translations[i]->xml_route_shortest != default_translation.xml_route_shortest) free(loaded_translations[i]->xml_route_shortest);
     if(loaded_translations[i]->xml_route_quickest != default_translation.xml_route_quickest) free(loaded_translations[i]->xml_route_quickest);
@@ -1364,14 +1366,14 @@ void FreeXMLTranslations()
 
     if(loaded_translations[i]->html_title != default_translation.html_title) free(loaded_translations[i]->html_title);
 
-    for(i=0;i<2;i++)
+    for(j=0;j<2;j++)
       {
-       if(loaded_translations[i]->html_start[i]   != default_translation.html_start[i])   free(loaded_translations[i]->html_start[i]);
-       if(loaded_translations[i]->html_segment[i] != default_translation.html_segment[i]) free(loaded_translations[i]->html_segment[i]);
-       if(loaded_translations[i]->html_node[i]    != default_translation.html_node[i])    free(loaded_translations[i]->html_node[i]);
-       if(loaded_translations[i]->html_rbnode[i]  != default_translation.html_rbnode[i])  free(loaded_translations[i]->html_rbnode[i]);
-       if(loaded_translations[i]->html_stop[i]    != default_translation.html_stop[i])    free(loaded_translations[i]->html_stop[i]);
-       if(loaded_translations[i]->html_total[i]   != default_translation.html_total[i])   free(loaded_translations[i]->html_total[i]);
+       if(loaded_translations[i]->html_start[j]   != default_translation.html_start[j])   free(loaded_translations[i]->html_start[j]);
+       if(loaded_translations[i]->html_segment[j] != default_translation.html_segment[j]) free(loaded_translations[i]->html_segment[j]);
+       if(loaded_translations[i]->html_node[j]    != default_translation.html_node[j])    free(loaded_translations[i]->html_node[j]);
+       if(loaded_translations[i]->html_rbnode[j]  != default_translation.html_rbnode[j])  free(loaded_translations[i]->html_rbnode[j]);
+       if(loaded_translations[i]->html_stop[j]    != default_translation.html_stop[j])    free(loaded_translations[i]->html_stop[j]);
+       if(loaded_translations[i]->html_total[j]   != default_translation.html_total[j])   free(loaded_translations[i]->html_total[j]);
       }
 
     if(loaded_translations[i]->gpx_desc  != default_translation.gpx_desc)  free(loaded_translations[i]->gpx_desc);
