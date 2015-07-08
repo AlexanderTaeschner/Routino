@@ -500,7 +500,6 @@ static int TurnType_function(const char *_tag_,int _type_,const char *direction,
        XMLPARSE_INVALID(_tag_,direction);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-
     loaded_translations[nloaded_translations-1]->xml_turn[d]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
    }
 
@@ -538,7 +537,6 @@ static int HeadingType_function(const char *_tag_,int _type_,const char *directi
        XMLPARSE_INVALID(_tag_,direction);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-
     loaded_translations[nloaded_translations-1]->xml_heading[d]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
    }
 
@@ -574,7 +572,6 @@ static int OrdinalType_function(const char *_tag_,int _type_,const char *number,
        XMLPARSE_INVALID(_tag_,number);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-
     loaded_translations[nloaded_translations-1]->xml_ordinal[n-1]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
    }
 
@@ -713,10 +710,10 @@ static int CopyrightCreatorType_function(const char *_tag_,int _type_,const char
     loaded_translations[nloaded_translations-1]->raw_copyright_creator[1]=strcpy(malloc(strlen(text)+1)  ,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    xmltext  =ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->xml_copyright_creator[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    loaded_translations[nloaded_translations-1]->xml_copyright_creator[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
+
+    xmltext=ParseXML_Encode_Safe_XML(text);
+    loaded_translations[nloaded_translations-1]->xml_copyright_creator[1]=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
  return(0);
@@ -750,10 +747,10 @@ static int CopyrightSourceType_function(const char *_tag_,int _type_,const char 
     loaded_translations[nloaded_translations-1]->raw_copyright_source[1]=strcpy(malloc(strlen(text)+1)  ,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    xmltext  =ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->xml_copyright_source[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    loaded_translations[nloaded_translations-1]->xml_copyright_source[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
+
+    xmltext=ParseXML_Encode_Safe_XML(text);
+    loaded_translations[nloaded_translations-1]->xml_copyright_source[1]=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
  return(0);
@@ -787,10 +784,10 @@ static int CopyrightLicenseType_function(const char *_tag_,int _type_,const char
     loaded_translations[nloaded_translations-1]->raw_copyright_license[1]=strcpy(malloc(strlen(text)+1)  ,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    xmltext  =ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->xml_copyright_license[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    loaded_translations[nloaded_translations-1]->xml_copyright_license[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
+
+    xmltext=ParseXML_Encode_Safe_XML(text);
+    loaded_translations[nloaded_translations-1]->xml_copyright_license[1]=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
  return(0);
@@ -860,7 +857,6 @@ static int HTMLTitleType_function(const char *_tag_,int _type_,const char *text)
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
     xmltext=ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->html_title=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
@@ -892,9 +888,9 @@ static int HTMLStartType_function(const char *_tag_,int _type_,const char *strin
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    xmltext  =ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->html_start[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+
+    xmltext=ParseXML_Encode_Safe_XML(text);
     loaded_translations[nloaded_translations-1]->html_start[1]=malloc(strlen(xmltext)+1+sizeof("<span class='b'>")+sizeof("</span>"));
     sprintf(loaded_translations[nloaded_translations-1]->html_start[1],xmltext,"%s","<span class='b'>%s</span>");
    }
@@ -927,9 +923,9 @@ static int HTMLNodeType_function(const char *_tag_,int _type_,const char *string
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    xmltext  =ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->html_node[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+
+    xmltext=ParseXML_Encode_Safe_XML(text);
     loaded_translations[nloaded_translations-1]->html_node[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
     sprintf(loaded_translations[nloaded_translations-1]->html_node[1],xmltext,"%s","<span class='t'>%s</span>","<span class='b'>%s</span>");
    }
@@ -962,9 +958,9 @@ static int HTMLRBNodeType_function(const char *_tag_,int _type_,const char *stri
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    xmltext  =ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->html_rbnode[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+
+    xmltext=ParseXML_Encode_Safe_XML(text);
     loaded_translations[nloaded_translations-1]->html_rbnode[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
     sprintf(loaded_translations[nloaded_translations-1]->html_rbnode[1],xmltext,"%s","<span class='t'>%s</span>","<span class='b'>%s</span>");
    }
@@ -999,9 +995,9 @@ static int HTMLSegmentType_function(const char *_tag_,int _type_,const char *str
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    xmltext  =ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->html_segment[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
+
+    xmltext=ParseXML_Encode_Safe_XML(text);
     loaded_translations[nloaded_translations-1]->html_segment[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
 
     p=xmltext;
@@ -1050,10 +1046,10 @@ static int HTMLStopType_function(const char *_tag_,int _type_,const char *string
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    xmltext  =ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->html_stop[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    loaded_translations[nloaded_translations-1]->html_stop[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
+
+    xmltext=ParseXML_Encode_Safe_XML(text);
+    loaded_translations[nloaded_translations-1]->html_stop[1]=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
  return(0);
@@ -1084,10 +1080,10 @@ static int HTMLTotalType_function(const char *_tag_,int _type_,const char *strin
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    xmltext  =ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->html_total[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-    loaded_translations[nloaded_translations-1]->html_total[1]=strcpy(malloc(strlen(xmltext)+1)  ,xmltext);
+
+    xmltext=ParseXML_Encode_Safe_XML(text);
+    loaded_translations[nloaded_translations-1]->html_total[1]=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
  return(0);
@@ -1156,7 +1152,6 @@ static int GPXDescType_function(const char *_tag_,int _type_,const char *text)
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
     xmltext=ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->gpx_desc=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
@@ -1185,7 +1180,6 @@ static int GPXNameType_function(const char *_tag_,int _type_,const char *text)
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
     xmltext=ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->gpx_name=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
@@ -1214,7 +1208,6 @@ static int GPXStepType_function(const char *_tag_,int _type_,const char *text)
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
     xmltext=ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->gpx_step=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
@@ -1243,7 +1236,6 @@ static int GPXFinalType_function(const char *_tag_,int _type_,const char *text)
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
     xmltext=ParseXML_Encode_Safe_XML(text);
-
     loaded_translations[nloaded_translations-1]->gpx_final=strcpy(malloc(strlen(xmltext)+1),xmltext);
    }
 
