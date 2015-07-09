@@ -41,7 +41,8 @@ SUBDIRS=$(foreach f,$(SUBFILES),$(dir $f))
 C=$(wildcard *.c)
 D=$(wildcard .deps/*.d)
 
-EXE=planetsplitter planetsplitter-slim router router-slim filedumperx filedumper filedumper-slim
+EXE=planetsplitter planetsplitter-slim router router-slim filedumperx filedumper filedumper-slim \
+    router+lib router+lib-slim
 
 LIB=libroutino.so libroutino-slim.so
 
@@ -167,6 +168,16 @@ filedumper-slim : $(FILEDUMPER_SLIM_OBJ)
 %-slim.o : %.c
 	@[ -d .deps ] || mkdir .deps
 	$(CC) -c $(CFLAGS) -DSLIM=1 -DROUTINO_DATADIR=\"$(datadir)\" $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
+
+########
+
+ROUTER_LIB_OBJ=router+lib.o
+
+router+lib : $(ROUTER_LIB_OBJ) -lroutino
+	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) -L. -lroutino
+
+router+lib-slim : $(ROUTER_LIB_OBJ) -lroutino-slim
+	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) -L. -lroutino-slim
 
 ########
 

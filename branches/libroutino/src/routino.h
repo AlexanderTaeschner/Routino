@@ -60,9 +60,40 @@ extern "C"
 #endif
 
 
- /* Library functions */
+ /* Routino types */
 
- DLL_PUBLIC void Routino(void);
+ typedef struct _Routino_Database Routino_Database;
+ typedef struct _Routino_Waypoint Routino_Waypoint;
+
+#ifdef LIBROUTINO
+ typedef struct _Profile             Routino_Profile;
+ typedef struct _Translation         Routino_Translation;
+#else
+ typedef struct _Routino_Profile     Routino_Profile;
+ typedef struct _Routino_Translation Routino_Translation;
+#endif
+
+
+ /* Routino library functions */
+
+ DLL_PUBLIC void Routino_Quickest(void);
+ DLL_PUBLIC void Routino_Shortest(void);
+
+ DLL_PUBLIC Routino_Database *Routino_LoadDatabase(const char *dirname,const char *prefix);
+ DLL_PUBLIC void Routino_UnloadDatabase(Routino_Database *database);
+
+ DLL_PUBLIC int Routino_ParseXMLProfiles(const char *filename);
+ DLL_PUBLIC Routino_Profile *Routino_GetProfile(const char *name);
+ DLL_PUBLIC void Routino_FreeXMLProfiles(void);
+
+ DLL_PUBLIC int Routino_ParseXMLTranslations(const char *filename);
+ DLL_PUBLIC Routino_Translation *Routino_GetTranslation(const char *language);
+ DLL_PUBLIC void Routino_FreeXMLTranslations(void);
+
+ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Routino_Profile *profile,double latitude,double longitude);
+
+ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,
+                                       Routino_Waypoint **waypoints,int nwaypoints);
 
 
 /* Handle compilation with a C++ compiler */
