@@ -22,13 +22,15 @@
 
 #if defined(_MSC_VER)
 #include <io.h>
-typedef unsigned __int64  ssize_t;
+#include <basetsd.h>
 #define read(fd,address,length)  _read(fd,address,(unsigned int)(length))
 #define write(fd,address,length) _write(fd,address,(unsigned int)(length))
-#define lseek       _lseeki64
-#define open        _open
-#define close       _close
-#define unlink      _unlink
+#define lseek   _lseeki64
+#define stat    _stati64
+#define open    _open
+#define close   _close
+#define unlink  _unlink
+#define ssize_t SSIZE_T
 #else
 #include <unistd.h>
 #endif
@@ -148,7 +150,7 @@ void *MapFile(const char *filename)
 {
  int fd;
  struct stat buf;
- off_t size;
+ offset_t size;
  void *address;
 
  /* Open the file */
@@ -230,7 +232,7 @@ void *MapFileWriteable(const char *filename)
 {
  int fd;
  struct stat buf;
- off_t size;
+ offset_t size;
  void *address;
 
  /* Open the file */
@@ -720,10 +722,10 @@ int ReadFileBuffered(int fd,void *address,size_t length)
 
   int fd The file descriptor to seek within.
 
-  off_t position The position to seek to.
+  offset_t position The position to seek to.
   ++++++++++++++++++++++++++++++++++++++*/
 
-int SeekFileBuffered(int fd,off_t position)
+int SeekFileBuffered(int fd,offset_t position)
 {
 #ifndef LIBROUTINO
  logassert(fd!=-1,"File descriptor is in error - report a bug");
@@ -754,10 +756,10 @@ int SeekFileBuffered(int fd,off_t position)
 
   int fd The file descriptor to skip within.
 
-  off_t skip The amount to skip forward.
+  offset_t skip The amount to skip forward.
   ++++++++++++++++++++++++++++++++++++++*/
 
-int SkipFileBuffered(int fd,off_t skip)
+int SkipFileBuffered(int fd,offset_t skip)
 {
 #ifndef LIBROUTINO
  logassert(fd!=-1,"File descriptor is in error - report a bug");
@@ -771,7 +773,7 @@ int SkipFileBuffered(int fd,off_t skip)
 
  if((filebuffers[fd]->pointer+skip)>filebuffers[fd]->length)
    {
-    skip-=(off_t)(filebuffers[fd]->length-filebuffers[fd]->pointer);
+    skip-=(offset_t)(filebuffers[fd]->length-filebuffers[fd]->pointer);
 
     filebuffers[fd]->pointer=0;
     filebuffers[fd]->length=0;
@@ -789,12 +791,12 @@ int SkipFileBuffered(int fd,off_t skip)
 /*++++++++++++++++++++++++++++++++++++++
   Get the size of a file.
 
-  off_t SizeFile Returns the file size if OK or exits in case of an error.
+  offset_t SizeFile Returns the file size if OK or exits in case of an error.
 
   const char *filename The name of the file to check.
   ++++++++++++++++++++++++++++++++++++++*/
 
-off_t SizeFile(const char *filename)
+offset_t SizeFile(const char *filename)
 {
  struct stat buf;
 
@@ -815,12 +817,12 @@ off_t SizeFile(const char *filename)
 /*++++++++++++++++++++++++++++++++++++++
   Get the size of a file from a file descriptor.
 
-  off_t SizeFileFD Returns the file size if OK or exits in case of an error.
+  offset_t SizeFileFD Returns the file size if OK or exits in case of an error.
 
   int fd The file descriptor to check.
   ++++++++++++++++++++++++++++++++++++++*/
 
-off_t SizeFileFD(int fd)
+offset_t SizeFileFD(int fd)
 {
  struct stat buf;
 
