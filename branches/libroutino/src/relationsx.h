@@ -70,7 +70,7 @@ struct _RelationsX
  index_t     rrknumber;        /*+ The number of extended route relations kept for next time. +*/
 
  relation_t *rridata;          /*+ The extended relation IDs (sorted by ID). +*/
- off_t      *rrodata;          /*+ The offset of the route relation in the file (used for error log). +*/
+ offset_t   *rrodata;          /*+ The offset of the route relation in the file (used for error log). +*/
 
  /* Turn restriction relations */
 
