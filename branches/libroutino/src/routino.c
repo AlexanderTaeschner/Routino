@@ -38,6 +38,9 @@
 
 /* Global variables */
 
+/*+ Contains the error number of the most recent Routino error. +*/
+int Routino_errno=ROUTINO_ERROR_NONE;
+
 /*+ The options to select the format of the output. +*/
 int option_html=1,option_gpx_track=1,option_gpx_route=1,option_text=1,option_text_all=1,option_stdout=0;
 
@@ -75,6 +78,8 @@ struct _Routino_Waypoint
  DLL_PUBLIC void Routino_Quickest(void)
  {
   option_quickest=1;
+
+  Routino_errno=ROUTINO_ERROR_NONE;
  }
 
 
@@ -85,6 +90,8 @@ struct _Routino_Waypoint
  DLL_PUBLIC void Routino_Shortest(void)
  {
   option_quickest=0;
+
+  Routino_errno=ROUTINO_ERROR_NONE;
  }
 
 
@@ -104,17 +111,24 @@ DLL_PUBLIC Routino_Database *Routino_LoadDatabase(const char *dirname,const char
  char *segments_filename;
  char *ways_filename;
  char *relations_filename;
- Routino_Database *database=calloc(sizeof(Routino_Database),1);
+ Routino_Database *database=NULL;
 
  nodes_filename    =FileName(dirname,prefix,"nodes.mem");
  segments_filename =FileName(dirname,prefix,"segments.mem");
  ways_filename     =FileName(dirname,prefix,"ways.mem");
  relations_filename=FileName(dirname,prefix,"relations.mem");
 
- database->nodes    =LoadNodeList    (nodes_filename);
- database->segments =LoadSegmentList (segments_filename);
- database->ways     =LoadWayList     (ways_filename);
- database->relations=LoadRelationList(relations_filename);
+ if(!ExistsFile(nodes_filename) || !ExistsFile(nodes_filename) || !ExistsFile(nodes_filename) || !ExistsFile(nodes_filename))
+    Routino_errno=ROUTINO_ERROR_NO_DATABASE_FILES;
+ else
+   {
+    database=calloc(sizeof(Routino_Database),1);
+
+    database->nodes    =LoadNodeList    (nodes_filename);
+    database->segments =LoadSegmentList (segments_filename);
+    database->ways     =LoadWayList     (ways_filename);
+    database->relations=LoadRelationList(relations_filename);
+   }
 
  free(nodes_filename);
  free(segments_filename);
@@ -124,10 +138,18 @@ DLL_PUBLIC Routino_Database *Routino_LoadDatabase(const char *dirname,const char
  if(!database->nodes || !database->segments || !database->ways || !database->relations)
    {
     Routino_UnloadDatabase(database);
-    return(NULL);
+    database=NULL;
+
+    Routino_errno=ROUTINO_ERROR_BAD_DATABASE_FILES;
    }
 
- return(database);
+ if(database)
+   {
+    Routino_errno=ROUTINO_ERROR_NONE;
+    return(database);
+   }
+ else
+    return(NULL);
 }
 
 
@@ -139,12 +161,19 @@ DLL_PUBLIC Routino_Database *Routino_LoadDatabase(const char *dirname,const char
 
 DLL_PUBLIC void Routino_UnloadDatabase(Routino_Database *database)
 {
- if(database->nodes)     DestroyNodeList    (database->nodes);
- if(database->segments)  DestroySegmentList (database->segments);
- if(database->ways)      DestroyWayList     (database->ways);
- if(database->relations) DestroyRelationList(database->relations);
+ if(!database)
+    Routino_errno=ROUTINO_ERROR_NO_DATABASE;
+ else
+   {
+    if(database->nodes)     DestroyNodeList    (database->nodes);
+    if(database->segments)  DestroySegmentList (database->segments);
+    if(database->ways)      DestroyWayList     (database->ways);
+    if(database->relations) DestroyRelationList(database->relations);
 
- free(database);
+    free(database);
+
+    Routino_errno=ROUTINO_ERROR_NONE;
+   }
 }
 
 
@@ -158,7 +187,17 @@ DLL_PUBLIC void Routino_UnloadDatabase(Routino_Database *database)
 
 DLL_PUBLIC int Routino_ParseXMLProfiles(const char *filename)
 {
- return ParseXMLProfiles(filename,NULL,1);
+ int retval;
+
+ retval=ParseXMLProfiles(filename,NULL,1);
+
+ if(retval==1)
+    retval=ROUTINO_ERROR_NO_PROFILES_XML;
+ else if(retval==2)
+    retval=ROUTINO_ERROR_BAD_PROFILES_XML;
+
+ Routino_errno=retval;
+ return(retval);
 }
 
 
@@ -172,7 +211,14 @@ DLL_PUBLIC int Routino_ParseXMLProfiles(const char *filename)
 
 DLL_PUBLIC Routino_Profile *Routino_GetProfile(const char *name)
 {
- return GetProfile(name);
+ Profile *profile=GetProfile(name);
+
+ if(profile)
+    Routino_errno=ROUTINO_ERROR_NONE;
+ else
+    Routino_errno=ROUTINO_ERROR_NO_SUCH_PROFILE;
+
+ return(profile);
 }
 
 
@@ -183,6 +229,8 @@ DLL_PUBLIC Routino_Profile *Routino_GetProfile(const char *name)
 DLL_PUBLIC void Routino_FreeXMLProfiles(void)
 {
  FreeXMLProfiles();
+
+ Routino_errno=ROUTINO_ERROR_NONE;
 }
 
 
@@ -196,7 +244,17 @@ DLL_PUBLIC void Routino_FreeXMLProfiles(void)
 
 DLL_PUBLIC int Routino_ParseXMLTranslations(const char *filename)
 {
- return ParseXMLTranslations(filename,NULL,1);
+ int retval;
+
+ retval=ParseXMLTranslations(filename,NULL,1);
+
+ if(retval==1)
+    retval=ROUTINO_ERROR_NO_TRANSLATIONS_XML;
+ else if(retval==2)
+    retval=ROUTINO_ERROR_BAD_TRANSLATIONS_XML;
+
+ Routino_errno=retval;
+ return(retval);
 }
 
 
@@ -210,7 +268,14 @@ DLL_PUBLIC int Routino_ParseXMLTranslations(const char *filename)
 
 DLL_PUBLIC Routino_Translation *Routino_GetTranslation(const char *language)
 {
- return GetTranslation(language);
+ Translation *translation=GetTranslation(language);
+
+ if(translation)
+    Routino_errno=ROUTINO_ERROR_NONE;
+ else
+    Routino_errno=ROUTINO_ERROR_NO_SUCH_TRANSLATION;
+
+ return(translation);
 }
 
 
@@ -221,6 +286,8 @@ DLL_PUBLIC Routino_Translation *Routino_GetTranslation(const char *language)
 DLL_PUBLIC void Routino_FreeXMLTranslations(void)
 {
  FreeXMLTranslations();
+
+ Routino_errno=ROUTINO_ERROR_NONE;
 }
 
 
@@ -244,25 +311,41 @@ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Rou
  Routino_Waypoint *waypoint;
  Profile updated_profile;
 
- if(!database) return(NULL);
- if(!profile)  return(NULL);
+ if(!database)
+   {
+    Routino_errno=ROUTINO_ERROR_NO_DATABASE;
+    return(NULL);
+   }
+
+ if(!profile)
+   {
+    Routino_errno=ROUTINO_ERROR_NO_PROFILE;
+    return(NULL);
+   }
 
  waypoint=calloc(sizeof(Routino_Waypoint),1);
 
  updated_profile=*profile;
 
- if(UpdateProfile(&updated_profile,database->ways)) return(NULL);
+ if(UpdateProfile(&updated_profile,database->ways))
+   {
+    Routino_errno=ROUTINO_ERROR_PROFILE_DATABASE_ERR;
+    return(NULL);
+   }
 
  waypoint->segment=FindClosestSegment(database->nodes,database->segments,database->ways,
                                       degrees_to_radians(latitude),degrees_to_radians(longitude),distmax,&updated_profile,
                                       &dist,&waypoint->node1,&waypoint->node2,&waypoint->dist1,&waypoint->dist2);
 
  if(waypoint->segment==NO_SEGMENT)
-  {
-   free(waypoint);
-   return(NULL);
-  }
+   {
+    free(waypoint);
 
+    Routino_errno=ROUTINO_ERROR_NO_NEARBY_HIGHWAY;
+    return(NULL);
+   }
+
+ Routino_errno=ROUTINO_ERROR_NONE;
  return(waypoint);
 }
 
@@ -286,23 +369,43 @@ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Rou
 DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,
                                       Routino_Waypoint **waypoints,int nwaypoints)
 {
- int waypoint,retval=0;
+ int waypoint,retval=ROUTINO_ERROR_NONE;
  index_t start_node,finish_node=NO_NODE;
  index_t join_segment=NO_SEGMENT;
  Profile updated_profile;
- Results **results=calloc(sizeof(Results*),nwaypoints);
+ Results **results;
 
  /* Check the input data */
 
- if(!database)    return(1);
- if(!profile)     return(2);
- if(!translation) return(3);
+ if(!database)
+   {
+    Routino_errno=ROUTINO_ERROR_NO_DATABASE;
+    return(Routino_errno);
+   }
+
+ if(!profile)
+   {
+    Routino_errno=ROUTINO_ERROR_NO_PROFILE;
+    return(Routino_errno);
+   }
+
+ if(!translation)
+   {
+    Routino_errno=ROUTINO_ERROR_NO_TRANSLATION;
+    return(Routino_errno);
+   }
 
  updated_profile=*profile;
 
- if(UpdateProfile(&updated_profile,database->ways)) return(4);
+ if(UpdateProfile(&updated_profile,database->ways))
+   {
+    Routino_errno=ROUTINO_ERROR_PROFILE_DATABASE_ERR;
+    return(Routino_errno);
+   }
 
  /* Loop through all pairs of waypoints */
+
+ results=calloc(sizeof(Results*),nwaypoints);
 
  for(waypoint=0;waypoint<nwaypoints;waypoint++)
    {
@@ -320,7 +423,7 @@ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile
 
     if(!results[waypoint-1])
       {
-       retval=5;
+       retval=ROUTINO_ERROR_NO_ROUTE_1+waypoint-1;
        goto tidy_and_exit;
       }
 

@@ -1289,7 +1289,7 @@ int ParseXMLTranslations(const char *filename,const char *language,int all)
    {
     FreeXMLTranslations();
 
-    return(1);
+    return(2);
    }
 
  return(0);

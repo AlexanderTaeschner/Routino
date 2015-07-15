@@ -695,7 +695,7 @@ int ParseXMLProfiles(const char *filename,const char *name,int all)
    {
     FreeXMLProfiles();
 
-    return(1);
+    return(2);
    }
 
  return(0);
