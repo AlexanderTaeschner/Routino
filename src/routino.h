@@ -60,6 +60,40 @@ extern "C"
 #endif
 
 
+ /* Routino constants */
+
+#define ROUTINO_ERROR_NONE                  0 /*+ No error. +*/
+
+#define ROUTINO_ERROR_NO_DATABASE           1 /*+ A function was called without the database variable set. +*/
+#define ROUTINO_ERROR_NO_PROFILE            2 /*+ A function was called without the profile variable set. +*/
+#define ROUTINO_ERROR_NO_TRANSLATION        3 /*+ A function was called without the translation variable set. +*/
+
+#define ROUTINO_ERROR_NO_DATABASE_FILES    11 /*+ The specified database to load did not exist. +*/
+#define ROUTINO_ERROR_BAD_DATABASE_FILES   12 /*+ The specified database could not be loaded. +*/
+#define ROUTINO_ERROR_NO_PROFILES_XML      13 /*+ The specified profiles XML file did not exist. +*/
+#define ROUTINO_ERROR_BAD_PROFILES_XML     14 /*+ The specified profiles XML file could not be loaded. +*/
+#define ROUTINO_ERROR_NO_TRANSLATIONS_XML  11 /*+ The specified translations XML file did not exist. +*/
+#define ROUTINO_ERROR_BAD_TRANSLATIONS_XML 12 /*+ The specified translations XML file could not be loaded. +*/
+
+#define ROUTINO_ERROR_NO_SUCH_PROFILE      21 /*+ The requested profile name does not exist in the loaded XML file. +*/
+#define ROUTINO_ERROR_NO_SUCH_TRANSLATION  22 /*+ The requested translation language does not exist in the loaded XML file. +*/
+
+#define ROUTINO_ERROR_NO_NEARBY_HIGHWAY    31 /*+ There is no highway near the coordinates to place a waypoint. +*/
+
+#define ROUTINO_ERROR_PROFILE_DATABASE_ERR 41 /*+ The profile and database do not work together. +*/
+
+#define ROUTINO_ERROR_NO_ROUTE_1         1001 /*+ A route could not be found to waypoint 1. +*/
+#define ROUTINO_ERROR_NO_ROUTE_2         1002 /*+ A route could not be found to waypoint 2. +*/
+#define ROUTINO_ERROR_NO_ROUTE_3         1003 /*+ A route could not be found to waypoint 3. +*/
+/*  Higher values of the error number refer to later waypoints. */
+
+
+ /* Routino error number variable */
+
+ /*+ Contains the error number of the most recent Routino error. +*/
+ extern int Routino_errno;
+
+
  /* Routino types */
 
  typedef struct _Routino_Database Routino_Database;
