@@ -1301,7 +1301,7 @@ int ParseXMLTranslations(const char *filename,const char *language,int all)
 
   Translation *GetTranslation Returns a pointer to the translation.
 
-  const char *language The language of the translation (or NULL to get the default).
+  const char *language The language of the translation or NULL to get the default or an empty string to get the first one.
   ++++++++++++++++++++++++++++++++++++++*/
 
 Translation *GetTranslation(const char *language)
@@ -1310,6 +1310,9 @@ Translation *GetTranslation(const char *language)
 
  if(!language)
     return(&default_translation);
+
+ if(!*language && nloaded_translations>0)
+    return(loaded_translations[0]);
 
  for(i=0;i<nloaded_translations;i++)
     if(!strcmp(loaded_translations[i]->language,language))

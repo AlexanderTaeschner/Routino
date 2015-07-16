@@ -457,13 +457,25 @@ int main(int argc,char** argv)
        exit(EXIT_FAILURE);
       }
 
-    translation=GetTranslation(language);
-
-    if(!translation)
+    if(language)
       {
-       fprintf(stderr,"Warning: Cannot find a translation called '%s' in '%s'.\n",language,translations);
+       translation=GetTranslation(language);
 
-       translation=GetTranslation(NULL);
+       if(!translation)
+         {
+          fprintf(stderr,"Warning: Cannot find a translation called '%s' in '%s'.\n",language,translations);
+          exit(EXIT_FAILURE);
+         }
+      }
+    else
+      {
+       translation=GetTranslation("");
+
+       if(!translation)
+         {
+          fprintf(stderr,"Warning: No translations in '%s'.\n",translations);
+          exit(EXIT_FAILURE);
+         }
       }
    }
 

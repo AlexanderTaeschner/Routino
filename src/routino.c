@@ -263,7 +263,7 @@ DLL_PUBLIC int Routino_ParseXMLTranslations(const char *filename)
 
   Routino_Translation *Routino_GetTranslation Returns a pointer to an internal data structure - do not free.
 
-  const char *language The language to select (as a country code, e.g. 'en', 'de') or NULL for the built-in English version.
+  const char *language The language to select (as a country code, e.g. 'en', 'de') or an empty string for the first in the file or NULL for the built-in English version.
   ++++++++++++++++++++++++++++++++++++++*/
 
 DLL_PUBLIC Routino_Translation *Routino_GetTranslation(const char *language)

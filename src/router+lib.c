@@ -246,13 +246,26 @@ int main(int argc,char** argv)
      exit(EXIT_FAILURE);
     }
 
-  translation=Routino_GetTranslation(language);
-
-  if(!translation)
+  if(language)
     {
-     fprintf(stderr,"Warning: Cannot find a translation called '%s' in '%s'.\n",language,translations);
-     exit(EXIT_FAILURE);
-   }
+     translation=GetTranslation(language);
+
+     if(!translation)
+       {
+        fprintf(stderr,"Warning: Cannot find a translation called '%s' in '%s'.\n",language,translations);
+        exit(EXIT_FAILURE);
+       }
+    }
+  else
+    {
+     translation=GetTranslation(""); /* first in file */
+
+     if(!translation)
+       {
+        fprintf(stderr,"Warning: No translations in '%s'.\n",translations);
+        exit(EXIT_FAILURE);
+       }
+    }
 
  /* Check the waypoints are valid */
 
