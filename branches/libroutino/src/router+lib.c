@@ -248,7 +248,7 @@ int main(int argc,char** argv)
 
   if(language)
     {
-     translation=GetTranslation(language);
+     translation=Routino_GetTranslation(language);
 
      if(!translation)
        {
@@ -258,7 +258,7 @@ int main(int argc,char** argv)
     }
   else
     {
-     translation=GetTranslation(""); /* first in file */
+     translation=Routino_GetTranslation(""); /* first in file */
 
      if(!translation)
        {
