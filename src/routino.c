@@ -292,6 +292,27 @@ DLL_PUBLIC void Routino_FreeXMLTranslations(void)
 
 
 /*++++++++++++++++++++++++++++++++++++++
+  Validates that a selected routing profile is valid for use with the selected routing database.
+
+  int Routino_ValidateProfile Returns zero if OK or something else in case of an error.
+
+  Routino_Database *database The Routino database to use.
+
+  Routino_Profile *profile The Routino profile to validate.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+DLL_PUBLIC int Routino_ValidateProfile(Routino_Database *database,Routino_Profile *profile)
+{
+ Routino_errno=ROUTINO_ERROR_NONE;
+
+ if(UpdateProfile(profile,database->ways))
+    Routino_errno=ROUTINO_ERROR_PROFILE_DATABASE_ERR;
+
+ return(Routino_errno);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
   Finds the nearest point in the database to the specified latitude and longitude.
 
   Routino_Waypoint *Routino_FindWaypoint Returns a pointer to a newly allocated Routino waypoint or NULL if none could be found.
@@ -309,7 +330,6 @@ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Rou
 {
  distance_t dist;
  Routino_Waypoint *waypoint;
- Profile updated_profile;
 
  if(!database)
    {
@@ -325,16 +345,8 @@ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Rou
 
  waypoint=calloc(sizeof(Routino_Waypoint),1);
 
- updated_profile=*profile;
-
- if(UpdateProfile(&updated_profile,database->ways))
-   {
-    Routino_errno=ROUTINO_ERROR_PROFILE_DATABASE_ERR;
-    return(NULL);
-   }
-
  waypoint->segment=FindClosestSegment(database->nodes,database->segments,database->ways,
-                                      degrees_to_radians(latitude),degrees_to_radians(longitude),distmax,&updated_profile,
+                                      degrees_to_radians(latitude),degrees_to_radians(longitude),distmax,profile,
                                       &dist,&waypoint->node1,&waypoint->node2,&waypoint->dist1,&waypoint->dist2);
 
  if(waypoint->segment==NO_SEGMENT)
@@ -372,7 +384,6 @@ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile
  int waypoint,retval=ROUTINO_ERROR_NONE;
  index_t start_node,finish_node=NO_NODE;
  index_t join_segment=NO_SEGMENT;
- Profile updated_profile;
  Results **results;
 
  /* Check the input data */
@@ -395,14 +406,6 @@ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile
     return(Routino_errno);
    }
 
- updated_profile=*profile;
-
- if(UpdateProfile(&updated_profile,database->ways))
-   {
-    Routino_errno=ROUTINO_ERROR_PROFILE_DATABASE_ERR;
-    return(Routino_errno);
-   }
-
  /* Loop through all pairs of waypoints */
 
  results=calloc(sizeof(Results*),nwaypoints);
@@ -419,7 +422,7 @@ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile
        continue;
 
     results[waypoint-1]=CalculateRoute(database->nodes,database->segments,database->ways,database->relations,
-                                       &updated_profile,start_node,join_segment,finish_node,waypoint,waypoint+1);
+                                       profile,start_node,join_segment,finish_node,waypoint,waypoint+1);
 
     if(!results[waypoint-1])
       {
@@ -432,7 +435,7 @@ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile
 
  /* Print the route */
 
- PrintRoute(results,nwaypoints-1,database->nodes,database->segments,database->ways,&updated_profile,translation);
+ PrintRoute(results,nwaypoints-1,database->nodes,database->segments,database->ways,profile,translation);
 
  /* Tidy up and exit */
 

@@ -290,6 +290,7 @@ int main(int argc,char** argv)
        Highway highway;
        char *equal=strchr(argv[arg],'=');
        char *string;
+       double p;
 
        if(!equal)
            print_usage(0,argv[arg],NULL);
@@ -302,7 +303,12 @@ int main(int argc,char** argv)
        if(highway==Highway_None)
           print_usage(0,argv[arg],NULL);
 
-       profile->highway[highway]=(score_t)atof(equal+1);
+       p=atof(equal+1);
+
+       if(p<0 || p>100)
+          print_usage(0,argv[arg],NULL);
+
+       profile->highway[highway]=(score_t)(p/100);
 
        free(string);
       }
@@ -311,6 +317,7 @@ int main(int argc,char** argv)
        Highway highway;
        char *equal=strchr(argv[arg],'=');
        char *string;
+       double s;
 
        if(!equal)
           print_usage(0,argv[arg],NULL);
@@ -323,7 +330,12 @@ int main(int argc,char** argv)
        if(highway==Highway_None)
           print_usage(0,argv[arg],NULL);
 
-       profile->speed[highway]=kph_to_speed(atof(equal+1));
+       s=atof(equal+1);
+
+       if(s<0)
+          print_usage(0,argv[arg],NULL);
+
+       profile->speed[highway]=kph_to_speed(s);
 
        free(string);
       }
@@ -332,6 +344,7 @@ int main(int argc,char** argv)
        Property property;
        char *equal=strchr(argv[arg],'=');
        char *string;
+       double p;
 
        if(!equal)
           print_usage(0,argv[arg],NULL);
@@ -344,7 +357,12 @@ int main(int argc,char** argv)
        if(property==Property_None)
           print_usage(0,argv[arg],NULL);
 
-       profile->props_yes[property]=(score_t)atof(equal+1);
+       p=atof(equal+1);
+
+       if(p<0 || p>100)
+          print_usage(0,argv[arg],NULL);
+
+       profile->props[property]=(score_t)(p/100);
 
        free(string);
       }

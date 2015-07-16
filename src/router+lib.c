@@ -254,10 +254,6 @@ int main(int argc,char** argv)
      exit(EXIT_FAILURE);
    }
 
- /* Load in the data */
-
- database=Routino_LoadDatabase(dirname,prefix);
-
  /* Check the waypoints are valid */
 
  for(waypoint=first_waypoint;waypoint<=last_waypoint;waypoint++)
@@ -273,6 +269,14 @@ int main(int argc,char** argv)
    }
 
  waypoints=calloc(sizeof(Routino_Waypoint*),nwaypoints+2);
+
+ /* Load in the routing database */
+
+ database=Routino_LoadDatabase(dirname,prefix);
+
+ /* Check the profile is valid for use with this database */
+
+ Routino_ValidateProfile(database,profile);
 
  /* Check for reverse direction */
 
