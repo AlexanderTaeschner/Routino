@@ -124,6 +124,8 @@ extern "C"
  DLL_PUBLIC Routino_Translation *Routino_GetTranslation(const char *language);
  DLL_PUBLIC void Routino_FreeXMLTranslations(void);
 
+ DLL_PUBLIC int Routino_ValidateProfile(Routino_Database *database,Routino_Profile *profile);
+
  DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Routino_Profile *profile,double latitude,double longitude);
 
  DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,

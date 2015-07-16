@@ -407,6 +407,9 @@ static int speedType_function(const char *_tag_,int _type_,const char *highway,c
 
     XMLPARSE_ASSERT_FLOATING(_tag_,kph); speed=atof(kph);
 
+    if(speed<0)
+       XMLPARSE_INVALID(_tag_,kph);
+
     loaded_profiles[nloaded_profiles-1]->speed[highwaytype]=kph_to_speed(speed);
    }
 
@@ -444,7 +447,10 @@ static int preferenceType_function(const char *_tag_,int _type_,const char *high
 
     XMLPARSE_ASSERT_FLOATING(_tag_,percent); p=atof(percent);
 
-    loaded_profiles[nloaded_profiles-1]->highway[highwaytype]=(score_t)p;
+    if(p<0 || p>100)
+       XMLPARSE_INVALID(_tag_,percent);
+
+    loaded_profiles[nloaded_profiles-1]->highway[highwaytype]=(score_t)(p/100);
    }
 
  return(0);
@@ -481,7 +487,10 @@ static int propertyType_function(const char *_tag_,int _type_,const char *type,c
 
     XMLPARSE_ASSERT_FLOATING(_tag_,percent); p=atof(percent);
 
-    loaded_profiles[nloaded_profiles-1]->props_yes[property]=(score_t)p;
+    if(p<0 || p>100)
+       XMLPARSE_INVALID(_tag_,percent);
+
+    loaded_profiles[nloaded_profiles-1]->props[property]=(score_t)(p/100);
    }
 
  return(0);
@@ -562,6 +571,9 @@ static int weightType_function(const char *_tag_,int _type_,const char *limit)
 
     XMLPARSE_ASSERT_FLOATING(_tag_,limit); l=atof(limit);
 
+    if(l<0)
+       XMLPARSE_INVALID(_tag_,limit);
+
     loaded_profiles[nloaded_profiles-1]->weight=tonnes_to_weight(l);
    }
 
@@ -588,6 +600,9 @@ static int heightType_function(const char *_tag_,int _type_,const char *limit)
     double l;
 
     XMLPARSE_ASSERT_FLOATING(_tag_,limit); l=atof(limit);
+
+    if(l<0)
+       XMLPARSE_INVALID(_tag_,limit);
 
     loaded_profiles[nloaded_profiles-1]->height=metres_to_height(l);
    }
@@ -616,6 +631,9 @@ static int widthType_function(const char *_tag_,int _type_,const char *limit)
 
     XMLPARSE_ASSERT_FLOATING(_tag_,limit); l=atof(limit);
 
+    if(l<0)
+       XMLPARSE_INVALID(_tag_,limit);
+
     loaded_profiles[nloaded_profiles-1]->width=metres_to_width(l);
    }
 
@@ -642,6 +660,9 @@ static int lengthType_function(const char *_tag_,int _type_,const char *limit)
     double l;
 
     XMLPARSE_ASSERT_FLOATING(_tag_,limit); l=atof(limit);
+
+    if(l<0)
+       XMLPARSE_INVALID(_tag_,limit);
 
     loaded_profiles[nloaded_profiles-1]->length=metres_to_length(l);
    }
@@ -760,10 +781,9 @@ Profile *GetProfile(const char *name)
 
 int UpdateProfile(Profile *profile,Ways *ways)
 {
- score_t hmax=0;
  int i;
 
- /* Fix up the allowed transport types. */
+ /* Check the allowed transport type */
 
  profile->allow=TRANSPORTS(profile->transport);
 
@@ -772,38 +792,32 @@ int UpdateProfile(Profile *profile,Ways *ways)
 
  /* Normalise the highway preferences into the range ~0 -> 1 */
 
+ profile->max_pref=0;
+
  for(i=1;i<Highway_Count;i++)
    {
     if(profile->highway[i]<0)
        profile->highway[i]=0;
 
-    if(profile->highway[i]>hmax)
-       hmax=profile->highway[i];
-   }
+    if(profile->highway[i]>1)
+       profile->highway[i]=1;
 
- if(hmax==0)
-    return(1);
-
- for(i=1;i<Highway_Count;i++)
-   {
-    profile->highway[i]/=hmax;
-
-    if(profile->highway[i]<0.0001f)
-       profile->highway[i]=0.0001f;
+    if(profile->highway[i]>profile->max_pref)
+       profile->max_pref=profile->highway[i];
    }
 
  /* Normalise the property preferences into the range ~0 -> 1 */
 
  for(i=1;i<Property_Count;i++)
    {
-    if(profile->props_yes[i]<0)
-       profile->props_yes[i]=0;
+    if(profile->props[i]<0)
+       profile->props[i]=0;
 
-    if(profile->props_yes[i]>100)
-       profile->props_yes[i]=100;
+    if(profile->props[i]>1)
+       profile->props[i]=1;
 
-    profile->props_yes[i]/=100;
-    profile->props_no [i] =1-profile->props_yes[i];
+    profile->props_yes[i]=profile->props[i];
+    profile->props_no [i]=1-profile->props_yes[i];
 
     /* Squash the properties; selecting 60% preference without the sqrt() allows
        routes 50% longer on highways with the property compared to ones without.
@@ -824,15 +838,15 @@ int UpdateProfile(Profile *profile,Ways *ways)
  profile->max_speed=0;
 
  for(i=1;i<Highway_Count;i++)
+   {
+    if(profile->speed[i]<0.01f)
+       profile->speed[i]=0.01f;
+
     if(profile->speed[i]>profile->max_speed)
        profile->max_speed=profile->speed[i];
-
- if(profile->max_speed==0)
-    return(1);
+   }
 
  /* Find the most preferred property combination */
-
- profile->max_pref=1; /* since highway prefs were normalised to 1 */
 
  for(i=1;i<Property_Count;i++)
     if(ways->file.props & PROPERTIES(i))
@@ -866,7 +880,7 @@ void PrintProfile(const Profile *profile)
  printf("\n");
 
  for(i=1;i<Highway_Count;i++)
-    printf("Highway %-12s: %3d%%\n",HighwayName(i),(int)profile->highway[i]);
+    printf("Highway %-12s: %3d%%\n",HighwayName(i),(int)(0.5+profile->highway[i]*100));
 
  printf("\n");
 
@@ -877,7 +891,7 @@ void PrintProfile(const Profile *profile)
  printf("\n");
 
  for(i=1;i<Property_Count;i++)
-    printf("Highway property %-12s: %3d%%\n",PropertyName(i),(int)profile->props_yes[i]);
+    printf("Highway property %-12s: %3d%%\n",PropertyName(i),(int)(0.5+profile->props[i]*100));
 
  printf("\n");
 
@@ -909,19 +923,19 @@ void PrintProfilesXML(void)
    {
     printf("  <profile name=\"%s\" transport=\"%s\">\n",loaded_profiles[j]->name,TransportName(loaded_profiles[j]->transport));
 
+    printf("    <preferences>\n");
+    for(i=1;i<Highway_Count;i++)
+       printf("      <preference highway=\"%s\"%s percent=\"%.0f\" />\n",HighwayName(i),padding+3+strlen(HighwayName(i)),loaded_profiles[j]->highway[i]*100);
+    printf("    </preferences>\n");
+
     printf("    <speeds>\n");
     for(i=1;i<Highway_Count;i++)
        printf("      <speed highway=\"%s\"%s kph=\"%d\" />\n",HighwayName(i),padding+3+strlen(HighwayName(i)),loaded_profiles[j]->speed[i]);
     printf("    </speeds>\n");
 
-    printf("    <preferences>\n");
-    for(i=1;i<Highway_Count;i++)
-       printf("      <preference highway=\"%s\"%s percent=\"%.0f\" />\n",HighwayName(i),padding+3+strlen(HighwayName(i)),loaded_profiles[j]->highway[i]);
-    printf("    </preferences>\n");
-
     printf("    <properties>\n");
     for(i=1;i<Property_Count;i++)
-       printf("      <property type=\"%s\"%s percent=\"%.0f\" />\n",PropertyName(i),padding+6+strlen(PropertyName(i)),loaded_profiles[j]->props_yes[i]);
+       printf("      <property type=\"%s\"%s percent=\"%.0f\" />\n",PropertyName(i),padding+6+strlen(PropertyName(i)),loaded_profiles[j]->props[i]*100);
     printf("    </properties>\n");
 
     printf("    <restrictions>\n");
@@ -987,7 +1001,7 @@ void PrintProfilesJSON(void)
    {
     printf("    %12s: { ",HighwayName(i));
     for(j=0;j<nloaded_profiles;j++)
-       printf("%s%s: %3d",j==0?"":", ",TransportName(loaded_profiles[j]->transport),(int)loaded_profiles[j]->highway[i]);
+       printf("%s%s: %3d",j==0?"":", ",TransportName(loaded_profiles[j]->transport),(int)(0.5+loaded_profiles[j]->highway[i]*100));
     printf(" }%s\n",i==(Highway_Count-1)?"":",");
    }
  printf("     },\n");
@@ -1011,7 +1025,7 @@ void PrintProfilesJSON(void)
    {
     printf("    %13s: { ",PropertyName(i));
     for(j=0;j<nloaded_profiles;j++)
-       printf("%s%s: %3d",j==0?"":", ",TransportName(loaded_profiles[j]->transport),(int)loaded_profiles[j]->props_yes[i]);
+       printf("%s%s: %3d",j==0?"":", ",TransportName(loaded_profiles[j]->transport),(int)(0.5+loaded_profiles[j]->props[i]*100));
     printf(" }%s\n",i==(Property_Count-1)?"":",");
    }
  printf("     },\n");
@@ -1096,7 +1110,7 @@ void PrintProfilesPerl(void)
    {
     printf("  %12s => {",HighwayName(i));
     for(j=0;j<nloaded_profiles;j++)
-       printf("%s %s => %3d",j==0?"":", ",TransportName(loaded_profiles[j]->transport),(int)loaded_profiles[j]->highway[i]);
+       printf("%s %s => %3d",j==0?"":", ",TransportName(loaded_profiles[j]->transport),(int)(0.5+loaded_profiles[j]->highway[i]*100));
     printf(" }%s\n",i==(Highway_Count-1)?"":",");
    }
  printf("     },\n");
@@ -1120,7 +1134,7 @@ void PrintProfilesPerl(void)
    {
     printf("  %13s => {",PropertyName(i));
     for(j=0;j<nloaded_profiles;j++)
-       printf("%s %s => %3d",j==0?"":", ",TransportName(loaded_profiles[j]->transport),(int)loaded_profiles[j]->props_yes[i]);
+       printf("%s %s => %3d",j==0?"":", ",TransportName(loaded_profiles[j]->transport),(int)(0.5+loaded_profiles[j]->props[i]*100));
     printf(" }%s\n",i==(Property_Count-1)?"":",");
    }
  printf("     },\n");
