@@ -25,8 +25,9 @@ include ../../Makefile.conf
 # executables
 
 ROUTINO_EXE=../planetsplitter ../planetsplitter-slim \
-            ../router ../router-slim \
-            ../filedumper ../filedumper-slim
+            ../router         ../router-slim \
+            ../router+lib     ../router+lib-slim \
+            ../filedumper     ../filedumper-slim
 
 EXE=is-fast-math
 
@@ -59,10 +60,26 @@ test : $(ROUTINO_EXE) $(EXE)
 	if $$status; then echo "Success: all tests passed"; else echo "Warning: Some tests FAILED"; fi ;\
 	$$status || exit 1 ;\
 	echo "" ;\
-	echo "Comparing: slim and non-slim results ... " ;\
+	echo "Comparing: slim and non-slim results (no pruning) ... " ;\
 	if diff -q -r slim fat; then echo "... matched"; else echo "... match FAILED"; status=false; fi ;\
 	echo "" ;\
-	if $$status; then echo "Success: slim and non-slim results match"; else echo "Warning: slim and non-slim results are different - FAILED"; fi ;\
+	if $$status; then echo "Success: slim and non-slim results match"; else echo "Warning: slim and non-slim results are different"; fi ;\
+	for script in $(S); do \
+	   echo "" ;\
+	   echo "Testing: $$script (non-slim, no pruning, libroutino) ... " ;\
+	   if ./$$script fat lib; then echo "... passed"; else echo "... FAILED"; status=false; fi ;\
+	done ;\
+	for script in $(S); do \
+	   echo "" ;\
+	   echo "Testing: $$script (slim, no pruning, libroutino) ... " ;\
+	   if ./$$script slim lib; then echo "... passed"; else echo "... FAILED"; status=false; fi ;\
+	done ;\
+	echo "" ;\
+	echo "Comparing: slim and non-slim results (libroutino) ... " ;\
+	if diff -q -r slim+lib fat+lib; then echo "... matched"; else echo "... match FAILED"; status=false; fi ;\
+	echo "" ;\
+	if $$status; then echo "Success: all tests passed"; else echo "Warning: Some tests FAILED"; fi ;\
+	$$status || exit 1 ;\
 	for script in $(S); do \
 	   echo "" ;\
 	   echo "Testing: $$script (non-slim, pruning) ... " ;\
@@ -77,10 +94,10 @@ test : $(ROUTINO_EXE) $(EXE)
 	if $$status; then echo "Success: all tests passed"; else echo "Warning: Some tests FAILED"; fi ;\
 	$$status || exit 1 ;\
 	echo "" ;\
-	echo "Comparing: slim and non-slim results ... " ;\
+	echo "Comparing: slim and non-slim results (pruning) ... " ;\
 	if diff -q -r slim-pruned fat-pruned; then echo "... matched"; else echo "... match FAILED"; status=false; fi ;\
 	echo "" ;\
-	if $$status; then echo "Success: slim and non-slim results match"; else echo "Warning: slim and non-slim results are different - FAILED"; fi ;\
+	if $$status; then echo "Success: slim and non-slim results match"; else echo "Warning: slim and non-slim results are different"; fi ;\
 	$$status
 
 ########
