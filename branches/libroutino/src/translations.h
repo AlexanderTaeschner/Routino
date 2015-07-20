@@ -78,6 +78,8 @@ typedef struct _Translation
 
 int ParseXMLTranslations(const char *filename,const char *language,int all);
 
+char **GetTranslationLanguages(void);
+
 Translation *GetTranslation(const char *language);
 
 void FreeXMLTranslations(void);

@@ -69,9 +69,11 @@ typedef struct _Profile
 
 int ParseXMLProfiles(const char *filename,const char *name,int all);
 
-void FreeXMLProfiles(void);
+char **GetProfileNames(void);
 
 Profile *GetProfile(const char *name);
+
+void FreeXMLProfiles(void);
 
 int UpdateProfile(Profile *profile,Ways *ways);
 

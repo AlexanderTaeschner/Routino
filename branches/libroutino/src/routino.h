@@ -118,10 +118,12 @@ extern "C"
  DLL_PUBLIC void Routino_UnloadDatabase(Routino_Database *database);
 
  DLL_PUBLIC int Routino_ParseXMLProfiles(const char *filename);
+ DLL_PUBLIC char **Routino_GetProfileNames(void);
  DLL_PUBLIC Routino_Profile *Routino_GetProfile(const char *name);
  DLL_PUBLIC void Routino_FreeXMLProfiles(void);
 
  DLL_PUBLIC int Routino_ParseXMLTranslations(const char *filename);
+ DLL_PUBLIC char **Routino_GetTranslationLanguages(void);
  DLL_PUBLIC Routino_Translation *Routino_GetTranslation(const char *language);
  DLL_PUBLIC void Routino_FreeXMLTranslations(void);
 

@@ -208,7 +208,15 @@ int main(int argc,char** argv)
 
  if(!profile)
    {
+    char **list=Routino_GetProfileNames();
+
     fprintf(stderr,"Error: Cannot find a profile called '%s' in '%s'.\n",profilename,profiles);
+
+    fprintf(stderr,"Profiles available are: %s",*list++);
+    while(*list)
+       fprintf(stderr,", %s",*list++);
+    fprintf(stderr,"\n");
+
     exit(EXIT_FAILURE);
    }
 
@@ -252,7 +260,15 @@ int main(int argc,char** argv)
 
      if(!translation)
        {
+        char **list=Routino_GetTranslationLanguages();
+
         fprintf(stderr,"Warning: Cannot find a translation called '%s' in '%s'.\n",language,translations);
+
+        fprintf(stderr,"Languages available are: %s",*list++);
+        while(*list)
+           fprintf(stderr,", %s",*list++);
+        fprintf(stderr,"\n");
+
         exit(EXIT_FAILURE);
        }
     }

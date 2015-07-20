@@ -724,6 +724,44 @@ int ParseXMLProfiles(const char *filename,const char *name,int all)
 
 
 /*++++++++++++++++++++++++++++++++++++++
+  Return a list of the profile names that have been loaded from the XML file.
+
+  char **GetProfileNames Returns a NULL terminated list of strings - all allocated.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+char **GetProfileNames(void)
+{
+ char **list=calloc(1+nloaded_profiles,sizeof(char*));
+ int i;
+
+ for(i=0;i<nloaded_profiles;i++)
+    list[i]=strcpy(malloc(strlen(loaded_profiles[i]->name)+1),loaded_profiles[i]->name);
+
+ return(list);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Get a named profile.
+
+  Profile *GetProfile Returns a pointer to the profile.
+
+  const char *name The name of the profile.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+Profile *GetProfile(const char *name)
+{
+ int i;
+
+ for(i=0;i<nloaded_profiles;i++)
+    if(!strcmp(loaded_profiles[i]->name,name))
+       return(loaded_profiles[i]);
+
+ return(NULL);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
   Free the memory allocated when reading the profiles.
   ++++++++++++++++++++++++++++++++++++++*/
 
@@ -746,26 +784,6 @@ void FreeXMLProfiles(void)
 
  loaded_profiles=NULL;
  nloaded_profiles=0;
-}
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Get a named profile.
-
-  Profile *GetProfile Returns a pointer to the profile.
-
-  const char *name The name of the profile.
-  ++++++++++++++++++++++++++++++++++++++*/
-
-Profile *GetProfile(const char *name)
-{
- int i;
-
- for(i=0;i<nloaded_profiles;i++)
-    if(!strcmp(loaded_profiles[i]->name,name))
-       return(loaded_profiles[i]);
-
- return(NULL);
 }
 
 
