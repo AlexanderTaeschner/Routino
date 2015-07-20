@@ -202,6 +202,18 @@ DLL_PUBLIC int Routino_ParseXMLProfiles(const char *filename)
 
 
 /*++++++++++++++++++++++++++++++++++++++
+  Return a list of the profile names that have been loaded from the XML file.
+
+  char **Routino_GetProfileNames Returns a NULL terminated list of strings - all allocated.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+DLL_PUBLIC char **Routino_GetProfileNames(void)
+{
+ return(GetProfileNames());
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
   Select a specific routing profile from the set of Routino profiles that have been loaded from the XML file or NULL in case of an error.
 
   Routino_Profile *Routino_GetProfile Returns a pointer to an internal data structure - do not free.
@@ -255,6 +267,18 @@ DLL_PUBLIC int Routino_ParseXMLTranslations(const char *filename)
 
  Routino_errno=retval;
  return(retval);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Return a list of the translation languages that have been loaded from the XML file.
+
+  char **Routino_GetTranslationLanguages Returns a NULL terminated list of strings - all allocated.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+DLL_PUBLIC char **Routino_GetTranslationLanguages(void)
+{
+ return(GetTranslationLanguages());
 }
 
 
@@ -409,7 +433,7 @@ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile
  if(!profile->allow)
    {
     Routino_errno=ROUTINO_ERROR_NOTVALID_PROFILE;
-    return(NULL);
+    return(Routino_errno);
    }
 
  if(!translation)
