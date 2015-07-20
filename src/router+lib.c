@@ -62,6 +62,7 @@ int main(int argc,char** argv)
  int                  html=0,gpx_track=0,gpx_route=0,text=0,text_all=0,none=0,stdout=0;
  int                  arg;
  int                  first_waypoint=NWAYPOINTS,last_waypoint=1,inc_dec_waypoint,waypoint,nwaypoints=0;
+ int                  routing_options;
 
  /* Parse the command line arguments */
 
@@ -163,6 +164,9 @@ int main(int argc,char** argv)
     fprintf(stderr,"Error: The '--output-stdout' option requires exactly one other output option (but not '--output-none').\n");
     exit(EXIT_FAILURE);
    }
+
+ if(html==0 && gpx_track==0 && gpx_route==0 && text==0 && text_all==0 && none==0)
+    html=gpx_track=gpx_route=text=text_all=1;
 
  /* Load in the selected profiles */
 
@@ -351,12 +355,20 @@ int main(int argc,char** argv)
 
  /* Create the route */
 
- if(quickest)
-    Routino_Quickest();
- else
-    Routino_Shortest();
+ routing_options=0;
 
- if(Routino_CalculateRoute(database,profile,translation,waypoints,nwaypoints))
+ if(quickest)
+    routing_options|=ROUTINO_ROUTE_QUICKEST;
+ else
+    routing_options|=ROUTINO_ROUTE_SHORTEST;
+
+ if(html     ) routing_options|=ROUTINO_ROUTE_FILE_HTML;
+ if(gpx_track) routing_options|=ROUTINO_ROUTE_FILE_GPX_TRACK;
+ if(gpx_route) routing_options|=ROUTINO_ROUTE_FILE_GPX_ROUTE;
+ if(text     ) routing_options|=ROUTINO_ROUTE_FILE_TEXT;
+ if(text_all ) routing_options|=ROUTINO_ROUTE_FILE_TEXT_ALL;
+
+ if(Routino_CalculateRoute(database,profile,translation,waypoints,nwaypoints,routing_options))
    {
     fprintf(stderr,"Error: Cannot find a route between specified waypoints.\n");
     exit(EXIT_FAILURE);

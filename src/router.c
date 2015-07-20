@@ -170,6 +170,9 @@ int main(int argc,char** argv)
     exit(EXIT_FAILURE);
    }
 
+ if(option_html==0 && option_gpx_track==0 && option_gpx_route==0 && option_text==0 && option_text_all==0 && option_none==0)
+    option_html=option_gpx_track=option_gpx_route=option_text=option_text_all=1;
+
  /* Load in the selected profiles */
 
  if(transport==Transport_None)
@@ -419,9 +422,6 @@ int main(int argc,char** argv)
     print_usage(0,NULL,"At least two waypoints must be specified.");
 
  /* Load in the selected translation */
-
- if(option_html==0 && option_gpx_track==0 && option_gpx_route==0 && option_text==0 && option_text_all==0 && option_none==0)
-    option_html=option_gpx_track=option_gpx_route=option_text=option_text_all=1;
 
  if(option_html || option_gpx_route || option_gpx_track || option_text || option_text_all)
    {

@@ -60,7 +60,7 @@ extern "C"
 #endif
 
 
- /* Routino constants */
+ /* Routino error constants */
 
 #define ROUTINO_ERROR_NONE                  0 /*+ No error. +*/
 
@@ -83,10 +83,26 @@ extern "C"
 #define ROUTINO_ERROR_PROFILE_DATABASE_ERR 41 /*+ The profile and database do not work together. +*/
 #define ROUTINO_ERROR_NOTVALID_PROFILE     42 /*+ The profile being used has not been validated. +*/
 
+#define ROUTINO_ERROR_BAD_OPTIONS          51 /*+ The routing options specified are not consistent with each other. +*/
+
 #define ROUTINO_ERROR_NO_ROUTE_1         1001 /*+ A route could not be found to waypoint 1. +*/
 #define ROUTINO_ERROR_NO_ROUTE_2         1002 /*+ A route could not be found to waypoint 2. +*/
 #define ROUTINO_ERROR_NO_ROUTE_3         1003 /*+ A route could not be found to waypoint 3. +*/
 /*  Higher values of the error number refer to later waypoints. */
+
+
+ /* Routino routing option constants */
+
+#define ROUTINO_ROUTE_SHORTEST              0 /*+ Calculate the shortest route. +*/
+#define ROUTINO_ROUTE_QUICKEST              1 /*+ Calculate the quickest route. +*/
+
+#define ROUTINO_ROUTE_FILE_HTML             2 /*+ Output an HTML route file. +*/
+#define ROUTINO_ROUTE_FILE_GPX_TRACK        4 /*+ Output a GPX track file. +*/
+#define ROUTINO_ROUTE_FILE_GPX_ROUTE        8 /*+ Output a GPX route file. +*/
+#define ROUTINO_ROUTE_FILE_TEXT            16 /*+ Output a text file with important junctions. +*/
+#define ROUTINO_ROUTE_FILE_TEXT_ALL        32 /*+ Output a text file with all nodes and segments. +*/
+
+#define ROUTINO_ROUTE_FILE_STDOUT          64 /*+ Output a single file type to stdout. +*/
 
 
  /* Routino error number variable */
@@ -111,9 +127,6 @@ extern "C"
 
  /* Routino library functions */
 
- DLL_PUBLIC void Routino_Quickest(void);
- DLL_PUBLIC void Routino_Shortest(void);
-
  DLL_PUBLIC Routino_Database *Routino_LoadDatabase(const char *dirname,const char *prefix);
  DLL_PUBLIC void Routino_UnloadDatabase(Routino_Database *database);
 
@@ -132,7 +145,7 @@ extern "C"
  DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Routino_Profile *profile,double latitude,double longitude);
 
  DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,
-                                       Routino_Waypoint **waypoints,int nwaypoints);
+                                       Routino_Waypoint **waypoints,int nwaypoints,int options);
 
 
 /* Handle compilation with a C++ compiler */
