@@ -72,30 +72,6 @@ struct _Routino_Waypoint
 
 
 /*++++++++++++++++++++++++++++++++++++++
-  Select quickest routes.
-  ++++++++++++++++++++++++++++++++++++++*/
-
- DLL_PUBLIC void Routino_Quickest(void)
- {
-  option_quickest=1;
-
-  Routino_errno=ROUTINO_ERROR_NONE;
- }
-
-
-/*++++++++++++++++++++++++++++++++++++++
-  Select shortest routes.
-  ++++++++++++++++++++++++++++++++++++++*/
-
- DLL_PUBLIC void Routino_Shortest(void)
- {
-  option_quickest=0;
-
-  Routino_errno=ROUTINO_ERROR_NONE;
- }
-
-
-/*++++++++++++++++++++++++++++++++++++++
   Load a database of files for Routino to use for routing.
 
   Routino_Database *Routino_LoadDatabase Returns a pointer to the database.
@@ -406,10 +382,12 @@ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Rou
   Routino_Waypoint **waypoints The set of waypoints.
 
   int nwaypoints The number of waypoints.
+
+  int options The set of routing options ORed together.
   ++++++++++++++++++++++++++++++++++++++*/
 
 DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,
-                                      Routino_Waypoint **waypoints,int nwaypoints)
+                                      Routino_Waypoint **waypoints,int nwaypoints,int options)
 {
  int waypoint,retval=ROUTINO_ERROR_NONE;
  index_t start_node,finish_node=NO_NODE;
@@ -439,6 +417,24 @@ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile
  if(!translation)
    {
     Routino_errno=ROUTINO_ERROR_NO_TRANSLATION;
+    return(Routino_errno);
+   }
+
+ /* Extract the options */
+
+ if(options&ROUTINO_ROUTE_QUICKEST)       option_quickest=1;  else option_quickest=0;
+
+ if(options&ROUTINO_ROUTE_FILE_HTML)      option_html=1;      else option_html=0;
+ if(options&ROUTINO_ROUTE_FILE_GPX_TRACK) option_gpx_track=1; else option_gpx_track=0;
+ if(options&ROUTINO_ROUTE_FILE_GPX_ROUTE) option_gpx_route=1; else option_gpx_route=0;
+ if(options&ROUTINO_ROUTE_FILE_TEXT)      option_text=1;      else option_text=0;
+ if(options&ROUTINO_ROUTE_FILE_TEXT_ALL)  option_text_all=1;  else option_text_all=0;
+
+ if(options&ROUTINO_ROUTE_FILE_STDOUT)    option_stdout=1;    else option_stdout=0;
+
+ if(option_stdout && (option_html+option_gpx_track+option_gpx_route+option_text+option_text_all)!=1)
+   {
+    Routino_errno=ROUTINO_ERROR_BAD_OPTIONS;
     return(Routino_errno);
    }
 
