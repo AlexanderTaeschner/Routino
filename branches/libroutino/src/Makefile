@@ -174,10 +174,10 @@ filedumper-slim : $(FILEDUMPER_SLIM_OBJ)
 ROUTER_LIB_OBJ=router+lib.o
 
 router+lib : $(ROUTER_LIB_OBJ) libroutino.so
-	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) -L. -lroutino
+	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) -L. -lroutino $(LDFLAGS_LDSO)
 
 router+lib-slim : $(ROUTER_LIB_OBJ) libroutino-slim.so
-	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) -L. -lroutino-slim
+	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) -L. -lroutino-slim $(LDFLAGS_LDSO)
 
 ########
 
