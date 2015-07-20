@@ -343,6 +343,12 @@ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Rou
     return(NULL);
    }
 
+ if(!profile->allow)
+   {
+    Routino_errno=ROUTINO_ERROR_NOTVALID_PROFILE;
+    return(NULL);
+   }
+
  waypoint=calloc(sizeof(Routino_Waypoint),1);
 
  waypoint->segment=FindClosestSegment(database->nodes,database->segments,database->ways,
@@ -398,6 +404,12 @@ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile
    {
     Routino_errno=ROUTINO_ERROR_NO_PROFILE;
     return(Routino_errno);
+   }
+
+ if(!profile->allow)
+   {
+    Routino_errno=ROUTINO_ERROR_NOTVALID_PROFILE;
+    return(NULL);
    }
 
  if(!translation)

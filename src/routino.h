@@ -81,6 +81,7 @@ extern "C"
 #define ROUTINO_ERROR_NO_NEARBY_HIGHWAY    31 /*+ There is no highway near the coordinates to place a waypoint. +*/
 
 #define ROUTINO_ERROR_PROFILE_DATABASE_ERR 41 /*+ The profile and database do not work together. +*/
+#define ROUTINO_ERROR_NOTVALID_PROFILE     42 /*+ The profile being used has not been validated. +*/
 
 #define ROUTINO_ERROR_NO_ROUTE_1         1001 /*+ A route could not be found to waypoint 1. +*/
 #define ROUTINO_ERROR_NO_ROUTE_2         1002 /*+ A route could not be found to waypoint 2. +*/
