@@ -82,6 +82,7 @@ extern "C"
 
 #define ROUTINO_ERROR_PROFILE_DATABASE_ERR 41 /*+ The profile and database do not work together. +*/
 #define ROUTINO_ERROR_NOTVALID_PROFILE     42 /*+ The profile being used has not been validated. +*/
+#define ROUTINO_ERROR_BAD_USER_PROFILE     43 /*+ The user specified profile contained invalid data. +*/
 
 #define ROUTINO_ERROR_BAD_OPTIONS          51 /*+ The routing options specified are not consistent with each other. +*/
 
@@ -105,6 +106,30 @@ extern "C"
 #define ROUTINO_ROUTE_FILE_STDOUT          64 /*+ Output a single file type to stdout. +*/
 
 
+ /* Routino user profile array indexes */
+
+#define ROUTINO_HIGHWAY_MOTORWAY            1 /*+ A Motorway highway. +*/
+#define ROUTINO_HIGHWAY_TRUNK               2 /*+ A Trunk highway. +*/
+#define ROUTINO_HIGHWAY_PRIMARY             3 /*+ A Primary highway. +*/
+#define ROUTINO_HIGHWAY_SECONDARY           4 /*+ A Secondary highway. +*/
+#define ROUTINO_HIGHWAY_TERTIARY            5 /*+ A Tertiary highway. +*/
+#define ROUTINO_HIGHWAY_UNCLASSIFIED        6 /*+ A Unclassified highway. +*/
+#define ROUTINO_HIGHWAY_RESIDENTIAL         7 /*+ A Residential highway. +*/
+#define ROUTINO_HIGHWAY_SERVICE             8 /*+ A Service highway. +*/
+#define ROUTINO_HIGHWAY_TRACK               9 /*+ A Track highway. +*/
+#define ROUTINO_HIGHWAY_CYCLEWAY           10 /*+ A Cycleway highway. +*/
+#define ROUTINO_HIGHWAY_PATH               11 /*+ A Path highway. +*/
+#define ROUTINO_HIGHWAY_STEPS              12 /*+ A Steps highway. +*/
+#define ROUTINO_HIGHWAY_FERRY              13 /*+ A Ferry highway. +*/
+
+#define ROUTINO_PROPERTY_PAVED              1 /*+ A Paved highway. +*/
+#define ROUTINO_PROPERTY_MULTILANE          2 /*+ A Multilane highway. +*/
+#define ROUTINO_PROPERTY_BRIDGE             3 /*+ A Bridge highway. +*/
+#define ROUTINO_PROPERTY_TUNNEL             4 /*+ A Tunnel highway. +*/
+#define ROUTINO_PROPERTY_FOOTROUTE          5 /*+ A Footroute highway. +*/
+#define ROUTINO_PROPERTY_BICYCLEROUTE       6 /*+ A Bicycleroute highway. +*/
+
+
  /* Routino error number variable */
 
  /*+ Contains the error number of the most recent Routino error. +*/
@@ -124,6 +149,28 @@ extern "C"
  typedef struct _Routino_Translation Routino_Translation;
 #endif
 
+/*+ A data structure to hold a transport type profile. +*/
+typedef struct _Routino_UserProfile
+{
+ int    transport;              /*+ The type of transport. +*/
+
+ float  highway[14];            /*+ A floating point preference for travel on the highway (range 0 to 1). +*/
+
+ float  speed[14];              /*+ The maximum speed on each type of highway (km/hour). +*/
+
+ float  props[7];               /*+ A floating point preference for ways with this attribute (range 0 to 1). +*/
+
+ int    oneway;                 /*+ A flag to indicate if one-way restrictions apply. +*/
+ int    turns;                  /*+ A flag to indicate if turn restrictions apply. +*/
+
+ float  weight;                 /*+ The weight of the vehicle (in tonnes). +*/
+
+ float  height;                 /*+ The height of the vehicle (in metres). +*/
+ float  width;                  /*+ The width of vehicle (in metres). +*/
+ float  length;                 /*+ The length of vehicle (in metres). +*/
+}
+ Routino_UserProfile;
+
 
  /* Routino library functions */
 
@@ -139,6 +186,9 @@ extern "C"
  DLL_PUBLIC char **Routino_GetTranslationLanguages(void);
  DLL_PUBLIC Routino_Translation *Routino_GetTranslation(const char *language);
  DLL_PUBLIC void Routino_FreeXMLTranslations(void);
+
+ DLL_PUBLIC Routino_Profile *Routino_CreateProfileFromUserProfile(Routino_UserProfile *profile);
+ DLL_PUBLIC Routino_UserProfile *Routino_CreateUserProfileFromProfile(Routino_Profile *profile);
 
  DLL_PUBLIC int Routino_ValidateProfile(Routino_Database *database,Routino_Profile *profile);
 

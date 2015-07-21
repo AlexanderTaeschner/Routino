@@ -185,6 +185,8 @@ DLL_PUBLIC int Routino_ParseXMLProfiles(const char *filename)
 
 DLL_PUBLIC char **Routino_GetProfileNames(void)
 {
+ Routino_errno=ROUTINO_ERROR_NONE;
+
  return(GetProfileNames());
 }
 
@@ -216,9 +218,9 @@ DLL_PUBLIC Routino_Profile *Routino_GetProfile(const char *name)
 
 DLL_PUBLIC void Routino_FreeXMLProfiles(void)
 {
- FreeXMLProfiles();
-
  Routino_errno=ROUTINO_ERROR_NONE;
+
+ FreeXMLProfiles();
 }
 
 
@@ -254,6 +256,8 @@ DLL_PUBLIC int Routino_ParseXMLTranslations(const char *filename)
 
 DLL_PUBLIC char **Routino_GetTranslationLanguages(void)
 {
+ Routino_errno=ROUTINO_ERROR_NONE;
+
  return(GetTranslationLanguages());
 }
 
@@ -285,9 +289,117 @@ DLL_PUBLIC Routino_Translation *Routino_GetTranslation(const char *language)
 
 DLL_PUBLIC void Routino_FreeXMLTranslations(void)
 {
+ Routino_errno=ROUTINO_ERROR_NONE;
+
  FreeXMLTranslations();
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Create a fully formed Routino Profile from a Routino User Profile.
+
+  Routino_Profile *Routino_CreateProfileFromUserProfile Returns an allocated Routino Profile.
+
+  Routino_UserProfile *profile The user specified profile to convert (not modified by this).
+  ++++++++++++++++++++++++++++++++++++++*/
+
+DLL_PUBLIC Routino_Profile *Routino_CreateProfileFromUserProfile(Routino_UserProfile *profile)
+{
+ Routino_Profile *rprofile=calloc(1,sizeof(Routino_Profile));
+ int i;
 
  Routino_errno=ROUTINO_ERROR_NONE;
+
+ if(profile->transport<=0 || profile->transport>=Transport_Count)
+    Routino_errno=ROUTINO_ERROR_BAD_USER_PROFILE;
+ else
+    rprofile->transport=profile->transport;
+
+ for(i=1;i<Highway_Count;i++)
+   {
+    if(profile->highway[i]<0 || profile->highway[i]>1)
+       Routino_errno=ROUTINO_ERROR_BAD_USER_PROFILE;
+    else
+       rprofile->highway[i]=profile->highway[i];
+
+    if(profile->speed[i]<=0)
+       Routino_errno=ROUTINO_ERROR_BAD_USER_PROFILE;
+    else
+       rprofile->speed[i]=kph_to_speed(profile->speed[i]);
+   }
+
+ for(i=1;i<Property_Count;i++)
+   {
+    if(profile->props[i]<0 || profile->props[i]>1)
+       Routino_errno=ROUTINO_ERROR_BAD_USER_PROFILE;
+    else
+       rprofile->props[i]=profile->props[i];
+   }
+
+ if(profile->weight<=0)
+    Routino_errno=ROUTINO_ERROR_BAD_USER_PROFILE;
+ else
+    rprofile->weight=tonnes_to_weight(profile->weight);
+
+ if(profile->height<=0)
+    Routino_errno=ROUTINO_ERROR_BAD_USER_PROFILE;
+ else
+    rprofile->height=metres_to_height(profile->height);
+
+ if(profile->width<=0)
+    Routino_errno=ROUTINO_ERROR_BAD_USER_PROFILE;
+ else
+    rprofile->width=metres_to_width(profile->width);
+
+ if(profile->length<=0)
+    Routino_errno=ROUTINO_ERROR_BAD_USER_PROFILE;
+ else
+    rprofile->length=metres_to_length(profile->length);
+
+ if(Routino_errno==ROUTINO_ERROR_NONE)
+    return(rprofile);
+
+ free(rprofile);
+ return(NULL);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Create a Routino User Profile from a Routino Profile loaded from an XML file.
+
+  Routino_UserProfile *Routino_CreateUserProfileFromProfile Returns an allocated Routino User Profile.
+
+  Routino_Profile *profile The Routino Profile to convert (not modified by this).
+  ++++++++++++++++++++++++++++++++++++++*/
+
+DLL_PUBLIC Routino_UserProfile *Routino_CreateUserProfileFromProfile(Routino_Profile *profile)
+{
+ Routino_UserProfile *uprofile=calloc(1,sizeof(Routino_UserProfile));
+ int i;
+
+ Routino_errno=ROUTINO_ERROR_NONE;
+
+ uprofile->transport=profile->transport;
+
+ for(i=1;i<Highway_Count;i++)
+   {
+    uprofile->highway[i]=profile->highway[i];
+
+    uprofile->speed[i]=speed_to_kph(profile->speed[i]);
+   }
+
+ for(i=1;i<Property_Count;i++)
+    uprofile->props[i]=profile->props[i];
+
+ uprofile->weight=weight_to_tonnes(profile->weight);
+
+ uprofile->height=height_to_metres(profile->height);
+
+ uprofile->width=width_to_metres(profile->width);
+
+ uprofile->length=length_to_metres(profile->length);
+
+ return(uprofile);
 }
 
 
