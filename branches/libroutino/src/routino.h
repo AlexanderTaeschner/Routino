@@ -105,6 +105,23 @@ extern "C"
 
 #define ROUTINO_ROUTE_FILE_STDOUT          64 /*+ Output a single file type to stdout. +*/
 
+#define ROUTINO_ROUTE_LIST_TEXT           128 /*+ Output a linked list of of waypoints containing the text file information. +*/
+#define ROUTINO_ROUTE_LIST_TEXT_ALL       256 /*+ Output a linked list of of waypoints containing the text all file information. +*/
+
+
+ /* Routino output point types */
+
+#define ROUTINO_POINT_UNIMPORTANT  0      /*+ An unimportant, intermediate, node. +*/
+#define ROUTINO_POINT_RB_NOT_EXIT  1      /*+ A roundabout exit that is not taken. +*/
+#define ROUTINO_POINT_JUNCT_CONT   2      /*+ An un-interesting junction where the route continues without comment. +*/
+#define ROUTINO_POINT_CHANGE       3      /*+ The highway changes type but nothing else happens. +*/
+#define ROUTINO_POINT_JUNCT_IMPORT 4      /*+ An interesting junction to be described. +*/
+#define ROUTINO_POINT_RB_ENTRY     5      /*+ The entrance to a roundabout. +*/
+#define ROUTINO_POINT_RB_EXIT      6      /*+ The exit from a roundabout. +*/
+#define ROUTINO_POINT_MINI_RB      7      /*+ The location of a mini-roundabout. +*/
+#define ROUTINO_POINT_UTURN        8      /*+ The location of a U-turn. +*/
+#define ROUTINO_POINT_WAYPOINT     9      /*+ A waypoint. +*/
+
 
  /* Routino user profile array indexes */
 
@@ -130,12 +147,6 @@ extern "C"
 #define ROUTINO_PROPERTY_BICYCLEROUTE       6 /*+ A Bicycleroute highway. +*/
 
 
- /* Routino error number variable */
-
- /*+ Contains the error number of the most recent Routino error. +*/
- extern int Routino_errno;
-
-
  /* Routino types */
 
  typedef struct _Routino_Database Routino_Database;
@@ -149,27 +160,55 @@ extern "C"
  typedef struct _Routino_Translation Routino_Translation;
 #endif
 
-/*+ A data structure to hold a transport type profile. +*/
-typedef struct _Routino_UserProfile
-{
- int    transport;              /*+ The type of transport. +*/
+ /*+ A data structure to hold a transport type profile. +*/
+ typedef struct _Routino_UserProfile
+ {
+  int    transport;              /*+ The type of transport. +*/
 
- float  highway[14];            /*+ A floating point preference for travel on the highway (range 0 to 1). +*/
+  float  highway[14];            /*+ A floating point preference for travel on the highway (range 0 to 1). +*/
 
- float  speed[14];              /*+ The maximum speed on each type of highway (km/hour). +*/
+  float  speed[14];              /*+ The maximum speed on each type of highway (km/hour). +*/
 
- float  props[7];               /*+ A floating point preference for ways with this attribute (range 0 to 1). +*/
+  float  props[7];               /*+ A floating point preference for ways with this attribute (range 0 to 1). +*/
 
- int    oneway;                 /*+ A flag to indicate if one-way restrictions apply. +*/
- int    turns;                  /*+ A flag to indicate if turn restrictions apply. +*/
+  int    oneway;                 /*+ A flag to indicate if one-way restrictions apply. +*/
+  int    turns;                  /*+ A flag to indicate if turn restrictions apply. +*/
 
- float  weight;                 /*+ The weight of the vehicle (in tonnes). +*/
+  float  weight;                 /*+ The weight of the vehicle (in tonnes). +*/
 
- float  height;                 /*+ The height of the vehicle (in metres). +*/
- float  width;                  /*+ The width of vehicle (in metres). +*/
- float  length;                 /*+ The length of vehicle (in metres). +*/
-}
- Routino_UserProfile;
+  float  height;                 /*+ The height of the vehicle (in metres). +*/
+  float  width;                  /*+ The width of vehicle (in metres). +*/
+  float  length;                 /*+ The length of vehicle (in metres). +*/
+ }
+  Routino_UserProfile;
+
+
+ /*+ Forward declaration of the Routino_Output data type. +*/
+ typedef struct _Routino_Output Routino_Output;
+
+ /*+ A linked list output equivalent to the data in the text file output. +*/
+ struct _Routino_Output
+ {
+  Routino_Output *next;         /*+ A pointer to the next route section. +*/
+
+  float           lon;          /*+ The longitude of the point (radians). +*/
+  float           lat;          /*+ The latitude of the point (radians). +*/
+
+  float           dist;         /*+ The total distance travelled (metres). +*/
+  float           time;         /*+ The total journet time (seconds). +*/
+
+  int             type;         /*+ The type of point (one of the ROUTINO_POINT_* values). +*/
+  int             turn;         /*+ The amount to turn for the next section of the route (degrees). +*/
+  int             bearing;      /*+ The compass direction for the next section of the route (degrees). +*/
+
+  char           *string;       /*+ The name of the next section of the route. +*/
+ };
+
+
+ /* Routino error number variable */
+
+ /*+ Contains the error number of the most recent Routino error. +*/
+ extern int Routino_errno;
 
 
  /* Routino library functions */
@@ -194,8 +233,10 @@ typedef struct _Routino_UserProfile
 
  DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Routino_Profile *profile,double latitude,double longitude);
 
- DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,
-                                       Routino_Waypoint **waypoints,int nwaypoints,int options);
+ DLL_PUBLIC Routino_Output *Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,
+                                                   Routino_Waypoint **waypoints,int nwaypoints,int options);
+
+ DLL_PUBLIC void Routino_DeleteRoute(Routino_Output *output);
 
 
 /* Handle compilation with a C++ compiler */
