@@ -39,13 +39,16 @@
 /* Global variables */
 
 /*+ Contains the error number of the most recent Routino error. +*/
-int Routino_errno=ROUTINO_ERROR_NONE;
-
-/*+ The options to select the format of the output. +*/
-int option_html=1,option_gpx_track=1,option_gpx_route=1,option_text=1,option_text_all=1,option_stdout=0;
+DLL_PUBLIC int Routino_errno=ROUTINO_ERROR_NONE;
 
 /*+ The option to calculate the quickest route insted of the shortest. +*/
-int option_quickest=0;
+extern int option_quickest;
+
+/*+ The options to select the format of the file output. +*/
+extern int option_file_html,option_file_gpx_track,option_file_gpx_route,option_file_text,option_file_text_all,option_file_stdout;
+
+/*+ The options to select the format of the linked list output. +*/
+extern int option_list_text,option_list_text_all;
 
 
 /* Static variables */
@@ -483,7 +486,7 @@ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Rou
 /*++++++++++++++++++++++++++++++++++++++
   Calculate a route using a loaded database, chosen profile, chosen translation and set of waypoints.
 
-  int Routino_CalculateRoute Return zero on success or some other value in case of an error.
+  Routino_Output Routino_CalculateRoute Returns the head of a linked list of route data (if requested) or NULL.
 
   Routino_Database *database The loaded database to use.
 
@@ -495,59 +498,69 @@ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Rou
 
   int nwaypoints The number of waypoints.
 
-  int options The set of routing options ORed together.
+  int options The set of routing options (ROUTINO_ROUTE_*) ORed together.
   ++++++++++++++++++++++++++++++++++++++*/
 
-DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,
-                                      Routino_Waypoint **waypoints,int nwaypoints,int options)
+DLL_PUBLIC Routino_Output *Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,
+                                                  Routino_Waypoint **waypoints,int nwaypoints,int options)
 {
- int waypoint,retval=ROUTINO_ERROR_NONE;
+ int waypoint;
  index_t start_node,finish_node=NO_NODE;
  index_t join_segment=NO_SEGMENT;
  Results **results;
+ Routino_Output *output=NULL;
 
  /* Check the input data */
 
  if(!database)
    {
     Routino_errno=ROUTINO_ERROR_NO_DATABASE;
-    return(Routino_errno);
+    return(NULL);
    }
 
  if(!profile)
    {
     Routino_errno=ROUTINO_ERROR_NO_PROFILE;
-    return(Routino_errno);
+    return(NULL);
    }
 
  if(!profile->allow)
    {
     Routino_errno=ROUTINO_ERROR_NOTVALID_PROFILE;
-    return(Routino_errno);
+    return(NULL);
    }
 
  if(!translation)
    {
     Routino_errno=ROUTINO_ERROR_NO_TRANSLATION;
-    return(Routino_errno);
+    return(NULL);
    }
 
  /* Extract the options */
 
- if(options&ROUTINO_ROUTE_QUICKEST)       option_quickest=1;  else option_quickest=0;
+ if(options&ROUTINO_ROUTE_QUICKEST) option_quickest=1; else option_quickest=0;
 
- if(options&ROUTINO_ROUTE_FILE_HTML)      option_html=1;      else option_html=0;
- if(options&ROUTINO_ROUTE_FILE_GPX_TRACK) option_gpx_track=1; else option_gpx_track=0;
- if(options&ROUTINO_ROUTE_FILE_GPX_ROUTE) option_gpx_route=1; else option_gpx_route=0;
- if(options&ROUTINO_ROUTE_FILE_TEXT)      option_text=1;      else option_text=0;
- if(options&ROUTINO_ROUTE_FILE_TEXT_ALL)  option_text_all=1;  else option_text_all=0;
+ if(options&ROUTINO_ROUTE_FILE_HTML)      option_file_html=1;      else option_file_html=0;
+ if(options&ROUTINO_ROUTE_FILE_GPX_TRACK) option_file_gpx_track=1; else option_file_gpx_track=0;
+ if(options&ROUTINO_ROUTE_FILE_GPX_ROUTE) option_file_gpx_route=1; else option_file_gpx_route=0;
+ if(options&ROUTINO_ROUTE_FILE_TEXT)      option_file_text=1;      else option_file_text=0;
+ if(options&ROUTINO_ROUTE_FILE_TEXT_ALL)  option_file_text_all=1;  else option_file_text_all=0;
 
- if(options&ROUTINO_ROUTE_FILE_STDOUT)    option_stdout=1;    else option_stdout=0;
+ if(options&ROUTINO_ROUTE_FILE_STDOUT)    option_file_stdout=1;    else option_file_stdout=0;
 
- if(option_stdout && (option_html+option_gpx_track+option_gpx_route+option_text+option_text_all)!=1)
+ if(option_file_stdout && (option_file_html+option_file_gpx_track+option_file_gpx_route+option_file_text+option_file_text_all)!=1)
    {
     Routino_errno=ROUTINO_ERROR_BAD_OPTIONS;
-    return(Routino_errno);
+    return(NULL);
+   }
+
+ if(options&ROUTINO_ROUTE_LIST_TEXT)      option_list_text=1;      else option_list_text=0;
+ if(options&ROUTINO_ROUTE_LIST_TEXT_ALL)  option_list_text_all=1;  else option_list_text_all=0;
+
+ if((option_list_text+option_list_text_all)>1)
+   {
+    Routino_errno=ROUTINO_ERROR_BAD_OPTIONS;
+    return(NULL);
    }
 
  /* Loop through all pairs of waypoints */
@@ -570,7 +583,7 @@ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile
 
     if(!results[waypoint-1])
       {
-       retval=ROUTINO_ERROR_NO_ROUTE_1+waypoint-1;
+       Routino_errno=ROUTINO_ERROR_NO_ROUTE_1+waypoint-1;
        goto tidy_and_exit;
       }
 
@@ -579,7 +592,7 @@ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile
 
  /* Print the route */
 
- PrintRoute(results,nwaypoints-1,database->nodes,database->segments,database->ways,profile,translation);
+ output=PrintRoute(results,nwaypoints-1,database->nodes,database->segments,database->ways,profile,translation);
 
  /* Tidy up and exit */
 
@@ -593,5 +606,27 @@ DLL_PUBLIC int Routino_CalculateRoute(Routino_Database *database,Routino_Profile
 
  free(results);
 
- return(retval);
+ return(output);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Delete the linked list created by Routino_CalculateRoute.
+
+  Routino_Output *output The output to be deleted.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+DLL_PUBLIC void Routino_DeleteRoute(Routino_Output *output)
+{
+ while(output)
+   {
+    Routino_Output *next=output->next;
+
+    if(output->string)
+       free(output->string);
+
+    free(output);
+
+    output=next;
+   }
 }

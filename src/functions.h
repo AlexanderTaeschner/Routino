@@ -29,6 +29,8 @@
 #include "translations.h"
 #include "results.h"
 
+#include "routino.h"
+
 
 /* Functions in optimiser.c */
 
@@ -39,7 +41,7 @@ Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *re
 
 /* Functions in output.c */
 
-void PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile,Translation *translation);
+Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments *segments,Ways *ways,Profile *profile,Translation *translation);
 
 
 #endif /* FUNCTIONS_H */

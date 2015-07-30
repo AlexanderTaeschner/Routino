@@ -52,6 +52,7 @@ int main(int argc,char** argv)
  Routino_Profile     *profile;
  Routino_Translation *translation;
  Routino_Waypoint   **waypoints;
+ Routino_Output      *route;
  int                  point_used[NWAYPOINTS+1]={0};
  double               point_lon[NWAYPOINTS+1],point_lat[NWAYPOINTS+1];
  char                *dirname=NULL,*prefix=NULL;
@@ -100,7 +101,7 @@ int main(int argc,char** argv)
     else if(!strcmp(argv[arg],"--output-none"))
        none=1;
     else if(!strcmp(argv[arg],"--output-stdout"))
-      { stdout=1; }
+       stdout=1;
     else if(!strncmp(argv[arg],"--profile=",10))
        profilename=&argv[arg][10];
     else if(!strncmp(argv[arg],"--language=",11))
@@ -368,13 +369,24 @@ int main(int argc,char** argv)
  if(text     ) routing_options|=ROUTINO_ROUTE_FILE_TEXT;
  if(text_all ) routing_options|=ROUTINO_ROUTE_FILE_TEXT_ALL;
 
- if(Routino_CalculateRoute(database,profile,translation,waypoints,nwaypoints,routing_options))
+ routing_options|=ROUTINO_ROUTE_LIST_TEXT_ALL;
+
+ route=Routino_CalculateRoute(database,profile,translation,waypoints,nwaypoints,routing_options);
+
+ if(Routino_errno>=ROUTINO_ERROR_NO_ROUTE_1)
    {
     fprintf(stderr,"Error: Cannot find a route between specified waypoints.\n");
     exit(EXIT_FAILURE);
    }
+ else if(Routino_errno!=ROUTINO_ERROR_NONE)
+   {
+    fprintf(stderr,"Error: Internal error (%d).\n",Routino_errno);
+    exit(EXIT_FAILURE);
+   }
 
  /* Tidy up and exit */
+
+ Routino_DeleteRoute(route);
 
  Routino_UnloadDatabase(database);
 

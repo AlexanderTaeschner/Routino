@@ -48,11 +48,12 @@
 /*+ The option not to print any progress information. +*/
 int option_quiet=0;
 
-/*+ The options to select the format of the output. +*/
-int option_html=0,option_gpx_track=0,option_gpx_route=0,option_text=0,option_text_all=0,option_none=0,option_stdout=0;
-
 /*+ The option to calculate the quickest route insted of the shortest. +*/
-int option_quickest=0;
+extern int option_quickest;
+
+/*+ The options to select the format of the file output. +*/
+extern int option_file_html,option_file_gpx_track,option_file_gpx_route,option_file_text,option_file_text_all,option_file_stdout;
+int option_file_none=0;
 
 
 /* Local functions */
@@ -132,19 +133,19 @@ int main(int argc,char** argv)
     else if(!strcmp(argv[arg],"--logmemory"))
        option_logmemory=1;
     else if(!strcmp(argv[arg],"--output-html"))
-       option_html=1;
+       option_file_html=1;
     else if(!strcmp(argv[arg],"--output-gpx-track"))
-       option_gpx_track=1;
+       option_file_gpx_track=1;
     else if(!strcmp(argv[arg],"--output-gpx-route"))
-       option_gpx_route=1;
+       option_file_gpx_route=1;
     else if(!strcmp(argv[arg],"--output-text"))
-       option_text=1;
+       option_file_text=1;
     else if(!strcmp(argv[arg],"--output-text-all"))
-       option_text_all=1;
+       option_file_text_all=1;
     else if(!strcmp(argv[arg],"--output-none"))
-       option_none=1;
+       option_file_none=1;
     else if(!strcmp(argv[arg],"--output-stdout"))
-      { option_stdout=1; option_quiet=1; }
+      { option_file_stdout=1; option_quiet=1; }
     else if(!strncmp(argv[arg],"--profile=",10))
        profilename=&argv[arg][10];
     else if(!strncmp(argv[arg],"--language=",11))
@@ -164,14 +165,14 @@ int main(int argc,char** argv)
 
  /* Check the specified command line options */
 
- if(option_stdout && (option_html+option_gpx_track+option_gpx_route+option_text+option_text_all)!=1)
+ if(option_file_stdout && (option_file_html+option_file_gpx_track+option_file_gpx_route+option_file_text+option_file_text_all)!=1)
    {
     fprintf(stderr,"Error: The '--output-stdout' option requires exactly one other output option (but not '--output-none').\n");
     exit(EXIT_FAILURE);
    }
 
- if(option_html==0 && option_gpx_track==0 && option_gpx_route==0 && option_text==0 && option_text_all==0 && option_none==0)
-    option_html=option_gpx_track=option_gpx_route=option_text=option_text_all=1;
+ if(option_file_html==0 && option_file_gpx_track==0 && option_file_gpx_route==0 && option_file_text==0 && option_file_text_all==0 && option_file_none==0)
+    option_file_html=option_file_gpx_track=option_file_gpx_route=option_file_text=option_file_text_all=1;
 
  /* Load in the selected profiles */
 
@@ -423,7 +424,7 @@ int main(int argc,char** argv)
 
  /* Load in the selected translation */
 
- if(option_html || option_gpx_route || option_gpx_track || option_text || option_text_all)
+ if(option_file_html || option_file_gpx_route || option_file_gpx_track || option_file_text || option_file_text_all)
    {
     if(translations)
       {
@@ -631,7 +632,7 @@ int main(int argc,char** argv)
  if(!option_quiet)
     printf_first("Generating Result Outputs");
 
- if(!option_none)
+ if(!option_file_none)
     PrintRoute(results,nresults,OSMNodes,OSMSegments,OSMWays,profile,translation);
 
  if(!option_quiet)
