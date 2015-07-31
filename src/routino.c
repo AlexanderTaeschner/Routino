@@ -38,7 +38,7 @@
 
 /* Global variables */
 
-/*+ Contains the error number of the most recent Routino error. +*/
+/*+ Contains the error number of the most recent Routino function (one of the ROUTINO_ERROR_* values). +*/
 DLL_PUBLIC int Routino_errno=ROUTINO_ERROR_NONE;
 
 /*+ The option to calculate the quickest route insted of the shortest. +*/
@@ -486,7 +486,7 @@ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Rou
 /*++++++++++++++++++++++++++++++++++++++
   Calculate a route using a loaded database, chosen profile, chosen translation and set of waypoints.
 
-  Routino_Output Routino_CalculateRoute Returns the head of a linked list of route data (if requested) or NULL.
+  Routino_Output *Routino_CalculateRoute Returns the head of a linked list of route data (if requested) or NULL.
 
   Routino_Database *database The loaded database to use.
 
