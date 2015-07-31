@@ -72,8 +72,8 @@ extern "C"
 #define ROUTINO_ERROR_BAD_DATABASE_FILES   12 /*+ The specified database could not be loaded. +*/
 #define ROUTINO_ERROR_NO_PROFILES_XML      13 /*+ The specified profiles XML file did not exist. +*/
 #define ROUTINO_ERROR_BAD_PROFILES_XML     14 /*+ The specified profiles XML file could not be loaded. +*/
-#define ROUTINO_ERROR_NO_TRANSLATIONS_XML  11 /*+ The specified translations XML file did not exist. +*/
-#define ROUTINO_ERROR_BAD_TRANSLATIONS_XML 12 /*+ The specified translations XML file could not be loaded. +*/
+#define ROUTINO_ERROR_NO_TRANSLATIONS_XML  15 /*+ The specified translations XML file did not exist. +*/
+#define ROUTINO_ERROR_BAD_TRANSLATIONS_XML 16 /*+ The specified translations XML file could not be loaded. +*/
 
 #define ROUTINO_ERROR_NO_SUCH_PROFILE      21 /*+ The requested profile name does not exist in the loaded XML file. +*/
 #define ROUTINO_ERROR_NO_SUCH_TRANSLATION  22 /*+ The requested translation language does not exist in the loaded XML file. +*/
@@ -149,18 +149,27 @@ extern "C"
 
  /* Routino types */
 
+ /*+ A data structure to hold a Routino database loaded from a file (the contents are private). +*/
  typedef struct _Routino_Database Routino_Database;
+
+ /*+ A data structure to hold a Routino waypoint found within the database (the contents are private). +*/
  typedef struct _Routino_Waypoint Routino_Waypoint;
 
+ /*+ A data structure to hold a Routino routing profile (the contents are private). +*/
 #ifdef LIBROUTINO
  typedef struct _Profile             Routino_Profile;
- typedef struct _Translation         Routino_Translation;
 #else
  typedef struct _Routino_Profile     Routino_Profile;
+#endif
+
+ /*+ A data structure to hold a Routino translation (the contents are private). +*/
+#ifdef LIBROUTINO
+ typedef struct _Translation         Routino_Translation;
+#else
  typedef struct _Routino_Translation Routino_Translation;
 #endif
 
- /*+ A data structure to hold a transport type profile. +*/
+ /*+ A data structure to hold a routing profile that can be defined by the user. +*/
  typedef struct _Routino_UserProfile
  {
   int    transport;              /*+ The type of transport. +*/
@@ -186,7 +195,7 @@ extern "C"
  /*+ Forward declaration of the Routino_Output data type. +*/
  typedef struct _Routino_Output Routino_Output;
 
- /*+ A linked list output equivalent to the data in the text file output. +*/
+ /*+ A linked list output of the calculated route whose contents depend on the ROUTINO_ROUTE_LIST_* options selected. +*/
  struct _Routino_Output
  {
   Routino_Output *next;         /*+ A pointer to the next route section. +*/
@@ -195,19 +204,20 @@ extern "C"
   float           lat;          /*+ The latitude of the point (radians). +*/
 
   float           dist;         /*+ The total distance travelled (metres). +*/
-  float           time;         /*+ The total journet time (seconds). +*/
+  float           time;         /*+ The total journey time (seconds). +*/
 
   int             type;         /*+ The type of point (one of the ROUTINO_POINT_* values). +*/
-  int             turn;         /*+ The amount to turn for the next section of the route (degrees). +*/
-  int             bearing;      /*+ The compass direction for the next section of the route (degrees). +*/
 
-  char           *string;       /*+ The name of the next section of the route. +*/
+  int             turn;         /*+ The amount to turn (degrees) for the next section of the route (ROUTINO_ROUTE_TEXT format only). +*/
+  int             bearing;      /*+ The compass direction (degrees) for the next section of the route. +*/
+
+  char           *string;       /*+ The name of the next section of the route (ROUTINO_ROUTE_TEXT format) or previous section of the route (ROUTINO_ROUTE_TEXT_ALL format). +*/
  };
 
 
  /* Routino error number variable */
 
- /*+ Contains the error number of the most recent Routino error. +*/
+ /*+ Contains the error number of the most recent Routino function (one of the ROUTINO_ERROR_* values). +*/
  extern int Routino_errno;
 
 
