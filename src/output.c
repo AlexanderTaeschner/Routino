@@ -336,7 +336,7 @@ Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments 
 
  if(option_list_text)
     listhead=textlist=calloc(sizeof(Routino_Output),1);
- if(option_list_text)
+ if(option_list_text_all)
     listhead=textalllist=calloc(sizeof(Routino_Output),1);
 
  /* Loop through all the sections of the route and print them */
@@ -930,7 +930,7 @@ Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments 
                }
 
              textalllist->lon=longitude;
-             textalllist->lon=latitude;
+             textalllist->lat=latitude;
              textalllist->dist=distance_to_km(cum_distance);
              textalllist->time=duration_to_minutes(cum_duration);
              textalllist->type=important;
