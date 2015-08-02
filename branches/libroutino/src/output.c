@@ -813,7 +813,7 @@ Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments 
           if(textlist)
             {
              textlist->lon=longitude;
-             textlist->lon=latitude;
+             textlist->lat=latitude;
              textlist->dist=distance_to_km(cum_distance);
              textlist->time=duration_to_minutes(cum_duration);
              textlist->type=important;
