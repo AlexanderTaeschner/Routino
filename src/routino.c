@@ -38,6 +38,9 @@
 
 /* Global variables */
 
+/*+ Contains the libroutino API version number. +*/
+DLL_PUBLIC int Routino_APIVersion=ROUTINO_API_VERSION;
+
 /*+ Contains the error number of the most recent Routino function (one of the ROUTINO_ERROR_* values). +*/
 DLL_PUBLIC int Routino_errno=ROUTINO_ERROR_NONE;
 
@@ -72,6 +75,25 @@ struct _Routino_Waypoint
  index_t node1,node2;
  distance_t dist1,dist2;
 };
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Check the version of the library used by the caller against the library version
+
+  int Routino_Check_API_Version Returns ROUTINO_ERROR_NONE if OK or ROUTINO_ERROR_WRONG_VERSION if there is an error.
+
+  int caller_version The version of the API used in the caller.
+
+  This function should not be called directly, use the macro Routino_CheckAPIVersion() which takes no arguments.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+DLL_PUBLIC int Routino_Check_API_Version(int caller_version)
+{
+ if(caller_version==Routino_APIVersion)
+    return(ROUTINO_ERROR_NONE);
+ else
+    return(ROUTINO_ERROR_WRONG_API_VERSION);
+}
 
 
 /*++++++++++++++++++++++++++++++++++++++

@@ -93,6 +93,9 @@ Preprocessor Definitions
 
 Error Definitions
 
+   A version number for the Routino API.
+   #define ROUTINO_API_VERSION 1
+
    No error.
    #define ROUTINO_ERROR_NONE 0
 
@@ -144,6 +147,9 @@ Error Definitions
 
    The routing options specified are not consistent with each other.
    #define ROUTINO_ERROR_BAD_OPTIONS 51
+
+   There is a mismatch between the library and caller API version.
+   #define ROUTINO_ERROR_WRONG_API_VERSION 61
 
    A route could not be found to waypoint 1.
    #define ROUTINO_ERROR_NO_ROUTE_1 1001
@@ -286,30 +292,35 @@ Typedef Routino_Database
 
    A data structure to hold a Routino database loaded from a file (the
    contents are private).
+
    typedef struct _Routino_Database Routino_Database
 
 Typedef Routino_Waypoint
 
    A data structure to hold a Routino waypoint found within the database
    (the contents are private).
+
    typedef struct _Routino_Waypoint Routino_Waypoint
 
 Typedef Routino_Profile
 
    A data structure to hold a Routino routing profile (the contents are
    private).
+
    typedef struct _Routino_Profile Routino_Profile
 
 Typedef Routino_Translation
 
    A data structure to hold a Routino translation (the contents are
    private).
+
    typedef struct _Routino_Translation Routino_Translation
 
 Typedef Routino_UserProfile
 
    A data structure to hold a routing profile that can be defined by the
    user.
+
    typedef struct _Routino_UserProfile Routino_UserProfile
    struct _Routino_UserProfile
       {
@@ -331,12 +342,14 @@ Typedef Routino_UserProfile
 Typedef Routino_Output
 
    Forward declaration of the Routino_Output data type.
+
    typedef struct _Routino_Output Routino_Output
 
 Type struct _Routino_Output
 
    A linked list output of the calculated route whose contents depend on
    the ROUTINO_ROUTE_LIST_* options selected.
+
    struct _Routino_Output
       {
          Routino_Output* next; A pointer to the next route section.
@@ -357,10 +370,17 @@ Type struct _Routino_Output
 Variable Definitions
 - - - - - - - - - -
 
+Global Variable Routino_APIVersion
+
+   Contains the libroutino API version number.
+
+   int Routino_APIVersion
+
 Global Variable Routino_errno
 
    Contains the error number of the most recent Routino function (one of
    the ROUTINO_ERROR_* values).
+
    int Routino_errno
 
 Function Definitions
@@ -396,6 +416,26 @@ Global Function Routino_CalculateRoute()
 
    int options
           The set of routing options (ROUTINO_ROUTE_*) ORed together.
+
+Global Function Routino_Check_API_Version()
+
+   Check the version of the library used by the caller against the library
+   version
+
+   int Routino_Check_API_Version ( int caller_version )
+
+   int Routino_Check_API_Version
+          Returns ROUTINO_ERROR_NONE if OK or ROUTINO_ERROR_WRONG_VERSION
+          if there is an error.
+
+   int caller_version
+          The version of the API used in the caller.
+
+   This function should not be called directly, use the macro
+   Routino_CheckAPIVersion() which takes no arguments.
+
+   A wrapper function to simplify the API version check.
+   #define Routino_CheckAPIVersion()
 
 Global Function Routino_CreateProfileFromUserProfile()
 
