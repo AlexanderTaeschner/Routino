@@ -65,6 +65,14 @@ int main(int argc,char** argv)
  int                  first_waypoint=NWAYPOINTS,last_waypoint=1,inc_dec_waypoint,waypoint,nwaypoints=0;
  int                  routing_options;
 
+ /* Check the libroutino API version */
+
+ if(Routino_CheckAPIVersion()!=ROUTINO_ERROR_NONE)
+   {
+    fprintf(stderr,"Error: Executable version (%d) and library version (%d) do not match.\n",ROUTINO_API_VERSION,Routino_APIVersion);
+    exit(EXIT_FAILURE);
+   }
+
  /* Parse the command line arguments */
 
  if(argc<2)

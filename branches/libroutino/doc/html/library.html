@@ -196,6 +196,11 @@ the software is distributed or interacted with over a network.
 
 <h3>Preprocessor Definitions</h3>
 
+<p>
+<span class="cxref-define-comment"> A version number for the Routino API. </span>
+<br>
+<span class="cxref-define">#define ROUTINO_API_VERSION 1</span>
+
 <h4>Error Definitions</h4>
 
 <p>
@@ -266,6 +271,10 @@ the software is distributed or interacted with over a network.
 <span class="cxref-define-comment"> The routing options specified are not consistent with each other. </span>
 <br>
 <span class="cxref-define">#define ROUTINO_ERROR_BAD_OPTIONS 51</span>
+<p>
+<span class="cxref-define-comment"> There is a mismatch between the library and caller API version. </span>
+<br>
+<span class="cxref-define">#define ROUTINO_ERROR_WRONG_API_VERSION 61</span>
 <p>
 <span class="cxref-define-comment"> A route could not be found to waypoint 1. </span>
 <br>
@@ -443,6 +452,7 @@ the software is distributed or interacted with over a network.
 <span class="cxref-define-comment"> A Bicycleroute highway. </span>
 <br>
 <span class="cxref-define">#define ROUTINO_PROPERTY_BICYCLEROUTE 6</span>
+
 
 <h3>Type Definitions</h3>
 
@@ -623,6 +633,13 @@ the software is distributed or interacted with over a network.
 
 <h3>Variable Definitions</h3>
 
+<h4><a name="var-Routino_APIVersion">Global Variable Routino_APIVersion</a></h4>
+
+<p>
+<span class="cxref-variable-comment"> Contains the libroutino API version number. </span>
+<br>
+<span class="cxref-variable">int Routino_APIVersion</span>
+
 <h4><a name="var-Routino_errno">Global Variable Routino_errno</a></h4>
 
 <p>
@@ -656,6 +673,27 @@ the software is distributed or interacted with over a network.
   <dt><span class="cxref-function">int options</span>
   <dd><span class="cxref-function-comment">The set of routing options (ROUTINO_ROUTE_*) ORed together.</span>
 </dl>
+
+<h4><a name="func-Routino_Check_API_Version">Global Function Routino_Check_API_Version()</a></h4>
+
+<p>
+<span class="cxref-function-comment">  Check the version of the library used by the caller against the library version</span>
+<br>
+<span class="cxref-function">int Routino_Check_API_Version ( int caller_version )</span>
+<br>
+<dl>
+  <dt><span class="cxref-function">int Routino_Check_API_Version</span>
+  <dd><span class="cxref-function-comment">Returns ROUTINO_ERROR_NONE if OK or ROUTINO_ERROR_WRONG_VERSION if there is an error.</span>
+  <dt><span class="cxref-function">int caller_version</span>
+  <dd><span class="cxref-function-comment">The version of the API used in the caller.</span>
+</dl>
+<br>
+<span class="cxref-function-comment">  This function should not be called directly, use the macro Routino_CheckAPIVersion() which takes no arguments.</span>
+
+<p>
+<span class="cxref-define-comment"> A wrapper function to simplify the API version check. </span>
+<br>
+<span class="cxref-define">#define Routino_CheckAPIVersion()</span>
 
 <h4><a name="func-Routino_CreateProfileFromUserProfile">Global Function Routino_CreateProfileFromUserProfile()</a></h4>
 

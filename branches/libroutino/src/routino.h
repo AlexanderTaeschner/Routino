@@ -59,6 +59,10 @@ extern "C"
 {
 #endif
 
+ /* Routino library API version */
+
+#define ROUTINO_API_VERSION                 1 /*+ A version number for the Routino API. +*/
+
 
  /* Routino error constants */
 
@@ -85,6 +89,8 @@ extern "C"
 #define ROUTINO_ERROR_BAD_USER_PROFILE     43 /*+ The user specified profile contained invalid data. +*/
 
 #define ROUTINO_ERROR_BAD_OPTIONS          51 /*+ The routing options specified are not consistent with each other. +*/
+
+#define ROUTINO_ERROR_WRONG_API_VERSION    61 /*+ There is a mismatch between the library and caller API version. +*/
 
 #define ROUTINO_ERROR_NO_ROUTE_1         1001 /*+ A route could not be found to waypoint 1. +*/
 #define ROUTINO_ERROR_NO_ROUTE_2         1002 /*+ A route could not be found to waypoint 2. +*/
@@ -217,11 +223,18 @@ extern "C"
 
  /* Routino error number variable */
 
+ /*+ Contains the libroutino API version number. +*/
+ extern int Routino_APIVersion;
+
  /*+ Contains the error number of the most recent Routino function (one of the ROUTINO_ERROR_* values). +*/
  extern int Routino_errno;
 
 
  /* Routino library functions */
+
+#define Routino_CheckAPIVersion() Routino_Check_API_Version(ROUTINO_API_VERSION) /*+ A wrapper function to simplify the API version check. +*/
+
+ DLL_PUBLIC int Routino_Check_API_Version(int caller_version);
 
  DLL_PUBLIC Routino_Database *Routino_LoadDatabase(const char *dirname,const char *prefix);
  DLL_PUBLIC void Routino_UnloadDatabase(Routino_Database *database);
