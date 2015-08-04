@@ -199,7 +199,7 @@ the software is distributed or interacted with over a network.
 <p>
 <span class="cxref-define-comment"> A version number for the Routino API. </span>
 <br>
-<span class="cxref-define">#define ROUTINO_API_VERSION 2</span>
+<span class="cxref-define">#define ROUTINO_API_VERSION 3</span>
 
 <h4>Error Definitions</h4>
 
@@ -275,6 +275,10 @@ the software is distributed or interacted with over a network.
 <span class="cxref-define-comment"> There is a mismatch between the library and caller API version. </span>
 <br>
 <span class="cxref-define">#define ROUTINO_ERROR_WRONG_API_VERSION 61</span>
+<p>
+<span class="cxref-define-comment"> The progress function returned false. </span>
+<br>
+<span class="cxref-define">#define ROUTINO_ERROR_PROGRESS_ABORTED 71</span>
 <p>
 <span class="cxref-define-comment"> A route could not be found to waypoint 1. </span>
 <br>
@@ -635,6 +639,12 @@ the software is distributed or interacted with over a network.
   </tr>
 </table>
 
+<h4><a name="type-Routino_ProgressFunc">Typedef Routino_ProgressFunc</a></h4>
+
+<p>
+<span class="cxref-type-comment"> A type of function that can be used as a callback to indicate routing progress, if it returns false the router stops. </span>
+<br>
+<span class="cxref-type">typedef int (*Routino_ProgressFunc)(double complete)</span>
 
 <h3>Variable Definitions</h3>
 
@@ -660,7 +670,7 @@ the software is distributed or interacted with over a network.
 <p>
 <span class="cxref-function-comment">  Calculate a route using a loaded database, chosen profile, chosen translation and set of waypoints.</span>
 <br>
-<span class="cxref-function">Routino_Output* Routino_CalculateRoute ( Routino_Database* database, Routino_Profile* profile, Routino_Translation* translation, Routino_Waypoint** waypoints, int nwaypoints, int options )</span>
+<span class="cxref-function">Routino_Output* Routino_CalculateRoute ( Routino_Database* database, Routino_Profile* profile, Routino_Translation* translation, Routino_Waypoint** waypoints, int nwaypoints, int options, Routino_ProgressFunc progress )</span>
 <br>
 <dl>
   <dt><span class="cxref-function">Routino_Output* Routino_CalculateRoute</span>
@@ -677,6 +687,8 @@ the software is distributed or interacted with over a network.
   <dd><span class="cxref-function-comment">The number of waypoints.</span>
   <dt><span class="cxref-function">int options</span>
   <dd><span class="cxref-function-comment">The set of routing options (ROUTINO_ROUTE_*) ORed together.</span>
+  <dt><span class="cxref-function">Routino_ProgressFunc progress</span>
+  <dd><span class="cxref-function-comment">A function to be called occasionally to report progress or NULL.</span>
 </dl>
 
 <h4><a name="func-Routino_Check_API_Version">Global Function Routino_Check_API_Version()</a></h4>

@@ -31,6 +31,21 @@
 #include "fakes.h"
 #include "results.h"
 
+#ifdef LIBROUTINO
+
+#include "routino.h"
+
+/*+ The function to be called to report on the routing progress. +*/
+extern Routino_ProgressFunc progress_func;
+
+/*+ The current state of the routing progress. +*/
+extern double progress_value;
+
+/*+ Set when the progress callback returns false in the routing function. +*/
+extern int progress_abort;
+
+#endif
+
 
 /*+ To help when debugging +*/
 #define DEBUG 0
@@ -567,6 +582,9 @@ static Results *FindMiddleRoute(Nodes *nodes,Segments *segments,Ways *ways,Relat
  double  finish_lat,finish_lon;
  Result  *result1,*result2,*result3,*result4;
  int     force_uturn=0;
+#ifdef LIBROUTINO
+ int     loopcount=0;
+#endif
 
 #if DEBUG
  printf("  FindMiddleRoute(...,[begin has %d nodes],[end has %d nodes])\n",begin->number,end->number);
@@ -835,6 +853,15 @@ static Results *FindMiddleRoute(Nodes *nodes,Segments *segments,Ways *ways,Relat
 
        segmentp=NextSegment(segments,segmentp,node1); /* node1 cannot be a fake node (must be a super-node) */
       }
+
+#ifdef LIBROUTINO
+    if(!(++loopcount%100000))
+       if(progress_func && !progress_func(progress_value))
+         {
+          progress_abort=1;
+          break;
+         }
+#endif
    }
 
  FreeQueueList(queue);

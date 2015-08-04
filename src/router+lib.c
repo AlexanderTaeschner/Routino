@@ -379,7 +379,7 @@ int main(int argc,char** argv)
 
  routing_options|=ROUTINO_ROUTE_LIST_TEXT_ALL;
 
- route=Routino_CalculateRoute(database,profile,translation,waypoints,nwaypoints,routing_options);
+ route=Routino_CalculateRoute(database,profile,translation,waypoints,nwaypoints,routing_options,NULL);
 
  if(Routino_errno>=ROUTINO_ERROR_NO_ROUTE_1)
    {

@@ -44,6 +44,15 @@ DLL_PUBLIC int Routino_APIVersion=ROUTINO_API_VERSION;
 /*+ Contains the error number of the most recent Routino function (one of the ROUTINO_ERROR_* values). +*/
 DLL_PUBLIC int Routino_errno=ROUTINO_ERROR_NONE;
 
+/*+ The function to be called to report on the routing progress. +*/
+Routino_ProgressFunc progress_func=NULL;
+
+/*+ The current state of the routing progress. +*/
+double progress_value=0;
+
+/*+ Set when the progress callback returns false in the routing function. +*/
+int progress_abort=0;
+
 /*+ The option to calculate the quickest route insted of the shortest. +*/
 extern int option_quickest;
 
@@ -521,10 +530,12 @@ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Rou
   int nwaypoints The number of waypoints.
 
   int options The set of routing options (ROUTINO_ROUTE_*) ORed together.
+
+  Routino_ProgressFunc progress A function to be called occasionally to report progress or NULL.
   ++++++++++++++++++++++++++++++++++++++*/
 
 DLL_PUBLIC Routino_Output *Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,
-                                                  Routino_Waypoint **waypoints,int nwaypoints,int options)
+                                                  Routino_Waypoint **waypoints,int nwaypoints,int options,Routino_ProgressFunc progress)
 {
  int waypoint;
  index_t start_node,finish_node=NO_NODE;
@@ -585,12 +596,29 @@ DLL_PUBLIC Routino_Output *Routino_CalculateRoute(Routino_Database *database,Rou
     return(NULL);
    }
 
+ /* Set up the progress callback */
+
+ progress_func=progress;
+ progress_value=0.0;
+ progress_abort=0;
+
  /* Loop through all pairs of waypoints */
 
  results=calloc(sizeof(Results*),nwaypoints);
 
  for(waypoint=0;waypoint<nwaypoints;waypoint++)
    {
+    if(progress_func)
+      {
+       progress_value=(double)waypoint/(double)(nwaypoints+1);
+
+       if(!progress_func(progress_value))
+         {
+          Routino_errno=ROUTINO_ERROR_PROGRESS_ABORTED;
+          goto tidy_and_exit;
+         }
+      }
+
     start_node=finish_node;
 
     finish_node=CreateFakes(database->nodes,database->segments,waypoint+1,
@@ -605,16 +633,37 @@ DLL_PUBLIC Routino_Output *Routino_CalculateRoute(Routino_Database *database,Rou
 
     if(!results[waypoint-1])
       {
-       Routino_errno=ROUTINO_ERROR_NO_ROUTE_1+waypoint-1;
+       if(progress_func && progress_abort)
+          Routino_errno=ROUTINO_ERROR_PROGRESS_ABORTED;
+       else
+          Routino_errno=ROUTINO_ERROR_NO_ROUTE_1+waypoint-1;
+
        goto tidy_and_exit;
       }
 
     join_segment=results[waypoint-1]->last_segment;
    }
 
+ if(progress_func)
+   {
+    progress_value=(double)waypoint/(double)(nwaypoints+1);
+
+    if(!progress_func(progress_value))
+      {
+       Routino_errno=ROUTINO_ERROR_PROGRESS_ABORTED;
+       goto tidy_and_exit;
+      }
+   }
+
  /* Print the route */
 
  output=PrintRoute(results,nwaypoints-1,database->nodes,database->segments,database->ways,profile,translation);
+
+ if(progress_func && !progress_func(1.0))
+   {
+    Routino_errno=ROUTINO_ERROR_PROGRESS_ABORTED;
+    goto tidy_and_exit;
+   }
 
  /* Tidy up and exit */
 

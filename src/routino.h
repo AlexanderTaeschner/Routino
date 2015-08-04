@@ -61,7 +61,7 @@ extern "C"
 
  /* Routino library API version */
 
-#define ROUTINO_API_VERSION                 2 /*+ A version number for the Routino API. +*/
+#define ROUTINO_API_VERSION                 3 /*+ A version number for the Routino API. +*/
 
 
  /* Routino error constants */
@@ -91,6 +91,8 @@ extern "C"
 #define ROUTINO_ERROR_BAD_OPTIONS          51 /*+ The routing options specified are not consistent with each other. +*/
 
 #define ROUTINO_ERROR_WRONG_API_VERSION    61 /*+ There is a mismatch between the library and caller API version. +*/
+
+#define ROUTINO_ERROR_PROGRESS_ABORTED     71 /*+ The progress function returned false. +*/
 
 #define ROUTINO_ERROR_NO_ROUTE_1         1001 /*+ A route could not be found to waypoint 1. +*/
 #define ROUTINO_ERROR_NO_ROUTE_2         1002 /*+ A route could not be found to waypoint 2. +*/
@@ -223,6 +225,10 @@ extern "C"
  };
 
 
+ /*+ A type of function that can be used as a callback to indicate routing progress, if it returns false the router stops. +*/
+ typedef int (*Routino_ProgressFunc)(double complete);
+
+
  /* Routino error number variable */
 
  /*+ Contains the libroutino API version number. +*/
@@ -259,7 +265,7 @@ extern "C"
  DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Routino_Profile *profile,double latitude,double longitude);
 
  DLL_PUBLIC Routino_Output *Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,
-                                                   Routino_Waypoint **waypoints,int nwaypoints,int options);
+                                                   Routino_Waypoint **waypoints,int nwaypoints,int options,Routino_ProgressFunc progress);
 
  DLL_PUBLIC void Routino_DeleteRoute(Routino_Output *output);
 

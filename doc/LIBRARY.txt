@@ -91,10 +91,10 @@ Routino Library API
 Preprocessor Definitions
 - - - - - - - - - - - -
 
-Error Definitions
-
    A version number for the Routino API.
-   #define ROUTINO_API_VERSION 2
+   #define ROUTINO_API_VERSION 3
+
+Error Definitions
 
    No error.
    #define ROUTINO_ERROR_NONE 0
@@ -150,6 +150,9 @@ Error Definitions
 
    There is a mismatch between the library and caller API version.
    #define ROUTINO_ERROR_WRONG_API_VERSION 61
+
+   The progress function returned false.
+   #define ROUTINO_ERROR_PROGRESS_ABORTED 71
 
    A route could not be found to waypoint 1.
    #define ROUTINO_ERROR_NO_ROUTE_1 1001
@@ -369,6 +372,13 @@ Type struct _Routino_Output
                        of the route (ROUTINO_ROUTE_TEXT_ALL format).
       }
 
+Typedef Routino_ProgressFunc
+
+   A type of function that can be used as a callback to indicate routing
+   progress, if it returns false the router stops.
+
+   typedef int (*Routino_ProgressFunc)(double complete)
+
 Variable Definitions
 - - - - - - - - - -
 
@@ -395,7 +405,8 @@ Global Function Routino_CalculateRoute()
 
    Routino_Output* Routino_CalculateRoute ( Routino_Database* database,
    Routino_Profile* profile, Routino_Translation* translation,
-   Routino_Waypoint** waypoints, int nwaypoints, int options )
+   Routino_Waypoint** waypoints, int nwaypoints, int options,
+   Routino_ProgressFunc progress )
 
    Routino_Output* Routino_CalculateRoute
           Returns the head of a linked list of route data (if requested)
@@ -418,6 +429,9 @@ Global Function Routino_CalculateRoute()
 
    int options
           The set of routing options (ROUTINO_ROUTE_*) ORed together.
+
+   Routino_ProgressFunc progress
+          A function to be called occasionally to report progress or NULL.
 
 Global Function Routino_Check_API_Version()
 
