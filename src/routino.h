@@ -61,7 +61,7 @@ extern "C"
 
  /* Routino library API version */
 
-#define ROUTINO_API_VERSION                 1 /*+ A version number for the Routino API. +*/
+#define ROUTINO_API_VERSION                 2 /*+ A version number for the Routino API. +*/
 
 
  /* Routino error constants */
@@ -212,12 +212,14 @@ extern "C"
   float           dist;         /*+ The total distance travelled (metres). +*/
   float           time;         /*+ The total journey time (seconds). +*/
 
+  float           speed;        /*+ The speed (km/hr) for this section of the route (ROUTINO_ROUTE_TEXT_ALL format only). +*/
+
   int             type;         /*+ The type of point (one of the ROUTINO_POINT_* values). +*/
 
   int             turn;         /*+ The amount to turn (degrees) for the next section of the route (ROUTINO_ROUTE_TEXT format only). +*/
   int             bearing;      /*+ The compass direction (degrees) for the next section of the route. +*/
 
-  char           *string;       /*+ The name of the next section of the route (ROUTINO_ROUTE_TEXT format) or previous section of the route (ROUTINO_ROUTE_TEXT_ALL format). +*/
+  char           *name;         /*+ The name of the next section of the route (ROUTINO_ROUTE_TEXT format) or previous section of the route (ROUTINO_ROUTE_TEXT_ALL format). +*/
  };
 
 

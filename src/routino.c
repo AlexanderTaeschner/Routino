@@ -644,8 +644,8 @@ DLL_PUBLIC void Routino_DeleteRoute(Routino_Output *output)
    {
     Routino_Output *next=output->next;
 
-    if(output->string)
-       free(output->string);
+    if(output->name)
+       free(output->name);
 
     free(output);
 
