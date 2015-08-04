@@ -199,7 +199,7 @@ the software is distributed or interacted with over a network.
 <p>
 <span class="cxref-define-comment"> A version number for the Routino API. </span>
 <br>
-<span class="cxref-define">#define ROUTINO_API_VERSION 1</span>
+<span class="cxref-define">#define ROUTINO_API_VERSION 2</span>
 
 <h4>Error Definitions</h4>
 
@@ -606,6 +606,11 @@ the software is distributed or interacted with over a network.
   </tr>
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<span class="cxref-type">float speed;</span>
+    <td><span class="cxref-type-comment"> The speed (km/hr) for this section of the route (ROUTINO_ROUTE_TEXT_ALL format only). </span>
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <span class="cxref-type">int type;</span>
     <td><span class="cxref-type-comment"> The type of point (one of the ROUTINO_POINT_* values). </span>
   </tr>
@@ -621,7 +626,7 @@ the software is distributed or interacted with over a network.
   </tr>
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<span class="cxref-type">char* string;</span>
+<span class="cxref-type">char* name;</span>
     <td><span class="cxref-type-comment"> The name of the next section of the route (ROUTINO_ROUTE_TEXT format) or previous section of the route (ROUTINO_ROUTE_TEXT_ALL format). </span>
   </tr>
   <tr>

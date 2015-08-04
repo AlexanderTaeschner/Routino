@@ -814,30 +814,31 @@ Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments 
             {
              textlist->lon=longitude;
              textlist->lat=latitude;
-             textlist->dist=distance_to_km(cum_distance);
-             textlist->time=duration_to_minutes(cum_duration);
              textlist->type=important;
 
              if(point_count==0) /* first point */
                {
                 textlist->next=calloc(sizeof(Routino_Output),1);
-                textlist->turn=0;
+
                 textlist->bearing=next_bearing_int;
-                textlist->string=strcpy(malloc(strlen(next_waynameraw)+1),next_waynameraw);
+                textlist->name=strcpy(malloc(strlen(next_waynameraw)+1),next_waynameraw);
                }
              else if(!next_result) /* end point */
                {
                 textlist->next=NULL;
-                textlist->turn=0;
-                textlist->bearing=0;
-                textlist->string=NULL;
+
+                textlist->dist=distance_to_km(cum_distance);
+                textlist->time=duration_to_minutes(cum_duration);
                }
              else               /* middle point */
                {
                 textlist->next=calloc(sizeof(Routino_Output),1);
+
+                textlist->dist=distance_to_km(cum_distance);
+                textlist->time=duration_to_minutes(cum_duration);
                 textlist->turn=turn_int;
                 textlist->bearing=next_bearing_int;
-                textlist->string=strcpy(malloc(strlen(next_waynameraw)+1),next_waynameraw);
+                textlist->name=strcpy(malloc(strlen(next_waynameraw)+1),next_waynameraw);
                }
 
              textlist=textlist->next;
@@ -916,25 +917,22 @@ Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments 
           if(textalllist)
             {
              if(point_count==0) /* first point */
-               {
-                textalllist->bearing=0;
-                textalllist->string=NULL;
-               }
+                ;
              else               /* not the first point */
                {
                 textalllist->next=calloc(sizeof(Routino_Output),1);
                 textalllist=textalllist->next;
 
+                textalllist->dist=distance_to_km(cum_distance);
+                textalllist->time=duration_to_minutes(cum_duration);
+                textalllist->speed=speed_to_kph(seg_speed);
                 textalllist->bearing=next_bearing_int;
-                textalllist->string=strcpy(malloc(strlen(waynameraw)+1),waynameraw);
+                textalllist->name=strcpy(malloc(strlen(waynameraw)+1),waynameraw);
                }
 
              textalllist->lon=longitude;
              textalllist->lat=latitude;
-             textalllist->dist=distance_to_km(cum_distance);
-             textalllist->time=duration_to_minutes(cum_duration);
              textalllist->type=important;
-             textalllist->turn=0;
             }
          }
 
