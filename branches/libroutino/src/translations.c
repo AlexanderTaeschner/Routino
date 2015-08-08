@@ -1258,9 +1258,9 @@ static int HTMLTotalType_function(const char *_tag_,int _type_,const char *strin
 
     loaded_translations[nloaded_translations-1]->nothtml_subtotal=strcpy(malloc(strlen(text)+1),text);
 
-    loaded_translations[nloaded_translations-1]->html_subtotal=malloc(sizeof("[<span class='j'>")+strlen(xmltext)+sizeof("</span>]")+1+1);
+    loaded_translations[nloaded_translations-1]->html_subtotal=malloc(sizeof(" [<span class='j'>")+strlen(xmltext)+sizeof("</span>]")+1+1);
 
-    strcpy(loaded_translations[nloaded_translations-1]->html_subtotal,"[<span class='j'>");
+    strcpy(loaded_translations[nloaded_translations-1]->html_subtotal," [<span class='j'>");
     strcat(loaded_translations[nloaded_translations-1]->html_subtotal,xmltext);
     strcat(loaded_translations[nloaded_translations-1]->html_subtotal,"</span>]");
     strcat(loaded_translations[nloaded_translations-1]->html_subtotal,"\n");
