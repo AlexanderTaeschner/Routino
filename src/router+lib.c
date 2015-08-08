@@ -29,9 +29,6 @@
 #include "routino.h"
 
 
-/*+ The maximum distance from the specified point to search for a node or segment (in km). +*/
-#define MAXSEARCH  1
-
 /*+ The maximum number of waypoints +*/
 #define NWAYPOINTS 99
 
@@ -61,6 +58,7 @@ int main(int argc,char** argv)
  int                  reverse=0,loop=0;
  int                  quickest=0;
  int                  html=0,gpx_track=0,gpx_route=0,text=0,text_all=0,none=0,stdout=0;
+ int                  list_html=0,list_text=0,list_text_all=0;
  int                  arg;
  int                  first_waypoint=NWAYPOINTS,last_waypoint=1,inc_dec_waypoint,waypoint,nwaypoints=0;
  int                  routing_options;
@@ -110,6 +108,12 @@ int main(int argc,char** argv)
        none=1;
     else if(!strcmp(argv[arg],"--output-stdout"))
        stdout=1;
+    else if(!strcmp(argv[arg],"--list-html"))
+       list_html=1;
+    else if(!strcmp(argv[arg],"--list-text"))
+       list_text=1;
+    else if(!strcmp(argv[arg],"--list-text-all"))
+       list_text_all=1;
     else if(!strncmp(argv[arg],"--profile=",10))
        profilename=&argv[arg][10];
     else if(!strncmp(argv[arg],"--language=",11))
@@ -377,7 +381,9 @@ int main(int argc,char** argv)
  if(text     ) routing_options|=ROUTINO_ROUTE_FILE_TEXT;
  if(text_all ) routing_options|=ROUTINO_ROUTE_FILE_TEXT_ALL;
 
- routing_options|=ROUTINO_ROUTE_LIST_TEXT_ALL;
+ if(list_html)     routing_options|=ROUTINO_ROUTE_LIST_HTML;
+ if(list_text)     routing_options|=ROUTINO_ROUTE_LIST_TEXT;
+ if(list_text_all) routing_options|=ROUTINO_ROUTE_LIST_TEXT_ALL;
 
  route=Routino_CalculateRoute(database,profile,translation,waypoints,nwaypoints,routing_options,NULL);
 
@@ -390,6 +396,48 @@ int main(int argc,char** argv)
    {
     fprintf(stderr,"Error: Internal error (%d).\n",Routino_errno);
     exit(EXIT_FAILURE);
+   }
+
+ /* Print the list output */
+
+ if(list_html || list_text || list_text_all)
+   {
+    Routino_Output *list=route;
+    int first=1,last;
+
+    while(list)
+      {
+       last=list->next?0:1;
+
+       printf("----------------\n");
+       printf("Lon,Lat: %.5f, %.5f\n",list->lon,list->lat);
+
+       if((list_html && !last) || list_text || list_text_all)
+          printf("Dist,Time: %.3f km, %.1f minutes\n",list->dist,list->time);
+
+       if(list_text_all && !first)
+          printf("Speed: %.0f km/hr\n",list->speed);
+
+       printf("Point type: %d\n",list->type);
+
+       if((list_text || list_html) && !first && !last)
+          printf("Turn: %d degrees\n",list->turn);
+
+       if(((list_text || list_html) && !last) || (list_text_all && !first))
+          printf("Bearing: %d degrees\n",list->bearing);
+
+       if(((list_text || list_html) && !last) || (list_text_all && !first))
+          printf("Name: %s\n",list->name);
+
+       if(list_html)
+         {
+          printf("Desc1: %s\n",list->desc1);
+          printf("Desc2: %s\n",list->desc2);
+         }
+
+       list=list->next;
+       first=0;
+      }
    }
 
  /* Tidy up and exit */

@@ -44,6 +44,10 @@ typedef struct _Translation
  char *xml_turn[9];
  char *xml_ordinal[10];
 
+ char *notxml_heading[9];
+ char *notxml_turn[9];
+ char *notxml_ordinal[10];
+
  char *raw_highway[Highway_Count];
 
  char *xml_route_shortest;
@@ -60,6 +64,18 @@ typedef struct _Translation
  char *html_rbnode[2];
  char *html_stop[2];
  char *html_total[2];
+
+ char *nothtml_waypoint;
+ char *nothtml_junction;
+ char *nothtml_roundabout;
+
+ char *nothtml_title;
+ char *nothtml_start[2];
+ char *nothtml_segment[2];
+ char *nothtml_node[2];
+ char *nothtml_rbnode[2];
+ char *nothtml_stop[2];
+ char *nothtml_total[2];
 
  char *gpx_desc;
  char *gpx_name;

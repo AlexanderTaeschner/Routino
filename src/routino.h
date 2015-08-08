@@ -61,7 +61,7 @@ extern "C"
 
  /* Routino library API version */
 
-#define ROUTINO_API_VERSION                 3 /*+ A version number for the Routino API. +*/
+#define ROUTINO_API_VERSION                 4 /*+ A version number for the Routino API. +*/
 
 
  /* Routino error constants */
@@ -113,8 +113,9 @@ extern "C"
 
 #define ROUTINO_ROUTE_FILE_STDOUT          64 /*+ Output a single file type to stdout. +*/
 
-#define ROUTINO_ROUTE_LIST_TEXT           128 /*+ Output a linked list of of waypoints containing the text file information. +*/
-#define ROUTINO_ROUTE_LIST_TEXT_ALL       256 /*+ Output a linked list of of waypoints containing the text all file information. +*/
+#define ROUTINO_ROUTE_LIST_HTML           128 /*+ Output a linked list of of waypoints containing the HTML file information but as plain text. +*/
+#define ROUTINO_ROUTE_LIST_TEXT           256 /*+ Output a linked list of of waypoints containing the text file information. +*/
+#define ROUTINO_ROUTE_LIST_TEXT_ALL       512 /*+ Output a linked list of of waypoints containing the text all file information. +*/
 
 
  /* Routino output point types */
@@ -214,14 +215,17 @@ extern "C"
   float           dist;         /*+ The total distance travelled (metres). +*/
   float           time;         /*+ The total journey time (seconds). +*/
 
-  float           speed;        /*+ The speed (km/hr) for this section of the route (ROUTINO_ROUTE_TEXT_ALL format only). +*/
+  float           speed;        /*+ The speed (km/hr) for this section of the route (ROUTINO_ROUTE_LIST_TEXT_ALL format only). +*/
 
   int             type;         /*+ The type of point (one of the ROUTINO_POINT_* values). +*/
 
-  int             turn;         /*+ The amount to turn (degrees) for the next section of the route (ROUTINO_ROUTE_TEXT format only). +*/
+  int             turn;         /*+ The amount to turn (degrees) for the next section of the route (ROUTINO_ROUTE_LIST_TEXT or ROUTINO_ROUTE_LIST_HTML format). +*/
   int             bearing;      /*+ The compass direction (degrees) for the next section of the route. +*/
 
-  char           *name;         /*+ The name of the next section of the route (ROUTINO_ROUTE_TEXT format) or previous section of the route (ROUTINO_ROUTE_TEXT_ALL format). +*/
+  char           *name;         /*+ The name of the next section of the route (ROUTINO_ROUTE_LIST_TEXT or ROUTINO_ROUTE_LIST_HTML format) or previous section of the route (ROUTINO_ROUTE_LIST_TEXT_ALL format). +*/
+
+  char           *desc1;        /*+ The first part of the description of the next section of route (ROUTINO_ROUTE_LIST_HTML format only). +*/
+  char           *desc2;        /*+ The second part of the description of the next section of route (ROUTINO_ROUTE_LIST_HTML format only). +*/
  };
 
 
