@@ -671,14 +671,11 @@ Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments 
              if(point_count>0)  /* not the first point */
                {
                 /* <tr class='s'><td class='l'>Follow:<td class='r'><span class='h'>*highway name*</span> for <span class='d'>*distance* km, *time* min</span> [<span class='j'>*distance* km, *time* minutes</span>] */
-                fprintf(htmlfile,"<tr class='s'><td class='l'>%s:<td class='r'>",translation->html_segment[0]);
-                fprintf(htmlfile,translation->html_segment[1],
+                fprintf(htmlfile,translation->html_segment,
                                  (roundabout>1?translation->html_roundabout:prev_wayname),
                                  distance_to_km(junc_distance),duration_to_minutes(junc_duration));
-                fprintf(htmlfile," [<span class='j'>");
-                fprintf(htmlfile,translation->html_total[1],
+                fprintf(htmlfile,translation->html_subtotal,
                                  distance_to_km(cum_distance),duration_to_minutes(cum_duration));
-                fprintf(htmlfile,"</span>]\n");
                }
 
              /* <tr class='c'><td class='l'>*N*:<td class='r'>*latitude* *longitude* */
@@ -689,48 +686,38 @@ Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments 
              if(point_count==0) /* first point */
                {
                 /* <tr class='n'><td class='l'>Start:<td class='r'>At <span class='w'>Waypoint</span>, head <span class='b'>*heading*</span> */
-                fprintf(htmlfile,"<tr class='n'><td class='l'>%s:<td class='r'>",translation->html_start[0]);
-                fprintf(htmlfile,translation->html_start[1],
+                fprintf(htmlfile,translation->html_start,
                                  translation->html_waypoint,
                                  next_bearing);
-                fprintf(htmlfile,"\n");
                }
              else if(next_result) /* middle point */
                {
                 if(roundabout>1 && important!=ROUTINO_POINT_WAYPOINT)
                   {
-                   /* <tr class='n'><td class='l'>At:<td class='r'>Roundabout, take <span class='t'>the *Nth* exit</span> heading <span class='b'>*heading*</span> */
-                   fprintf(htmlfile,"<tr class='n'><td class='l'>%s:<td class='r'>",translation->html_rbnode[0]);
-                   fprintf(htmlfile,translation->html_rbnode[1],
+                   /* <tr class='n'><td class='l'>Leave:<td class='r'>Roundabout, take <span class='t'>the *Nth* exit</span> heading <span class='b'>*heading*</span> */
+                   fprintf(htmlfile,translation->html_rbnode,
                                     translation->html_roundabout,
                                     translation->xml_ordinal[roundabout-2],
                                     next_bearing);
-                   fprintf(htmlfile,"\n");
                   }
                 else
                   {
                    /* <tr class='n'><td class='l'>At:<td class='r'>Junction, go <span class='t'>*direction*</span> heading <span class='b'>*heading*</span> */
-                   fprintf(htmlfile,"<tr class='n'><td class='l'>%s:<td class='r'>",translation->html_node[0]);
-                   fprintf(htmlfile,translation->html_node[1],
+                   fprintf(htmlfile,translation->html_node,
                                     type,
                                     turn,
                                     next_bearing);
-                   fprintf(htmlfile,"\n");
                   }
                }
              else            /* end point */
                {
                 /* <tr class='n'><td class='l'>Stop:<td class='r'>At <span class='w'>Waypoint</span> */
-                fprintf(htmlfile,"<tr class='n'><td class='l'>%s:<td class='r'>",translation->html_stop[0]);
-                fprintf(htmlfile,translation->html_stop[1],
+                fprintf(htmlfile,translation->html_stop,
                                  translation->html_waypoint);
-                fprintf(htmlfile,"\n");
 
                 /* <tr class='t'><td class='l'>Total:<td class='r'><span class='j'>*distance* km, *time* minutes</span> */
-                fprintf(htmlfile,"<tr class='t'><td class='l'>%s:<td class='r'><span class='j'>",translation->html_total[0]);
-                fprintf(htmlfile,translation->html_total[1],
+                fprintf(htmlfile,translation->html_total,
                                  distance_to_km(cum_distance),duration_to_minutes(cum_duration));
-                fprintf(htmlfile,"</span>\n");
                }
             }
 
@@ -748,22 +735,23 @@ Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments 
 
              if(point_count>0)  /* not the first point */
                {
-                /* Follow: *highway name* for *distance* km, *time* min [*distance* km, *time* minutes] */
-                strl=4+strlen(translation->nothtml_segment[0])+1+
-                       strlen(translation->nothtml_segment[1])+1+
-                       strlen(roundabout>1?translation->nothtml_roundabout:prev_waynameraw)+1+8+8+
-                       strlen(translation->nothtml_total[1])+1+8+8;
+                /* Follow: *highway name* for *distance* km, *time* min */
+                strl=strlen(translation->nothtml_segment)+
+                     strlen(roundabout>1?translation->nothtml_roundabout:prev_waynameraw)+8+8+1;
 
                 htmllist->desc2=malloc(strl);
 
-                strl =sprintf(htmllist->desc2,"%s: ",translation->nothtml_segment[0]);
-                strl+=sprintf(htmllist->desc2+strl,translation->nothtml_segment[1],
-                                                   (roundabout>1?translation->nothtml_roundabout:prev_waynameraw),
-                                                   distance_to_km(junc_distance),duration_to_minutes(junc_duration));
-                strl+=sprintf(htmllist->desc2+strl," [");
-                strl+=sprintf(htmllist->desc2+strl,translation->nothtml_total[1],
-                                                   distance_to_km(cum_distance),duration_to_minutes(cum_duration));
-                strl+=sprintf(htmllist->desc2+strl,"]");
+                sprintf(htmllist->desc2,translation->nothtml_segment,
+                                        (roundabout>1?translation->nothtml_roundabout:prev_waynameraw),
+                                        distance_to_km(junc_distance),duration_to_minutes(junc_duration));
+
+                /* *distance* km, *time* minutes */
+                strl=strlen(translation->nothtml_subtotal)+8+8+1;
+
+                htmllist->desc3=malloc(strl);
+
+                sprintf(htmllist->desc3,translation->nothtml_subtotal,
+                                        distance_to_km(cum_distance),duration_to_minutes(cum_duration));
 
                 htmllist->dist=distance_to_km(cum_distance);
                 htmllist->time=duration_to_minutes(cum_duration);
@@ -779,15 +767,14 @@ Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments 
              if(point_count==0) /* first point */
                {
                 /* Start: At Waypoint, head *heading* */
-                strl=4+strlen(translation->nothtml_start[0])+1+
-                       strlen(translation->nothtml_start[1])+1+strlen(translation->nothtml_waypoint)+1+strlen(next_bearingraw)+1;
+                strl=strlen(translation->nothtml_start)+
+                     strlen(translation->nothtml_waypoint)+strlen(next_bearingraw)+1;
 
                 htmllist->desc1=malloc(strl);
 
-                strl =sprintf(htmllist->desc1,"%s: ",translation->nothtml_start[0]);
-                strl+=sprintf(htmllist->desc1+strl,translation->nothtml_start[1],
-                                                   translation->nothtml_waypoint,
-                                                   next_bearingraw);
+                sprintf(htmllist->desc1,translation->nothtml_start,
+                                        translation->nothtml_waypoint,
+                                        next_bearingraw);
 
                 htmllist->name=strcpy(malloc(strlen(next_waynameraw)+1),next_waynameraw);
                }
@@ -796,30 +783,28 @@ Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments 
                 if(roundabout>1 && important!=ROUTINO_POINT_WAYPOINT)
                   {
                    /* At: Roundabout, take the *Nth* exit heading *heading* */
-                   strl=4+strlen(translation->nothtml_rbnode[0])+1+
-                          strlen(translation->nothtml_rbnode[1])+1+strlen(translation->nothtml_roundabout)+1+strlen(translation->notxml_ordinal[roundabout-2])+1+strlen(next_bearingraw)+1;
+                   strl=strlen(translation->nothtml_rbnode)+
+                        strlen(translation->nothtml_roundabout)+strlen(translation->notxml_ordinal[roundabout-2])+strlen(next_bearingraw)+1;
 
                    htmllist->desc1=malloc(strl);
 
-                   strl =sprintf(htmllist->desc1,"%s: ",translation->nothtml_rbnode[0]);
-                   strl+=sprintf(htmllist->desc1+strl,translation->nothtml_rbnode[1],
-                                                      translation->nothtml_roundabout,
-                                                      translation->notxml_ordinal[roundabout-2],
-                                                      next_bearingraw);
+                   sprintf(htmllist->desc1,translation->nothtml_rbnode,
+                                           translation->nothtml_roundabout,
+                                           translation->notxml_ordinal[roundabout-2],
+                                           next_bearingraw);
                   }
                 else
                   {
                    /* At: Junction, go *direction* heading *heading* */
-                   strl=4+strlen(translation->nothtml_node[0])+1+
-                          strlen(translation->nothtml_node[1])+1+strlen(type)+1+strlen(turnraw)+1+strlen(next_bearingraw)+1;
+                   strl=strlen(translation->nothtml_node)+
+                        strlen(type)+strlen(turnraw)+strlen(next_bearingraw)+1;
 
                    htmllist->desc1=malloc(strl);
 
-                   strl =sprintf(htmllist->desc1,"%s: ",translation->nothtml_node[0]);
-                   strl+=sprintf(htmllist->desc1+strl,translation->nothtml_node[1],
-                                                      type,
-                                                      turnraw,
-                                                      next_bearingraw);
+                   sprintf(htmllist->desc1,translation->nothtml_node,
+                                           type,
+                                           turnraw,
+                                           next_bearingraw);
                   }
 
                 htmllist->turn=turn_int;
@@ -828,24 +813,21 @@ Routino_Output *PrintRoute(Results **results,int nresults,Nodes *nodes,Segments 
              else            /* end point */
                {
                 /* Stop: At Waypoint */
-                strl=4+strlen(translation->nothtml_stop[0])+1+
-                       strlen(translation->nothtml_stop[1])+1+strlen(translation->nothtml_waypoint)+1;
+                strl=strlen(translation->nothtml_stop)+
+                     strlen(translation->nothtml_waypoint)+1;
 
                 htmllist->desc1=malloc(strl);
 
-                strl =sprintf(htmllist->desc1,"%s: ",translation->nothtml_stop[0]);
-                strl+=sprintf(htmllist->desc1+strl,translation->nothtml_stop[1],
-                                                   translation->nothtml_waypoint);
+                sprintf(htmllist->desc1,translation->nothtml_stop,
+                                        translation->nothtml_waypoint);
 
                 /* Total: *distance* km, *time* minutes */
-                strl=4+strlen(translation->nothtml_total[0])+1+
-                       strlen(translation->nothtml_total[1])+1+8+8;
+                strl=strlen(translation->nothtml_total)+8+8+1;
 
                 htmllist->desc2=malloc(strl);
 
-                strl =sprintf(htmllist->desc2,"%s: ",translation->nothtml_total[0]);
-                strl+=sprintf(htmllist->desc2+strl,translation->nothtml_total[1],
-                                                   distance_to_km(cum_distance),duration_to_minutes(cum_duration));
+                sprintf(htmllist->desc2,translation->nothtml_total,
+                                        distance_to_km(cum_distance),duration_to_minutes(cum_duration));
 
                 htmllist->turn=turn_int;
                }

@@ -61,7 +61,7 @@ extern "C"
 
  /* Routino library API version */
 
-#define ROUTINO_API_VERSION                 4 /*+ A version number for the Routino API. +*/
+#define ROUTINO_API_VERSION                 5 /*+ A version number for the Routino API. +*/
 
 
  /* Routino error constants */
@@ -226,6 +226,7 @@ extern "C"
 
   char           *desc1;        /*+ The first part of the description of the next section of route (ROUTINO_ROUTE_LIST_HTML format only). +*/
   char           *desc2;        /*+ The second part of the description of the next section of route (ROUTINO_ROUTE_LIST_HTML format only). +*/
+  char           *desc3;        /*+ The third part of the description, the total distance and time (ROUTINO_ROUTE_LIST_HTML format only). +*/
  };
 
 
