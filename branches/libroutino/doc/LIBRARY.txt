@@ -92,7 +92,7 @@ Preprocessor Definitions
 - - - - - - - - - - - -
 
    A version number for the Routino API.
-   #define ROUTINO_API_VERSION 3
+   #define ROUTINO_API_VERSION 4
 
 Error Definitions
 
@@ -189,13 +189,17 @@ Routino Option Definitions
    Output a single file type to stdout.
    #define ROUTINO_ROUTE_FILE_STDOUT 64
 
+   Output a linked list of of waypoints containing the HTML file
+   information but as plain text.
+   #define ROUTINO_ROUTE_LIST_HTML 128
+
    Output a linked list of of waypoints containing the text file
    information.
-   #define ROUTINO_ROUTE_LIST_TEXT 128
+   #define ROUTINO_ROUTE_LIST_TEXT 256
 
    Output a linked list of of waypoints containing the text all file
    information.
-   #define ROUTINO_ROUTE_LIST_TEXT_ALL 256
+   #define ROUTINO_ROUTE_LIST_TEXT_ALL 512
 
 Linked List Output Point Definitions
 
