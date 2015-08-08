@@ -615,7 +615,7 @@ the software is distributed or interacted with over a network.
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <span class="cxref-type">float speed;</span>
-    <td><span class="cxref-type-comment"> The speed (km/hr) for this section of the route (ROUTINO_ROUTE_TEXT_ALL format only). </span>
+    <td><span class="cxref-type-comment"> The speed (km/hr) for this section of the route (ROUTINO_ROUTE_LIST_TEXT_ALL format only). </span>
   </tr>
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -625,7 +625,7 @@ the software is distributed or interacted with over a network.
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <span class="cxref-type">int turn;</span>
-    <td><span class="cxref-type-comment"> The amount to turn (degrees) for the next section of the route (ROUTINO_ROUTE_TEXT format only). </span>
+    <td><span class="cxref-type-comment"> The amount to turn (degrees) for the next section of the route (ROUTINO_ROUTE_LIST_TEXT or ROUTINO_ROUTE_LIST_HTML format). </span>
   </tr>
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -635,7 +635,17 @@ the software is distributed or interacted with over a network.
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <span class="cxref-type">char* name;</span>
-    <td><span class="cxref-type-comment"> The name of the next section of the route (ROUTINO_ROUTE_TEXT format) or previous section of the route (ROUTINO_ROUTE_TEXT_ALL format). </span>
+    <td><span class="cxref-type-comment"> The name of the next section of the route (ROUTINO_ROUTE_LIST_TEXT or ROUTINO_ROUTE_LIST_HTML format) or previous section of the route (ROUTINO_ROUTE_LIST_TEXT_ALL format). </span>
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<span class="cxref-type">char* desc1;</span>
+    <td><span class="cxref-type-comment"> The first part of the description of the next section of route (ROUTINO_ROUTE_LIST_HTML format only). </span>
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<span class="cxref-type">char* desc2;</span>
+    <td><span class="cxref-type-comment"> The second part of the description of the next section of route (ROUTINO_ROUTE_LIST_HTML format only). </span>
   </tr>
   <tr>
     <td>&nbsp;&nbsp;&nbsp;<span class="cxref-type">}</span>
