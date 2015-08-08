@@ -433,6 +433,9 @@ int main(int argc,char** argv)
          {
           printf("Desc1: %s\n",list->desc1);
           printf("Desc2: %s\n",list->desc2);
+
+          if(!last)
+             printf("Desc3: %s\n",list->desc3);
          }
 
        list=list->next;

@@ -58,24 +58,26 @@ typedef struct _Translation
  char *html_roundabout;
 
  char *html_title;
- char *html_start[2];
- char *html_segment[2];
- char *html_node[2];
- char *html_rbnode[2];
- char *html_stop[2];
- char *html_total[2];
+ char *html_start;
+ char *html_segment;
+ char *html_node;
+ char *html_rbnode;
+ char *html_stop;
+ char *html_total;
+ char *html_subtotal;
 
  char *nothtml_waypoint;
  char *nothtml_junction;
  char *nothtml_roundabout;
 
  char *nothtml_title;
- char *nothtml_start[2];
- char *nothtml_segment[2];
- char *nothtml_node[2];
- char *nothtml_rbnode[2];
- char *nothtml_stop[2];
- char *nothtml_total[2];
+ char *nothtml_start;
+ char *nothtml_segment;
+ char *nothtml_node;
+ char *nothtml_rbnode;
+ char *nothtml_stop;
+ char *nothtml_total;
+ char *nothtml_subtotal;
 
  char *gpx_desc;
  char *gpx_name;

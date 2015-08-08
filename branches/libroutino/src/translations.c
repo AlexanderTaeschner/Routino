@@ -61,24 +61,26 @@ static Translation default_translation=
  .html_roundabout = "Roundabout",
 
  .html_title   = "%s Route",
- .html_start   = {"Start" ,"At %s, head <span class='b'>%s</span>"}, /* span tag added when reading XML translations file */
- .html_node    = {"At"    ,"%s, go <span class='t'>%s</span> heading <span class='b'>%s</span>"}, /* span tag added when reading XML translations file */
- .html_rbnode  = {"Leave" ,"%s, take the <span class='b'>%s</span> exit heading <span class='b'>%s</span>"}, /* span tag added when reading XML translations file */
- .html_segment = {"Follow","<span class='h'>%s</span> for <span class='d'>%.3f km, %.1f min</span>"}, /* span tag added when reading XML translations file */
- .html_stop    = {"Stop"  ,"At %s"},
- .html_total   = {"Total" ,"%.1f km, %.0f minutes"},
+ .html_start   = "<tr class='n'><td class='l'>Start<td class='r'>at %s, head <span class='b'>%s</span>\n", /* span tags added when reading XML translations file */
+ .html_node    = "<tr class='n'><td class='l'>At<td class='r'>%s, go <span class='t'>%s</span> heading <span class='b'>%s</span>\n", /* span tags added when reading XML translations file */
+ .html_rbnode  = "<tr class='n'><td class='l'>Leave<td class='r'>%s, take the <span class='b'>%s</span> exit heading <span class='b'>%s</span>\n", /* span tags added when reading XML translations file */
+ .html_segment = "<tr class='s'><td class='l'>Follow<td class='r'><span class='h'>%s</span> for <span class='d'>%.3f km, %.1f min</span>", /* span tags added when reading XML translations file */
+ .html_stop    = "<tr class='n'><td class='l'>Stop<td class='r'>at %s\n",
+ .html_total   = "<tr class='t'><td class='l'>Total<td class='r'><span class='j'>%.1f km, %.0f minutes</span>\n",/* span tags added when reading XML translations file */
+ .html_subtotal= "<span class='j'>%.1f km, %.0f minutes</span>\n",/* span tag added when reading XML translations file */
 
  .nothtml_waypoint   = "Waypoint",
  .nothtml_junction   = "Junction",
  .nothtml_roundabout = "Roundabout",
 
  .nothtml_title   = "%s Route",
- .nothtml_start   = {"Start" ,"At %s, head %s"},
- .nothtml_node    = {"At"    ,"%s, go %s heading %s"},
- .nothtml_rbnode  = {"Leave" ,"%s, take the %s exit heading %s"},
- .nothtml_segment = {"Follow","%s for %.3f km, %.1f min"},
- .nothtml_stop    = {"Stop"  ,"At %s"},
- .nothtml_total   = {"Total" ,"%.1f km, %.0f minutes"},
+ .nothtml_start   = "Start at %s, head %s",
+ .nothtml_node    = "At %s, go %s heading %s",
+ .nothtml_rbnode  = "Leave %s, take the %s exit heading %s",
+ .nothtml_segment = "Follow %s for %.3f km, %.1f min",
+ .nothtml_stop    = "Stop at %s",
+ .nothtml_total   = "Total %.1f km, %.0f minutes",
+ .nothtml_subtotal= "%.1f km, %.0f minutes",
 
  .gpx_desc  = "%s route between 'start' and 'finish' waypoints",
  .gpx_name  = "%s route",
@@ -917,20 +919,44 @@ static int HTMLStartType_function(const char *_tag_,int _type_,const char *strin
  if(_type_&XMLPARSE_TAG_START && store)
    {
     char *xmlstring,*xmltext;
+    const char *p;
+    char *q;
 
     XMLPARSE_ASSERT_STRING(_tag_,string);
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
-    loaded_translations[nloaded_translations-1]->nothtml_start[0]=strcpy(malloc(strlen(string)+1),string);
+    loaded_translations[nloaded_translations-1]->nothtml_start=malloc(strlen(string)+1+strlen(text)+1);
+    strcpy(loaded_translations[nloaded_translations-1]->nothtml_start,string);
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_start," ");
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_start,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    loaded_translations[nloaded_translations-1]->html_start[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-
-    loaded_translations[nloaded_translations-1]->nothtml_start[1]=strcpy(malloc(strlen(text)+1),text);
+    loaded_translations[nloaded_translations-1]->html_start=malloc(sizeof("<tr class='n'><td class='l'>")+strlen(xmlstring)+sizeof(":<td class='r'>")+1);
+    strcpy(loaded_translations[nloaded_translations-1]->html_start,"<tr class='n'><td class='l'>");
+    strcat(loaded_translations[nloaded_translations-1]->html_start,xmlstring);
+    strcat(loaded_translations[nloaded_translations-1]->html_start,":<td class='r'>");
 
     xmltext=ParseXML_Encode_Safe_XML(text);
-    loaded_translations[nloaded_translations-1]->html_start[1]=malloc(strlen(xmltext)+1+sizeof("<span class='b'>")+sizeof("</span>"));
-    sprintf(loaded_translations[nloaded_translations-1]->html_start[1],xmltext,"%s","<span class='b'>%s</span>");
+    loaded_translations[nloaded_translations-1]->html_start=realloc(loaded_translations[nloaded_translations-1]->html_start,
+                                                                    strlen(loaded_translations[nloaded_translations-1]->html_start)+
+                                                                    strlen(xmltext)+sizeof("<span class='b'>")+sizeof("</span>")+1+1);
+
+    p=xmltext;
+    q=loaded_translations[nloaded_translations-1]->html_start+strlen(loaded_translations[nloaded_translations-1]->html_start);
+
+    while(*p!='%')
+       *q++=*p++;
+
+    *q++=*p++;
+
+    while(*p!='%')
+       *q++=*p++;
+
+    p+=2;
+    strcpy(q,"<span class='b'>%s</span>"); q+=sizeof("<span class='b'>%s</span>")-1;
+
+    strcpy(q,p);
+    strcat(q,"\n");
    }
 
  return(0);
@@ -956,20 +982,50 @@ static int HTMLNodeType_function(const char *_tag_,int _type_,const char *string
  if(_type_&XMLPARSE_TAG_START && store)
    {
     char *xmlstring,*xmltext;
+    const char *p;
+    char *q;
 
     XMLPARSE_ASSERT_STRING(_tag_,string);
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
-    loaded_translations[nloaded_translations-1]->nothtml_node[0]=strcpy(malloc(strlen(string)+1),string);
+    loaded_translations[nloaded_translations-1]->nothtml_node=malloc(strlen(string)+1+strlen(text)+1);
+    strcpy(loaded_translations[nloaded_translations-1]->nothtml_node,string);
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_node," ");
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_node,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    loaded_translations[nloaded_translations-1]->html_node[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-
-    loaded_translations[nloaded_translations-1]->nothtml_node[1]=strcpy(malloc(strlen(text)+1),text);
+    loaded_translations[nloaded_translations-1]->html_node=malloc(sizeof("<tr class='n'><td class='l'>")+strlen(xmlstring)+sizeof(":<td class='r'>")+1);
+    strcpy(loaded_translations[nloaded_translations-1]->html_node,"<tr class='n'><td class='l'>");
+    strcat(loaded_translations[nloaded_translations-1]->html_node,xmlstring);
+    strcat(loaded_translations[nloaded_translations-1]->html_node,":<td class='r'>");
 
     xmltext=ParseXML_Encode_Safe_XML(text);
-    loaded_translations[nloaded_translations-1]->html_node[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
-    sprintf(loaded_translations[nloaded_translations-1]->html_node[1],xmltext,"%s","<span class='t'>%s</span>","<span class='b'>%s</span>");
+    loaded_translations[nloaded_translations-1]->html_node=realloc(loaded_translations[nloaded_translations-1]->html_node,
+                                                                   strlen(loaded_translations[nloaded_translations-1]->html_node)+
+                                                                   strlen(xmltext)+2*sizeof("<span class='b'>")+2*sizeof("</span>")+1+1);
+
+    p=xmltext;
+    q=loaded_translations[nloaded_translations-1]->html_node+strlen(loaded_translations[nloaded_translations-1]->html_node);
+
+    while(*p!='%')
+       *q++=*p++;
+
+    *q++=*p++;
+
+    while(*p!='%')
+       *q++=*p++;
+
+    p+=2;
+    strcpy(q,"<span class='t'>%s</span>"); q+=sizeof("<span class='t'>%s</span>")-1;
+
+    while(*p!='%')
+       *q++=*p++;
+
+    p+=2;
+    strcpy(q,"<span class='b'>%s</span>"); q+=sizeof("<span class='b'>%s</span>")-1;
+
+    strcpy(q,p);
+    strcat(q,"\n");
    }
 
  return(0);
@@ -995,20 +1051,50 @@ static int HTMLRBNodeType_function(const char *_tag_,int _type_,const char *stri
  if(_type_&XMLPARSE_TAG_START && store)
    {
     char *xmlstring,*xmltext;
+    const char *p;
+    char *q;
 
     XMLPARSE_ASSERT_STRING(_tag_,string);
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
-    loaded_translations[nloaded_translations-1]->nothtml_rbnode[0]=strcpy(malloc(strlen(string)+1),string);
+    loaded_translations[nloaded_translations-1]->nothtml_rbnode=malloc(strlen(string)+1+strlen(text)+1);
+    strcpy(loaded_translations[nloaded_translations-1]->nothtml_rbnode,string);
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_rbnode," ");
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_rbnode,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    loaded_translations[nloaded_translations-1]->html_rbnode[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-
-    loaded_translations[nloaded_translations-1]->nothtml_rbnode[1]=strcpy(malloc(strlen(text)+1),text);
+    loaded_translations[nloaded_translations-1]->html_rbnode=malloc(sizeof("<tr class='n'><td class='l'>")+strlen(xmlstring)+sizeof(":<td class='r'>")+1);
+    strcpy(loaded_translations[nloaded_translations-1]->html_rbnode,"<tr class='n'><td class='l'>");
+    strcat(loaded_translations[nloaded_translations-1]->html_rbnode,xmlstring);
+    strcat(loaded_translations[nloaded_translations-1]->html_rbnode,":<td class='r'>");
 
     xmltext=ParseXML_Encode_Safe_XML(text);
-    loaded_translations[nloaded_translations-1]->html_rbnode[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
-    sprintf(loaded_translations[nloaded_translations-1]->html_rbnode[1],xmltext,"%s","<span class='t'>%s</span>","<span class='b'>%s</span>");
+    loaded_translations[nloaded_translations-1]->html_rbnode=realloc(loaded_translations[nloaded_translations-1]->html_rbnode,
+                                                                     strlen(loaded_translations[nloaded_translations-1]->html_rbnode)+
+                                                                     strlen(xmltext)+2*sizeof("<span class='b'>")+2*sizeof("</span>")+1+1);
+
+    p=xmltext;
+    q=loaded_translations[nloaded_translations-1]->html_rbnode+strlen(loaded_translations[nloaded_translations-1]->html_rbnode);
+
+    while(*p!='%')
+       *q++=*p++;
+
+    *q++=*p++;
+
+    while(*p!='%')
+       *q++=*p++;
+
+    p+=2;
+    strcpy(q,"<span class='t'>%s</span>"); q+=sizeof("<span class='t'>%s</span>")-1;
+
+    while(*p!='%')
+       *q++=*p++;
+
+    p+=2;
+    strcpy(q,"<span class='b'>%s</span>"); q+=sizeof("<span class='b'>%s</span>")-1;
+
+    strcpy(q,p);
+    strcat(q,"\n");
    }
 
  return(0);
@@ -1040,20 +1126,26 @@ static int HTMLSegmentType_function(const char *_tag_,int _type_,const char *str
     XMLPARSE_ASSERT_STRING(_tag_,string);
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
-    loaded_translations[nloaded_translations-1]->nothtml_segment[0]=strcpy(malloc(strlen(string)+1),string);
+    loaded_translations[nloaded_translations-1]->nothtml_segment=malloc(strlen(string)+1+strlen(text)+1);
+    strcpy(loaded_translations[nloaded_translations-1]->nothtml_segment,string);
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_segment," ");
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_segment,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    loaded_translations[nloaded_translations-1]->html_segment[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-
-    loaded_translations[nloaded_translations-1]->nothtml_segment[1]=strcpy(malloc(strlen(text)+1),text);
+    loaded_translations[nloaded_translations-1]->html_segment=malloc(sizeof("<tr class='s'><td class='l'>")+strlen(xmlstring)+sizeof(":<td class='r'>")+1);
+    strcpy(loaded_translations[nloaded_translations-1]->html_segment,"<tr class='s'><td class='l'>");
+    strcat(loaded_translations[nloaded_translations-1]->html_segment,xmlstring);
+    strcat(loaded_translations[nloaded_translations-1]->html_segment,":<td class='r'>");
 
     xmltext=ParseXML_Encode_Safe_XML(text);
-    loaded_translations[nloaded_translations-1]->html_segment[1]=malloc(strlen(xmltext)+1+2*sizeof("<span class='b'>")+2*sizeof("</span>"));
+    loaded_translations[nloaded_translations-1]->html_segment=realloc(loaded_translations[nloaded_translations-1]->html_segment,
+                                                                      strlen(loaded_translations[nloaded_translations-1]->html_segment)+
+                                                                      strlen(xmltext)+2*sizeof("<span class='b'>")+2*sizeof("</span>")+1);
 
     p=xmltext;
-    q=loaded_translations[nloaded_translations-1]->html_segment[1];
+    q=loaded_translations[nloaded_translations-1]->html_segment+strlen(loaded_translations[nloaded_translations-1]->html_segment);
 
-    while(*p!='%' && *(p+1)!='s')
+    while(*p!='%')
        *q++=*p++;
 
     p+=2;
@@ -1095,15 +1187,24 @@ static int HTMLStopType_function(const char *_tag_,int _type_,const char *string
     XMLPARSE_ASSERT_STRING(_tag_,string);
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
-    loaded_translations[nloaded_translations-1]->nothtml_stop[0]=strcpy(malloc(strlen(string)+1),string);
+    loaded_translations[nloaded_translations-1]->nothtml_stop=malloc(strlen(string)+1+strlen(text)+1);
+    strcpy(loaded_translations[nloaded_translations-1]->nothtml_stop,string);
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_stop," ");
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_stop,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    loaded_translations[nloaded_translations-1]->html_stop[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-
-    loaded_translations[nloaded_translations-1]->nothtml_stop[1]=strcpy(malloc(strlen(text)+1),text);
+    loaded_translations[nloaded_translations-1]->html_stop=malloc(sizeof("<tr class='n'><td class='l'>")+strlen(xmlstring)+sizeof(":<td class='r'>")+1);
+    strcpy(loaded_translations[nloaded_translations-1]->html_stop,"<tr class='n'><td class='l'>");
+    strcat(loaded_translations[nloaded_translations-1]->html_stop,xmlstring);
+    strcat(loaded_translations[nloaded_translations-1]->html_stop,":<td class='r'>");
 
     xmltext=ParseXML_Encode_Safe_XML(text);
-    loaded_translations[nloaded_translations-1]->html_stop[1]=strcpy(malloc(strlen(xmltext)+1),xmltext);
+    loaded_translations[nloaded_translations-1]->html_stop=realloc(loaded_translations[nloaded_translations-1]->html_stop,
+                                                                   strlen(loaded_translations[nloaded_translations-1]->html_stop)+
+                                                                   strlen(xmltext)+1+1);
+
+    strcat(loaded_translations[nloaded_translations-1]->html_stop,xmltext);
+    strcat(loaded_translations[nloaded_translations-1]->html_stop,"\n");
    }
 
  return(0);
@@ -1133,15 +1234,36 @@ static int HTMLTotalType_function(const char *_tag_,int _type_,const char *strin
     XMLPARSE_ASSERT_STRING(_tag_,string);
     XMLPARSE_ASSERT_STRING(_tag_,text);
 
-    loaded_translations[nloaded_translations-1]->nothtml_total[0]=strcpy(malloc(strlen(string)+1),string);
+    loaded_translations[nloaded_translations-1]->nothtml_total=malloc(strlen(string)+1+strlen(text)+1);
+    strcpy(loaded_translations[nloaded_translations-1]->nothtml_total,string);
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_total," ");
+    strcat(loaded_translations[nloaded_translations-1]->nothtml_total,text);
 
     xmlstring=ParseXML_Encode_Safe_XML(string);
-    loaded_translations[nloaded_translations-1]->html_total[0]=strcpy(malloc(strlen(xmlstring)+1),xmlstring);
-
-    loaded_translations[nloaded_translations-1]->nothtml_total[1]=strcpy(malloc(strlen(text)+1),text);
+    loaded_translations[nloaded_translations-1]->html_total=malloc(sizeof("<tr class='t'><td class='l'>")+strlen(xmlstring)+sizeof(":<td class='r'>")+1);
+    strcpy(loaded_translations[nloaded_translations-1]->html_total,"<tr class='t'><td class='l'>");
+    strcat(loaded_translations[nloaded_translations-1]->html_total,xmlstring);
+    strcat(loaded_translations[nloaded_translations-1]->html_total,":<td class='r'>");
 
     xmltext=ParseXML_Encode_Safe_XML(text);
-    loaded_translations[nloaded_translations-1]->html_total[1]=strcpy(malloc(strlen(xmltext)+1),xmltext);
+    loaded_translations[nloaded_translations-1]->html_total=realloc(loaded_translations[nloaded_translations-1]->html_total,
+                                                                   strlen(loaded_translations[nloaded_translations-1]->html_total)+
+                                                                   sizeof("<span class='j'>")+strlen(xmltext)+sizeof("</span>")+1+1);
+
+    strcat(loaded_translations[nloaded_translations-1]->html_total,"<span class='j'>");
+    strcat(loaded_translations[nloaded_translations-1]->html_total,xmltext);
+    strcat(loaded_translations[nloaded_translations-1]->html_total,"</span>");
+    strcat(loaded_translations[nloaded_translations-1]->html_total,"\n");
+
+
+    loaded_translations[nloaded_translations-1]->nothtml_subtotal=strcpy(malloc(strlen(text)+1),text);
+
+    loaded_translations[nloaded_translations-1]->html_subtotal=malloc(sizeof("[<span class='j'>")+strlen(xmltext)+sizeof("</span>]")+1+1);
+
+    strcpy(loaded_translations[nloaded_translations-1]->html_subtotal,"[<span class='j'>");
+    strcat(loaded_translations[nloaded_translations-1]->html_subtotal,xmltext);
+    strcat(loaded_translations[nloaded_translations-1]->html_subtotal,"</span>]");
+    strcat(loaded_translations[nloaded_translations-1]->html_subtotal,"\n");
    }
 
  return(0);
@@ -1454,15 +1576,13 @@ void FreeXMLTranslations()
 
     if(loaded_translations[i]->html_title != default_translation.html_title) free(loaded_translations[i]->html_title);
 
-    for(j=0;j<2;j++)
-      {
-       if(loaded_translations[i]->html_start[j]   != default_translation.html_start[j])   free(loaded_translations[i]->html_start[j]);
-       if(loaded_translations[i]->html_segment[j] != default_translation.html_segment[j]) free(loaded_translations[i]->html_segment[j]);
-       if(loaded_translations[i]->html_node[j]    != default_translation.html_node[j])    free(loaded_translations[i]->html_node[j]);
-       if(loaded_translations[i]->html_rbnode[j]  != default_translation.html_rbnode[j])  free(loaded_translations[i]->html_rbnode[j]);
-       if(loaded_translations[i]->html_stop[j]    != default_translation.html_stop[j])    free(loaded_translations[i]->html_stop[j]);
-       if(loaded_translations[i]->html_total[j]   != default_translation.html_total[j])   free(loaded_translations[i]->html_total[j]);
-      }
+    if(loaded_translations[i]->html_start   != default_translation.html_start)   free(loaded_translations[i]->html_start);
+    if(loaded_translations[i]->html_node    != default_translation.html_node)    free(loaded_translations[i]->html_node);
+    if(loaded_translations[i]->html_rbnode  != default_translation.html_rbnode)  free(loaded_translations[i]->html_rbnode);
+    if(loaded_translations[i]->html_segment != default_translation.html_segment) free(loaded_translations[i]->html_segment);
+    if(loaded_translations[i]->html_stop    != default_translation.html_stop)    free(loaded_translations[i]->html_stop);
+    if(loaded_translations[i]->html_total   != default_translation.html_total)   free(loaded_translations[i]->html_total);
+    if(loaded_translations[i]->html_subtotal!= default_translation.html_subtotal)free(loaded_translations[i]->html_subtotal);
 
     if(loaded_translations[i]->nothtml_waypoint   != default_translation.nothtml_waypoint)   free(loaded_translations[i]->nothtml_waypoint);
     if(loaded_translations[i]->nothtml_junction   != default_translation.nothtml_junction)   free(loaded_translations[i]->nothtml_junction);
@@ -1470,15 +1590,13 @@ void FreeXMLTranslations()
 
     if(loaded_translations[i]->nothtml_title != default_translation.nothtml_title) free(loaded_translations[i]->nothtml_title);
 
-    for(j=0;j<2;j++)
-      {
-       if(loaded_translations[i]->nothtml_start[j]   != default_translation.nothtml_start[j])   free(loaded_translations[i]->nothtml_start[j]);
-       if(loaded_translations[i]->nothtml_segment[j] != default_translation.nothtml_segment[j]) free(loaded_translations[i]->nothtml_segment[j]);
-       if(loaded_translations[i]->nothtml_node[j]    != default_translation.nothtml_node[j])    free(loaded_translations[i]->nothtml_node[j]);
-       if(loaded_translations[i]->nothtml_rbnode[j]  != default_translation.nothtml_rbnode[j])  free(loaded_translations[i]->nothtml_rbnode[j]);
-       if(loaded_translations[i]->nothtml_stop[j]    != default_translation.nothtml_stop[j])    free(loaded_translations[i]->nothtml_stop[j]);
-       if(loaded_translations[i]->nothtml_total[j]   != default_translation.nothtml_total[j])   free(loaded_translations[i]->nothtml_total[j]);
-      }
+    if(loaded_translations[i]->nothtml_start   != default_translation.nothtml_start)   free(loaded_translations[i]->nothtml_start);
+    if(loaded_translations[i]->nothtml_node    != default_translation.nothtml_node)    free(loaded_translations[i]->nothtml_node);
+    if(loaded_translations[i]->nothtml_rbnode  != default_translation.nothtml_rbnode)  free(loaded_translations[i]->nothtml_rbnode);
+    if(loaded_translations[i]->nothtml_segment != default_translation.nothtml_segment) free(loaded_translations[i]->nothtml_segment);
+    if(loaded_translations[i]->nothtml_stop    != default_translation.nothtml_stop)    free(loaded_translations[i]->nothtml_stop);
+    if(loaded_translations[i]->nothtml_total   != default_translation.nothtml_total)   free(loaded_translations[i]->nothtml_total);
+    if(loaded_translations[i]->nothtml_subtotal!= default_translation.nothtml_subtotal)free(loaded_translations[i]->nothtml_subtotal);
 
     if(loaded_translations[i]->gpx_desc  != default_translation.gpx_desc)  free(loaded_translations[i]->gpx_desc);
     if(loaded_translations[i]->gpx_name  != default_translation.gpx_name)  free(loaded_translations[i]->gpx_name);
