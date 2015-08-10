@@ -46,6 +46,11 @@ EXE=planetsplitter planetsplitter-slim router router-slim filedumperx filedumper
 
 LIB=libroutino.so libroutino-slim.so
 
+ifdef MINGW
+LIB+=routino.dll routino-slim.dll
+LIB+=routino.def routino-slim.def
+endif
+
 ########
 
 all: all-local
@@ -174,10 +179,10 @@ filedumper-slim : $(FILEDUMPER_SLIM_OBJ)
 ROUTER_LIB_OBJ=router+lib.o
 
 router+lib : $(ROUTER_LIB_OBJ) libroutino.so
-	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) -L. -lroutino $(LDFLAGS_LDSO)
+	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) libroutino.so $(LDFLAGS_LDSO)
 
 router+lib-slim : $(ROUTER_LIB_OBJ) libroutino-slim.so
-	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) -L. -lroutino-slim $(LDFLAGS_LDSO)
+	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) libroutino-slim.so $(LDFLAGS_LDSO)
 
 ########
 
@@ -194,6 +199,12 @@ endif
 libroutino.so : $(LIBROUTINO_OBJ)
 	$(LD) $(LIBROUTINO_OBJ) -o $@ $(LDFLAGS) $(LDFLAGS_LIB)
 
+routino.dll : libroutino.so
+	cp $< $@
+
+routino.def : routino.dll
+	-gendef $<
+
 ########
 
 LIBROUTINO_SLIM_OBJ=routino-slim-lib.o \
@@ -208,6 +219,12 @@ endif
 
 libroutino-slim.so : $(LIBROUTINO_SLIM_OBJ)
 	$(LD) $(LIBROUTINO_SLIM_OBJ) -o $@ $(LDFLAGS) $(LDFLAGS_LIB)
+
+routino-slim.dll : libroutino-slim.so
+	cp $< $@
+
+routino-slim.def : routino-slim.dll
+	-gendef $<
 
 ########
 
