@@ -57,7 +57,7 @@ int main(int argc,char** argv)
  char                *translations=NULL,*language="en";
  int                  reverse=0,loop=0;
  int                  quickest=0;
- int                  html=0,gpx_track=0,gpx_route=0,text=0,text_all=0,none=0,stdout=0;
+ int                  html=0,gpx_track=0,gpx_route=0,text=0,text_all=0,none=0,use_stdout=0;
  int                  list_html=0,list_text=0,list_text_all=0;
  int                  arg;
  int                  first_waypoint=NWAYPOINTS,last_waypoint=1,inc_dec_waypoint,waypoint,nwaypoints=0;
@@ -107,7 +107,7 @@ int main(int argc,char** argv)
     else if(!strcmp(argv[arg],"--output-none"))
        none=1;
     else if(!strcmp(argv[arg],"--output-stdout"))
-       stdout=1;
+       use_stdout=1;
     else if(!strcmp(argv[arg],"--list-html"))
        list_html=1;
     else if(!strcmp(argv[arg],"--list-text"))
@@ -172,7 +172,7 @@ int main(int argc,char** argv)
 
  /* Check the specified command line options */
 
- if(stdout && (html+gpx_track+gpx_route+text+text_all)!=1)
+ if(use_stdout && (html+gpx_track+gpx_route+text+text_all)!=1)
    {
     fprintf(stderr,"Error: The '--output-stdout' option requires exactly one other output option (but not '--output-none').\n");
     exit(EXIT_FAILURE);
