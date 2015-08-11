@@ -49,6 +49,7 @@ LIB=libroutino.so libroutino-slim.so
 ifdef MINGW
 LIB+=routino.dll routino-slim.dll
 LIB+=routino.def routino-slim.def
+LIB+=routino.lib routino-slim.lib
 endif
 
 ########
@@ -202,8 +203,11 @@ libroutino.so : $(LIBROUTINO_OBJ)
 routino.dll : libroutino.so
 	cp $< $@
 
-routino.def : routino.dll
-	-gendef $<
+routino.def : routino-lib.o
+	dlltool -v --output-def $@ $<
+
+routino.lib : routino.dll routino.def
+	dlltool -v --dllname routino.dll --def routino.def --output-lib $@
 
 ########
 
@@ -223,8 +227,11 @@ libroutino-slim.so : $(LIBROUTINO_SLIM_OBJ)
 routino-slim.dll : libroutino-slim.so
 	cp $< $@
 
-routino-slim.def : routino-slim.dll
-	-gendef $<
+routino-slim.def : routino-slim-lib.o
+	dlltool -v --output-def $@ $<
+
+routino-slim.lib : routino-slim.dll routino-slim.def
+	dlltool -v --dllname routino-slim.dll --def routino-slim.def --output-lib $@
 
 ########
 
