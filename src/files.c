@@ -41,6 +41,9 @@
 #include <sys/stat.h>
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
+#undef lseek
+#undef stat
+#undef fstat
 #define lseek _lseeki64
 #define stat  _stati64
 #define fstat _fstati64
