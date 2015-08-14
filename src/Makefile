@@ -22,15 +22,6 @@
 
 include ../Makefile.conf
 
-# Debugging options
-
-#CFLAGS+=-O0 -g
-#CFLAGS+=-pg
-#CFLAGS+=-fprofile-arcs -ftest-coverage
-
-#LDFLAGS+=-pg -static
-#LDFLAGS+=-fprofile-arcs -ftest-coverage
-
 # Sub-directories and sub-makefiles
 
 SUBFILES=$(wildcard */Makefile)
@@ -51,6 +42,8 @@ LIB+=routino.dll routino-slim.dll
 LIB+=routino.def routino-slim.def
 LIB+=routino.lib routino-slim.lib
 endif
+
+INC=routino.h
 
 ########
 
@@ -269,6 +262,20 @@ install-local: all-local
 	    if [ -f $$file.exe ]; then \
 	       echo cp $$file.exe $(DESTDIR)$(bindir) ;\
 	       cp -f $$file.exe $(DESTDIR)$(bindir) ;\
+	    fi ;\
+	 done
+	@[ -d $(DESTDIR)$(incdir) ] || mkdir -p $(DESTDIR)$(incdir)
+	@for file in $(INC); do \
+	    if [ -f $$file ]; then \
+	       echo cp $$file $(DESTDIR)$(incdir) ;\
+	       cp -f $$file $(DESTDIR)$(incdir) ;\
+	    fi ;\
+	 done
+	@[ -d $(DESTDIR)$(libdir) ] || mkdir -p $(DESTDIR)$(libdir)
+	@for file in $(LIB); do \
+	    if [ -f $$file ]; then \
+	       echo cp $$file $(DESTDIR)$(libdir) ;\
+	       cp -f $$file $(DESTDIR)$(libdir) ;\
 	    fi ;\
 	 done
 
