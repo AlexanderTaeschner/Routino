@@ -41,7 +41,7 @@ TAGMODIFIER_OBJ=tagmodifier.o \
 	        $(ROUTINO_SRC)/files.o $(ROUTINO_SRC)/logging.o $(ROUTINO_SRC)/logerror.o \
 	        $(ROUTINO_SRC)/uncompress.o $(ROUTINO_SRC)/xmlparse.o $(ROUTINO_SRC)/tagging.o
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 TAGMODIFIER_OBJ+=$(ROUTINO_SRC)/mman-win32.o
 endif
 

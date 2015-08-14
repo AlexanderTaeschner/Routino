@@ -96,7 +96,7 @@ Using MinGW
 
    From within this DOS command window change to the Routino source
    directory and compile using the MinGW version of make with this command
-   'mingw32-make MINGW=1'.
+   'mingw32-make'.
 
    After compiling Routino a set of library files are created ('routino.dll',
    'routino.def' and 'routino.lib'). These should be usable for linking with

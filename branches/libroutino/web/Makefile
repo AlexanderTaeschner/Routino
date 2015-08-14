@@ -117,7 +117,7 @@ all-translations: $(WEBWWWDIR)/router.html    $(WEBWWWDIR)/visualiser.html \
 	          $(WEBWWWDIR)/router.html.en $(WEBWWWDIR)/visualiser.html.en \
 	          $(XMLDIR)/routino-translations.xml
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 
 $(WEBWWWDIR)/router.html: $(WEBWWWDIR)/router.html.en
 	@echo cp $< $@
