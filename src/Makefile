@@ -37,7 +37,7 @@ EXE=planetsplitter planetsplitter-slim router router-slim filedumperx filedumper
 
 LIB=libroutino.so libroutino-slim.so
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 LIB+=routino.dll routino-slim.dll
 LIB+=routino.def routino-slim.def
 LIB+=routino.lib routino-slim.lib
@@ -64,7 +64,7 @@ PLANETSPLITTER_OBJ=planetsplitter.o \
 	           xmlparse.o tagging.o \
 	           uncompress.o osmxmlparse.o osmpbfparse.o osmo5mparse.o osmparser.o
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 PLANETSPLITTER_OBJ+=mman-win32.o
 endif
 
@@ -81,7 +81,7 @@ PLANETSPLITTER_SLIM_OBJ=planetsplitter-slim.o \
 	                xmlparse.o tagging.o \
 	                uncompress.o osmxmlparse.o osmpbfparse.o osmo5mparse.o osmparser.o
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 PLANETSPLITTER_SLIM_OBJ+=mman-win32.o
 endif
 
@@ -96,7 +96,7 @@ ROUTER_OBJ=router.o \
 	   files.o logging.o profiles.o xmlparse.o \
 	   results.o queue.o translations.o
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 ROUTER_OBJ+=mman-win32.o
 endif
 
@@ -111,7 +111,7 @@ ROUTER_SLIM_OBJ=router-slim.o \
 	        files.o logging.o profiles.o xmlparse.o \
 	        results.o queue.o translations.o
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 ROUTER_SLIM_OBJ+=mman-win32.o
 endif
 
@@ -123,7 +123,7 @@ router-slim : $(ROUTER_SLIM_OBJ)
 FILEDUMPERX_OBJ=filedumperx.o \
 	        files.o logging.o
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 FILEDUMPERX_OBJ+=mman-win32.o
 endif
 
@@ -137,7 +137,7 @@ FILEDUMPER_OBJ=filedumper.o \
                visualiser.o \
 	       files.o logging.o xmlparse.o
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 FILEDUMPER_OBJ+=mman-win32.o
 endif
 
@@ -151,7 +151,7 @@ FILEDUMPER_SLIM_OBJ=filedumper-slim.o \
 	       visualiser-slim.o \
 	       files.o logging.o xmlparse.o
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 FILEDUMPER_SLIM_OBJ+=mman-win32.o
 endif
 
@@ -186,7 +186,7 @@ LIBROUTINO_OBJ=routino-lib.o \
 	        files-lib.o profiles-lib.o xmlparse-lib.o \
 	        results-lib.o queue-lib.o translations-lib.o
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 LIBROUTINO_OBJ+=mman-win32.o
 endif
 
@@ -210,7 +210,7 @@ LIBROUTINO_SLIM_OBJ=routino-slim-lib.o \
 	        files-lib.o profiles-lib.o xmlparse-lib.o \
 	        results-lib.o queue-lib.o translations-lib.o
 
-ifdef MINGW
+ifeq ($(HOST),MINGW)
 LIBROUTINO_SLIM_OBJ+=mman-win32.o
 endif
 
