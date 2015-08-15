@@ -29,7 +29,7 @@ D=$(wildcard .deps/*.d)
 
 ROUTINO_SRC=../../src
 
-EXE=tagmodifier
+EXE=tagmodifier$(.EXE)
 
 ########
 
@@ -45,7 +45,7 @@ ifeq ($(HOST),MINGW)
 TAGMODIFIER_OBJ+=$(ROUTINO_SRC)/mman-win32.o
 endif
 
-tagmodifier : $(TAGMODIFIER_OBJ)
+tagmodifier$(.EXE) : $(TAGMODIFIER_OBJ)
 	$(LD) $(TAGMODIFIER_OBJ) -o $@ $(LDFLAGS)
 
 ########
@@ -70,7 +70,7 @@ install:
 clean:
 	rm -f *~
 	rm -f *.o
-	rm -f $(EXE) *.exe
+	rm -f $(EXE)
 	rm -f $(D)
 	rm -fr .deps
 	rm -f core
