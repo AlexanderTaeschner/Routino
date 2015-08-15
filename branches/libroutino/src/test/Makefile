@@ -24,12 +24,12 @@ include ../../Makefile.conf
 
 # executables
 
-ROUTINO_EXE=../planetsplitter ../planetsplitter-slim \
-            ../router         ../router-slim \
-            ../router+lib     ../router+lib-slim \
-            ../filedumper     ../filedumper-slim
+ROUTINO_EXE=../planetsplitter$(.EXE) ../planetsplitter-slim$(.EXE) \
+            ../router$(.EXE)         ../router-slim$(.EXE) \
+            ../router+lib$(.EXE)     ../router+lib-slim$(.EXE) \
+            ../filedumper$(.EXE)     ../filedumper-slim$(.EXE)
 
-EXE=is-fast-math
+EXE=is-fast-math$(.EXE)
 
 # Compilation targets
 
@@ -50,7 +50,7 @@ test : $(ROUTINO_EXE) $(EXE)
 $(ROUTINO_EXE) ::
 	cd .. && $(MAKE) $(notdir $@)
 
-is-fast-math : is-fast-math.o
+is-fast-math$(.EXE) : is-fast-math.o
 	$(LD) $< -o $@ $(LDFLAGS)
 
 is-fast-math.o : is-fast-math.c
@@ -72,7 +72,7 @@ clean:
 	rm -f *.log
 	rm -f *~
 	rm -f *.o
-	rm -f $(EXE) *.exe
+	rm -f $(EXE)
 	rm -f core
 	rm -f *.gcda *.gcno *.gcov gmon.out
 

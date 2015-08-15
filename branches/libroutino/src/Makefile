@@ -32,8 +32,9 @@ SUBDIRS=$(foreach f,$(SUBFILES),$(dir $f))
 C=$(wildcard *.c)
 D=$(wildcard .deps/*.d)
 
-EXE=planetsplitter planetsplitter-slim router router-slim filedumperx filedumper filedumper-slim \
-    router+lib router+lib-slim
+EXE=planetsplitter$(.EXE) planetsplitter-slim$(.EXE) router$(.EXE) router-slim$(.EXE) \
+    filedumperx$(.EXE) filedumper$(.EXE) filedumper-slim$(.EXE) \
+    router+lib$(.EXE) router+lib-slim$(.EXE)
 
 LIB=libroutino.so libroutino-slim.so
 
@@ -68,7 +69,7 @@ ifeq ($(HOST),MINGW)
 PLANETSPLITTER_OBJ+=mman-win32.o
 endif
 
-planetsplitter : $(PLANETSPLITTER_OBJ)
+planetsplitter$(.EXE) : $(PLANETSPLITTER_OBJ)
 	$(LD) $(PLANETSPLITTER_OBJ) -o $@ $(LDFLAGS)
 
 ########
@@ -85,7 +86,7 @@ ifeq ($(HOST),MINGW)
 PLANETSPLITTER_SLIM_OBJ+=mman-win32.o
 endif
 
-planetsplitter-slim : $(PLANETSPLITTER_SLIM_OBJ)
+planetsplitter-slim$(.EXE) : $(PLANETSPLITTER_SLIM_OBJ)
 	$(LD) $(PLANETSPLITTER_SLIM_OBJ) -o $@ $(LDFLAGS)
 
 ########
@@ -100,7 +101,7 @@ ifeq ($(HOST),MINGW)
 ROUTER_OBJ+=mman-win32.o
 endif
 
-router : $(ROUTER_OBJ)
+router$(.EXE) : $(ROUTER_OBJ)
 	$(LD) $(ROUTER_OBJ) -o $@ $(LDFLAGS)
 
 ########
@@ -115,7 +116,7 @@ ifeq ($(HOST),MINGW)
 ROUTER_SLIM_OBJ+=mman-win32.o
 endif
 
-router-slim : $(ROUTER_SLIM_OBJ)
+router-slim$(.EXE) : $(ROUTER_SLIM_OBJ)
 	$(LD) $(ROUTER_SLIM_OBJ) -o $@ $(LDFLAGS)
 
 ########
@@ -127,7 +128,7 @@ ifeq ($(HOST),MINGW)
 FILEDUMPERX_OBJ+=mman-win32.o
 endif
 
-filedumperx : $(FILEDUMPERX_OBJ)
+filedumperx$(.EXE) : $(FILEDUMPERX_OBJ)
 	$(LD) $(FILEDUMPERX_OBJ) -o $@ $(LDFLAGS)
 
 ########
@@ -141,7 +142,7 @@ ifeq ($(HOST),MINGW)
 FILEDUMPER_OBJ+=mman-win32.o
 endif
 
-filedumper : $(FILEDUMPER_OBJ)
+filedumper$(.EXE) : $(FILEDUMPER_OBJ)
 	$(LD) $(FILEDUMPER_OBJ) -o $@ $(LDFLAGS)
 
 ########
@@ -155,7 +156,7 @@ ifeq ($(HOST),MINGW)
 FILEDUMPER_SLIM_OBJ+=mman-win32.o
 endif
 
-filedumper-slim : $(FILEDUMPER_SLIM_OBJ)
+filedumper-slim$(.EXE) : $(FILEDUMPER_SLIM_OBJ)
 	$(LD) $(FILEDUMPER_SLIM_OBJ) -o $@ $(LDFLAGS)
 
 ########
@@ -172,10 +173,10 @@ filedumper-slim : $(FILEDUMPER_SLIM_OBJ)
 
 ROUTER_LIB_OBJ=router+lib.o
 
-router+lib : $(ROUTER_LIB_OBJ) libroutino.so
+router+lib$(.EXE) : $(ROUTER_LIB_OBJ) libroutino.so
 	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) libroutino.so $(LDFLAGS_LDSO)
 
-router+lib-slim : $(ROUTER_LIB_OBJ) libroutino-slim.so
+router+lib-slim$(.EXE) : $(ROUTER_LIB_OBJ) libroutino-slim.so
 	$(LD) $(ROUTER_LIB_OBJ) -o $@ $(LDFLAGS) libroutino-slim.so $(LDFLAGS_LDSO)
 
 ########
@@ -259,10 +260,6 @@ install-local: all-local
 	       echo cp $$file $(DESTDIR)$(bindir) ;\
 	       cp -f $$file $(DESTDIR)$(bindir) ;\
 	    fi ;\
-	    if [ -f $$file.exe ]; then \
-	       echo cp $$file.exe $(DESTDIR)$(bindir) ;\
-	       cp -f $$file.exe $(DESTDIR)$(bindir) ;\
-	    fi ;\
 	 done
 	@[ -d $(DESTDIR)$(incdir) ] || mkdir -p $(DESTDIR)$(incdir)
 	@for file in $(INC); do \
@@ -289,7 +286,7 @@ clean: clean-local
 clean-local:
 	rm -f *~
 	rm -f *.o
-	rm -f $(EXE) *.exe
+	rm -f $(EXE)
 	rm -f $(LIB)
 	rm -f $(D)
 	rm -fr .deps
