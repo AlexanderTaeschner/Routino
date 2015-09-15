@@ -28,34 +28,22 @@ SUBDIRS=xml test
 
 # Compilation targets
 
-DEPDIR=.deps
-
 C=$(wildcard *.c)
-D=$(wildcard $(DEPDIR)/*.d)
+D=$(wildcard .deps/*.d)
 
 EXE=planetsplitter$(.EXE) planetsplitter-slim$(.EXE) router$(.EXE) router-slim$(.EXE) \
     filedumperx$(.EXE) filedumper$(.EXE) filedumper-slim$(.EXE) \
     router+lib$(.EXE) router+lib-slim$(.EXE)
 
-ifneq ($(HOST),MINGW)
-LIB =libroutino.so               libroutino-slim.so
-LIB+=libroutino.so.$(SOVERSION)  libroutino-slim.so.$(SOVERSION)
-LIB+=libroutino.so.$(LIBVERSION) libroutino-slim.so.$(LIBVERSION)
-else
-LIB =routino.dll routino-slim.dll
+LIB=libroutino.so libroutino-slim.so
+
+ifeq ($(HOST),MINGW)
+LIB+=routino.dll routino-slim.dll
 LIB+=routino.def routino-slim.def
 LIB+=routino.lib routino-slim.lib
 endif
 
 INC=routino.h
-
-ifneq ($(HOST),MINGW)
-LINK_LIB=libroutino.so
-LINK_SLIM_LIB=libroutino-slim.so
-else
-LINK_LIB=routino.dll
-LINK_SLIM_LIB=routino-slim.dll
-endif
 
 ########
 
@@ -172,23 +160,22 @@ filedumper-slim$(.EXE) : $(FILEDUMPER_SLIM_OBJ)
 
 ########
 
-$(DEPDIR) :
-	@[ -d $(DEPDIR) ] || mkdir $(DEPDIR)
+%.o : %.c
+	@[ -d .deps ] || mkdir .deps
+	$(CC) -c $(CFLAGS) -DSLIM=0 -DROUTINO_DATADIR=\"$(datadir)\" $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
 
-%.o : %.c $(DEPDIR)
-	$(CC) -c $(CFLAGS) -DSLIM=0 -DROUTINO_DATADIR=\"$(datadir)\" $< -o $@ -MMD -MP -MF $(addprefix $(DEPDIR)/,$(addsuffix .d,$(basename $@)))
-
-%-slim.o : %.c $(DEPDIR)
-	$(CC) -c $(CFLAGS) -DSLIM=1 -DROUTINO_DATADIR=\"$(datadir)\" $< -o $@ -MMD -MP -MF $(addprefix $(DEPDIR)/,$(addsuffix .d,$(basename $@)))
+%-slim.o : %.c
+	@[ -d .deps ] || mkdir .deps
+	$(CC) -c $(CFLAGS) -DSLIM=1 -DROUTINO_DATADIR=\"$(datadir)\" $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
 
 ########
 
 ROUTER_LIB_OBJ=router+lib.o
 
-router+lib$(.EXE) : $(ROUTER_LIB_OBJ) $(LINK_LIB)
+router+lib$(.EXE) : $(ROUTER_LIB_OBJ) libroutino.so
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDFLAGS_LDSO)
 
-router+lib-slim$(.EXE) : $(ROUTER_LIB_OBJ) $(LINK_SLIM_LIB)
+router+lib-slim$(.EXE) : $(ROUTER_LIB_OBJ) libroutino-slim.so
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDFLAGS_LDSO)
 
 ########
@@ -203,17 +190,11 @@ ifeq ($(HOST),MINGW)
 LIBROUTINO_OBJ+=mman-win32.o
 endif
 
-libroutino.so.$(LIBVERSION) : $(LIBROUTINO_OBJ)
-	$(LD) $^ -o $@ $(LDFLAGS) $(LDFLAGS_LIB) $(LDFLAGS_SONAME)
-
-libroutino.so.$(SOVERSION) : libroutino.so.$(LIBVERSION)
-	ln -sf $< $@
-
-libroutino.so : libroutino.so.$(LIBVERSION)
-	ln -sf $< $@
-
-routino.dll : $(LIBROUTINO_OBJ)
+libroutino.so : $(LIBROUTINO_OBJ)
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDFLAGS_LIB)
+
+routino.dll : libroutino.so
+	cp $< $@
 
 routino.def : routino-lib.o
 	dlltool -v --output-def $@ $<
@@ -233,17 +214,11 @@ ifeq ($(HOST),MINGW)
 LIBROUTINO_SLIM_OBJ+=mman-win32.o
 endif
 
-libroutino-slim.so.$(LIBVERSION) : $(LIBROUTINO_SLIM_OBJ)
-	$(LD) $^ -o $@ $(LDFLAGS) $(LDFLAGS_LIB) $(LDFLAGS_SLIM_SONAME)
-
-libroutino-slim.so.$(SOVERSION) : libroutino-slim.so.$(LIBVERSION)
-	ln -sf $< $@
-
-libroutino-slim.so : libroutino-slim.so.$(LIBVERSION)
-	ln -sf $< $@
-
-routino-slim.dll : $(LIBROUTINO_SLIM_OBJ)
+libroutino-slim.so : $(LIBROUTINO_SLIM_OBJ)
 	$(LD) $^ -o $@ $(LDFLAGS) $(LDFLAGS_LIB)
+
+routino-slim.dll : libroutino-slim.so
+	cp $< $@
 
 routino-slim.def : routino-slim-lib.o
 	dlltool -v --output-def $@ $<
@@ -253,11 +228,13 @@ routino-slim.lib : routino-slim.dll routino-slim.def
 
 ########
 
-%-lib.o : %.c $(DEPDIR)
-	$(CC) -c $(CFLAGS) $(CFLAGS_LIB) -DSLIM=0 -DLIBROUTINO $< -o $@ -MMD -MP -MF $(addprefix $(DEPDIR)/,$(addsuffix .d,$(basename $@)))
+%-lib.o : %.c
+	@[ -d .deps ] || mkdir .deps
+	$(CC) -c $(CFLAGS) $(CFLAGS_LIB) -DSLIM=0 -DLIBROUTINO $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
 
-%-slim-lib.o : %.c $(DEPDIR)
-	$(CC) -c $(CFLAGS) $(CFLAGS_LIB) -DSLIM=1 -DLIBROUTINO $< -o $@ -MMD -MP -MF $(addprefix $(DEPDIR)/,$(addsuffix .d,$(basename $@)))
+%-slim-lib.o : %.c
+	@[ -d .deps ] || mkdir .deps
+	$(CC) -c $(CFLAGS) $(CFLAGS_LIB) -DSLIM=1 -DLIBROUTINO $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
 
 ########
 
@@ -294,7 +271,7 @@ install-local: all-local
 	@for file in $(LIB); do \
 	    if [ -f $$file ]; then \
 	       echo cp $$file $(DESTDIR)$(libdir) ;\
-	       cp -df $$file $(DESTDIR)$(libdir) ;\
+	       cp -f $$file $(DESTDIR)$(libdir) ;\
 	    fi ;\
 	 done
 
@@ -311,7 +288,7 @@ clean-local:
 	rm -f $(EXE)
 	rm -f $(LIB)
 	rm -f $(D)
-	rm -fr $(DEPDIR)
+	rm -fr .deps
 	rm -f core
 	rm -f *.gcda *.gcno *.gcov gmon.out
 

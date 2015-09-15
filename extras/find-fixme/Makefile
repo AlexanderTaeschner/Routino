@@ -30,10 +30,8 @@ WEBWWWDIR=web/www
 
 # Compilation targets
 
-DEPDIR=.deps
-
 C=$(wildcard *.c)
-D=$(wildcard $(DEPDIR)/*.d)
+D=$(wildcard .deps/*.d)
 
 ROUTINO_SRC=../../src
 ROUTINO_WEBWWWDIR=../../web/www/routino
@@ -148,14 +146,13 @@ $(ROUTINO_SRC)/%.o :
 $(ROUTINO_SRC)/%-slim.o :
 	cd $(ROUTINO_SRC) && $(MAKE) $(notdir $@)
 
-$(DEPDIR) :
-	@[ -d $(DEPDIR) ] || mkdir $(DEPDIR)
+%.o : %.c
+	@[ -d .deps ] || mkdir .deps
+	$(CC) -c $(CFLAGS) -DSLIM=0 -I$(ROUTINO_SRC) $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
 
-%.o : %.c $(DEPDIR)
-	$(CC) -c $(CFLAGS) -DSLIM=0 -I$(ROUTINO_SRC) $< -o $@ -MMD -MP -MF $(addprefix $(DEPDIR)/,$(addsuffix .d,$(basename $@)))
-
-%-slim.o : %.c $(DEPDIR)
-	$(CC) -c $(CFLAGS) -DSLIM=1 -I$(ROUTINO_SRC) $< -o $@ -MMD -MP -MF $(addprefix $(DEPDIR)/,$(addsuffix .d,$(basename $@)))
+%-slim.o : %.c
+	@[ -d .deps ] || mkdir .deps
+	$(CC) -c $(CFLAGS) -DSLIM=1 -I$(ROUTINO_SRC) $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
 
 ########
 

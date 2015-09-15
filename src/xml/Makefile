@@ -24,13 +24,11 @@ include ../../Makefile.conf
 
 # Compilation targets
 
-DEPDIR=.deps
-
 XMLDIR=../../xml
 
 X=$(notdir $(wildcard $(XMLDIR)/*.xsd))
 C=$(foreach f,$(X),$(addsuffix -skeleton.c,$(basename $f)))
-D=$(wildcard $(DEPDIR)/*.d)
+D=$(wildcard .deps/*.d)
 O=$(foreach f,$(C),$(addsuffix .o,$(basename $f)))
 E=$(foreach f,$(C),$(addsuffix $(.EXE),$(basename $f)))
 
@@ -63,11 +61,9 @@ xsd-to-xmlparser$(.EXE) : xsd-to-xmlparser.o ../xmlparse.o
 
 ########
 
-$(DEPDIR) :
-	@[ -d $(DEPDIR) ] || mkdir $(DEPDIR)
-
-%.o : %.c $(DEPDIR)
-	$(CC) -c $(CFLAGS) -I.. $< -o $@ -MMD -MP -MF $(addprefix $(DEPDIR)/,$(addsuffix .d,$(basename $@)))
+%.o : %.c
+	@[ -d .deps ] || mkdir .deps
+	$(CC) -c $(CFLAGS) -I.. $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
 
 ########
 
@@ -104,9 +100,9 @@ clean:
 	rm -f *.o
 	rm -f $(EXE)
 	rm -f $(E) test-skeleton$(.EXE)
-	rm -f $(D) $(DEPDIR)/test-skeleton.d
+	rm -f $(D) .deps/test-skeleton.d
 	rm -f $(C) test-skeleton.c
-	rm -fr $(DEPDIR)
+	rm -fr .deps
 	rm -f core
 	rm -f *.gcda *.gcno *.gcov gmon.out
 
