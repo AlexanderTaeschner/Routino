@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2013 Andrew M. Bishop
+ This file Copyright 2008-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -31,13 +31,13 @@
 #include "logging.h"
 
 
-/* Local variables */
+/* Local parsing variables (re-initialised for each file) */
 
 static int current_mode=MODE_NORMAL;
 
-static uint64_t nnodes=0,nways=0,nrelations=0;
+static uint64_t nnodes,nways,nrelations;
 
-static TagList *current_tags=NULL;
+static TagList *current_tags;
 
 
 /* The XML tag processing function prototypes */
@@ -61,131 +61,131 @@ static int memberType_function(const char *_tag_,int _type_,const char *type,con
 
 /* The XML tag definitions (forward declarations) */
 
-static xmltag xmlDeclaration_tag;
-static xmltag osmType_tag;
-static xmltag osmChangeType_tag;
-static xmltag boundsType_tag;
-static xmltag boundType_tag;
-static xmltag changesetType_tag;
-static xmltag modifyType_tag;
-static xmltag createType_tag;
-static xmltag deleteType_tag;
-static xmltag nodeType_tag;
-static xmltag wayType_tag;
-static xmltag relationType_tag;
-static xmltag tagType_tag;
-static xmltag ndType_tag;
-static xmltag memberType_tag;
+static const xmltag xmlDeclaration_tag;
+static const xmltag osmType_tag;
+static const xmltag osmChangeType_tag;
+static const xmltag boundsType_tag;
+static const xmltag boundType_tag;
+static const xmltag changesetType_tag;
+static const xmltag modifyType_tag;
+static const xmltag createType_tag;
+static const xmltag deleteType_tag;
+static const xmltag nodeType_tag;
+static const xmltag wayType_tag;
+static const xmltag relationType_tag;
+static const xmltag tagType_tag;
+static const xmltag ndType_tag;
+static const xmltag memberType_tag;
 
 
 /* The XML tag definition values */
 
 /*+ The complete set of tags at the top level for OSM. +*/
-static xmltag *xml_osm_toplevel_tags[]={&xmlDeclaration_tag,&osmType_tag,NULL};
+static const xmltag * const xml_osm_toplevel_tags[]={&xmlDeclaration_tag,&osmType_tag,NULL};
 
 /*+ The complete set of tags at the top level for OSC. +*/
-static xmltag *xml_osc_toplevel_tags[]={&xmlDeclaration_tag,&osmChangeType_tag,NULL};
+static const xmltag * const xml_osc_toplevel_tags[]={&xmlDeclaration_tag,&osmChangeType_tag,NULL};
 
 /*+ The xmlDeclaration type tag. +*/
-static xmltag xmlDeclaration_tag=
+static const xmltag xmlDeclaration_tag=
               {"xml",
                2, {"version","encoding"},
                NULL,
                {NULL}};
 
 /*+ The osmType type tag. +*/
-static xmltag osmType_tag=
+static const xmltag osmType_tag=
               {"osm",
                1, {"version"},
                osmType_function,
                {&boundsType_tag,&boundType_tag,&changesetType_tag,&nodeType_tag,&wayType_tag,&relationType_tag,NULL}};
 
 /*+ The osmChangeType type tag. +*/
-static xmltag osmChangeType_tag=
+static const xmltag osmChangeType_tag=
               {"osmChange",
                1, {"version"},
                osmChangeType_function,
                {&boundsType_tag,&modifyType_tag,&createType_tag,&deleteType_tag,NULL}};
 
 /*+ The boundsType type tag. +*/
-static xmltag boundsType_tag=
+static const xmltag boundsType_tag=
               {"bounds",
                0, {NULL},
                NULL,
                {NULL}};
 
 /*+ The boundType type tag. +*/
-static xmltag boundType_tag=
+static const xmltag boundType_tag=
               {"bound",
                0, {NULL},
                NULL,
                {NULL}};
 
 /*+ The changesetType type tag. +*/
-static xmltag changesetType_tag=
+static const xmltag changesetType_tag=
               {"changeset",
                0, {NULL},
                changesetType_function,
                {&tagType_tag,NULL}};
 
 /*+ The modifyType type tag. +*/
-static xmltag modifyType_tag=
+static const xmltag modifyType_tag=
               {"modify",
                0, {NULL},
                modifyType_function,
                {&nodeType_tag,&wayType_tag,&relationType_tag,NULL}};
 
 /*+ The createType type tag. +*/
-static xmltag createType_tag=
+static const xmltag createType_tag=
               {"create",
                0, {NULL},
                createType_function,
                {&nodeType_tag,&wayType_tag,&relationType_tag,NULL}};
 
 /*+ The deleteType type tag. +*/
-static xmltag deleteType_tag=
+static const xmltag deleteType_tag=
               {"delete",
                0, {NULL},
                deleteType_function,
                {&nodeType_tag,&wayType_tag,&relationType_tag,NULL}};
 
 /*+ The nodeType type tag. +*/
-static xmltag nodeType_tag=
+static const xmltag nodeType_tag=
               {"node",
                3, {"id","lat","lon"},
                nodeType_function,
                {&tagType_tag,NULL}};
 
 /*+ The wayType type tag. +*/
-static xmltag wayType_tag=
+static const xmltag wayType_tag=
               {"way",
                1, {"id"},
                wayType_function,
                {&ndType_tag,&tagType_tag,NULL}};
 
 /*+ The relationType type tag. +*/
-static xmltag relationType_tag=
+static const xmltag relationType_tag=
               {"relation",
                1, {"id"},
                relationType_function,
                {&memberType_tag,&tagType_tag,NULL}};
 
 /*+ The tagType type tag. +*/
-static xmltag tagType_tag=
+static const xmltag tagType_tag=
               {"tag",
                2, {"k","v"},
                tagType_function,
                {NULL}};
 
 /*+ The ndType type tag. +*/
-static xmltag ndType_tag=
+static const xmltag ndType_tag=
               {"nd",
                1, {"ref"},
                ndType_function,
                {NULL}};
 
 /*+ The memberType type tag. +*/
-static xmltag memberType_tag=
+static const xmltag memberType_tag=
               {"member",
                3, {"type","ref","role"},
                memberType_function,
@@ -414,8 +414,8 @@ static int deleteType_function(const char *_tag_,int _type_)
 
 static int nodeType_function(const char *_tag_,int _type_,const char *id,const char *lat,const char *lon)
 {
- static int64_t llid;
- static double latitude,longitude;
+ static int64_t llid;              /* static variable to store attributes from <node> tag until </node> tag */
+ static double latitude,longitude; /* static variable to store attributes from <node> tag until </node> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {
@@ -465,7 +465,7 @@ static int nodeType_function(const char *_tag_,int _type_,const char *id,const c
 
 static int wayType_function(const char *_tag_,int _type_,const char *id)
 {
- static int64_t llid;
+ static int64_t llid; /* static variable to store attributes from <way> tag until </way> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {
@@ -511,7 +511,7 @@ static int wayType_function(const char *_tag_,int _type_,const char *id)
 
 static int relationType_function(const char *_tag_,int _type_,const char *id)
 {
- static int64_t llid;
+ static int64_t llid; /* static variable to store attributes from <relation> tag until </relation> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {
@@ -659,6 +659,10 @@ int ParseOSMFile(int fd,NodesX *OSMNodes,WaysX *OSMWays,RelationsX *OSMRelations
 
  /* Parse the file */
 
+ nnodes=0,nways=0,nrelations=0;
+
+ current_tags=NULL;
+
  retval=ParseXML(fd,xml_osm_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_IGNORE);
 
  /* Cleanup the parser */
@@ -692,6 +696,10 @@ int ParseOSCFile(int fd,NodesX *OSMNodes,WaysX *OSMWays,RelationsX *OSMRelations
  InitialiseParser(OSMNodes,OSMWays,OSMRelations);
 
  /* Parse the file */
+
+ nnodes=0,nways=0,nrelations=0;
+
+ current_tags=NULL;
 
  retval=ParseXML(fd,xml_osc_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_IGNORE);
 

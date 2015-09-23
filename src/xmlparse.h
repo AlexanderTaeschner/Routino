@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2010-2014 Andrew M. Bishop
+ This file Copyright 2010-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -45,14 +45,14 @@ typedef struct _xmltag xmltag;
 /*+ A structure to hold the definition of a tag. +*/
 struct _xmltag
 {
- char *name;                            /*+ The name of the tag - must be in lower case. +*/
+ const char * const name;                            /*+ The name of the tag - must be in lower case. +*/
 
- int  nattributes;                      /*+ The number of valid attributes for the tag. +*/
- char *attributes[XMLPARSE_MAX_ATTRS];  /*+ The valid attributes for the tag. +*/
+ const int  nattributes;                             /*+ The number of valid attributes for the tag. +*/
+ const char * const attributes[XMLPARSE_MAX_ATTRS];  /*+ The valid attributes for the tag. +*/
 
- int  (*callback)();                    /*+ The callback function when the tag is seen. +*/
+ int  (*callback)();                                 /*+ The callback function when the tag is seen. +*/
 
- xmltag *subtags[XMLPARSE_MAX_SUBTAGS]; /*+ The list of valid tags contained within this one (null terminated). +*/
+ const xmltag * const subtags[XMLPARSE_MAX_SUBTAGS]; /*+ The list of valid tags contained within this one (null terminated). +*/
 };
 
 
@@ -69,9 +69,12 @@ struct _xmltag
 
 /* XML parser functions */
 
-int ParseXML(int fd,xmltag **tags,int options);
+int ParseXML(int fd,const xmltag * const *tags,int options);
 
 uint64_t ParseXML_LineNumber(void);
+
+void ParseXML_SetError(const char *format, ...);
+char *ParseXML_GetError(void);
 
 char *ParseXML_Decode_Entity_Ref(const char *string);
 char *ParseXML_Decode_Char_Ref(const char *string);
@@ -85,7 +88,7 @@ int ParseXML_IsFloating(const char *string);
 #define XMLPARSE_MESSAGE(tag,message) \
  do \
    { \
-    fprintf(stderr,"XML Parser: Error on line %" PRIu64 ": " message " in <%s> tag.\n",ParseXML_LineNumber(),tag); \
+    ParseXML_SetError(message " in <%s> tag.",tag); \
     return(1); \
    } \
     while(0)
@@ -93,7 +96,7 @@ int ParseXML_IsFloating(const char *string);
 #define XMLPARSE_INVALID(tag,attribute) \
  do \
    { \
-    fprintf(stderr,"XML Parser: Error on line %" PRIu64 ": Invalid value for '" #attribute "' attribute in <%s> tag.\n",ParseXML_LineNumber(),tag); \
+    ParseXML_SetError("Invalid value for '" #attribute "' attribute in <%s> tag.",tag); \
     return(1); \
    } \
     while(0)
@@ -103,7 +106,7 @@ int ParseXML_IsFloating(const char *string);
    { \
     if(!attribute) \
       { \
-       fprintf(stderr,"XML Parser: Error on line %" PRIu64 ": '" #attribute "' attribute must be specified in <%s> tag.\n",ParseXML_LineNumber(),tag); \
+       ParseXML_SetError("'" #attribute "' attribute must be specified in <%s> tag.",tag); \
        return(1); \
       } \
    } \
@@ -114,7 +117,7 @@ int ParseXML_IsFloating(const char *string);
    { \
     if(!attribute || !*attribute || !ParseXML_IsInteger(attribute)) \
       { \
-       fprintf(stderr,"XML Parser: Error on line %" PRIu64 ": '" #attribute "' attribute must be a integer in <%s> tag.\n",ParseXML_LineNumber(),tag); \
+       ParseXML_SetError("'" #attribute "' attribute must be a integer in <%s> tag.",tag); \
        return(1); \
       } \
    } \
@@ -125,7 +128,7 @@ int ParseXML_IsFloating(const char *string);
    { \
     if(!attribute || !*attribute || !ParseXML_IsFloating(attribute)) \
       { \
-       fprintf(stderr,"XML Parser: Error on line %" PRIu64 ": '" #attribute "' attribute must be a number in <%s> tag.\n",ParseXML_LineNumber(),tag); \
+       ParseXML_SetError("'" #attribute "' attribute must be a number in <%s> tag.",tag); \
        return(1); \
       } \
    } \

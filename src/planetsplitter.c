@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2014 Andrew M. Bishop
+ This file Copyright 2008-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -22,9 +22,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <errno.h>
+
+#include "version.h"
 
 #include "types.h"
 #include "ways.h"
@@ -88,7 +89,9 @@ int main(int argc,char** argv)
 
  for(arg=1;arg<argc;arg++)
    {
-    if(!strcmp(argv[arg],"--help"))
+    if(!strcmp(argv[arg],"--version"))
+       print_usage(-1,NULL,NULL);
+    else if(!strcmp(argv[arg],"--help"))
        print_usage(1,NULL,NULL);
     else if(!strncmp(argv[arg],"--dir=",6))
        dirname=&argv[arg][6];
@@ -190,14 +193,19 @@ int main(int argc,char** argv)
       }
     else
       {
-       if(ExistsFile(FileName(dirname,prefix,"tagging.xml")))
-          tagging=FileName(dirname,prefix,"tagging.xml");
-       else if(ExistsFile(FileName(DATADIR,NULL,"tagging.xml")))
-          tagging=FileName(DATADIR,NULL,"tagging.xml");
-       else
+       tagging=FileName(dirname,prefix,"tagging.xml");
+
+       if(!ExistsFile(tagging))
          {
-          fprintf(stderr,"Error: The '--tagging' option was not used and the default 'tagging.xml' does not exist.\n");
-          exit(EXIT_FAILURE);
+          free(tagging);
+
+          tagging=FileName(ROUTINO_DATADIR,NULL,"tagging.xml");
+
+          if(!ExistsFile(tagging))
+            {
+             fprintf(stderr,"Error: The '--tagging' option was not used and the default 'tagging.xml' does not exist.\n");
+             exit(EXIT_FAILURE);
+            }
          }
       }
 
@@ -377,7 +385,7 @@ if(!option_process_only)
 
  /* Sort the turn relations geographically */
 
- SortTurnRelationListGeographically(OSMRelations,OSMNodes,OSMSegments);
+ SortTurnRelationListGeographically(OSMRelations,OSMNodes,OSMSegments,0);
 
  /* Prune unwanted nodes/segments */
 
@@ -527,7 +535,7 @@ if(!option_process_only)
 
  /* Sort the turn relations geographically */
 
- SortTurnRelationListGeographically(OSMRelations,OSMNodes,OSMSegments);
+ SortTurnRelationListGeographically(OSMRelations,OSMNodes,OSMSegments,1);
 
  /* Output the results */
 
@@ -597,7 +605,7 @@ if(!option_process_only)
 /*++++++++++++++++++++++++++++++++++++++
   Print out the usage information.
 
-  int detail The level of detail to use - 0 = low, 1 = high.
+  int detail The level of detail to use: -1 = just version number, 0 = low detail, 1 = full details.
 
   const char *argerr The argument that gave the error (if there is one).
 
@@ -606,51 +614,64 @@ if(!option_process_only)
 
 static void print_usage(int detail,const char *argerr,const char *err)
 {
- fprintf(stderr,
-         "Usage: planetsplitter [--help]\n"
-         "                      [--dir=<dirname>] [--prefix=<name>]\n"
+ if(detail<0)
+   {
+    fprintf(stderr,
+            "Routino version " ROUTINO_VERSION " " ROUTINO_URL ".\n"
+            );
+   }
+
+ if(detail>=0)
+   {
+    fprintf(stderr,
+            "Usage: planetsplitter [--version]\n"
+            "                      [--help]\n"
+            "                      [--dir=<dirname>] [--prefix=<name>]\n"
 #if defined(USE_PTHREADS) && USE_PTHREADS
-         "                      [--sort-ram-size=<size>] [--sort-threads=<number>]\n"
+            "                      [--sort-ram-size=<size>] [--sort-threads=<number>]\n"
 #else
-         "                      [--sort-ram-size=<size>]\n"
+            "                      [--sort-ram-size=<size>]\n"
 #endif
-         "                      [--tmpdir=<dirname>]\n"
-         "                      [--tagging=<filename>]\n"
-         "                      [--loggable] [--logtime] [--logmemory]\n"
-         "                      [--errorlog[=<name>]]\n"
-         "                      [--parse-only | --process-only]\n"
-         "                      [--append] [--keep] [--changes]\n"
-         "                      [--max-iterations=<number>]\n"
-         "                      [--prune-none]\n"
-         "                      [--prune-isolated=<len>]\n"
-         "                      [--prune-short=<len>]\n"
-         "                      [--prune-straight=<len>]\n"
-         "                      [<filename.osm> ... | <filename.osc> ...\n"
-         "                       | <filename.pbf> ...\n"
-         "                       | <filename.o5m> ... | <filename.o5c> ..."
+            "                      [--tmpdir=<dirname>]\n"
+            "                      [--tagging=<filename>]\n"
+            "                      [--loggable] [--logtime] [--logmemory]\n"
+            "                      [--errorlog[=<name>]]\n"
+            "                      [--parse-only | --process-only]\n"
+            "                      [--append] [--keep] [--changes]\n"
+            "                      [--max-iterations=<number>]\n"
+            "                      [--prune-none]\n"
+            "                      [--prune-isolated=<len>]\n"
+            "                      [--prune-short=<len>]\n"
+            "                      [--prune-straight=<len>]\n"
+            "                      [<filename.osm> ... | <filename.osc> ...\n"
+            "                       | <filename.pbf> ...\n"
+            "                       | <filename.o5m> ... | <filename.o5c> ..."
 #if defined(USE_BZIP2) && USE_BZIP2
-         "\n                       | <filename.(osm|osc|o5m|o5c).bz2> ..."
+            "\n                       | <filename.(osm|osc|o5m|o5c).bz2> ..."
 #endif
 #if defined(USE_GZIP) && USE_GZIP
-         "\n                       | <filename.(osm|osc|o5m|o5c).gz> ..."
+            "\n                       | <filename.(osm|osc|o5m|o5c).gz> ..."
 #endif
 #if defined(USE_XZ) && USE_XZ
-         "\n                       | <filename.(osm|osc|o5m|o5c).xz> ..."
+            "\n                       | <filename.(osm|osc|o5m|o5c).xz> ..."
 #endif
-         "]\n");
+            "]\n");
 
- if(argerr)
+    if(argerr)
+       fprintf(stderr,
+               "\n"
+               "Error with command line parameter: %s\n",argerr);
+
+    if(err)
+       fprintf(stderr,
+               "\n"
+               "Error: %s\n",err);
+   }
+
+ if(detail==1)
     fprintf(stderr,
             "\n"
-            "Error with command line parameter: %s\n",argerr);
-
- if(err)
-    fprintf(stderr,
-            "\n"
-            "Error: %s\n",err);
-
- if(detail)
-    fprintf(stderr,
+            "--version                 Print the version of Routino.\n"
             "\n"
             "--help                    Prints this information.\n"
             "\n"
@@ -673,7 +694,7 @@ static void print_usage(int detail,const char *argerr,const char *err)
             "--tagging=<filename>      The name of the XML file containing the tagging rules\n"
             "                          (defaults to 'tagging.xml' with '--dir' and\n"
             "                           '--prefix' options or the file installed in\n"
-            "                           '" DATADIR "').\n"
+            "                           '" ROUTINO_DATADIR "').\n"
             "\n"
             "--loggable                Print progress messages suitable for logging to file.\n"
             "--logtime                 Print the elapsed time for each processing step.\n"

@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2010-2014 Andrew M. Bishop
+ This file Copyright 2010-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -44,7 +44,7 @@ extern char *option_tmpdirname;
 
 /* Local variables */
 
-/*+ Temporary file-local variables for use by the sort functions. +*/
+/*+ Temporary file-local variables for use by the sort functions (re-initialised for each sort). +*/
 static SegmentsX *sortsegmentsx;
 static NodesX *sortnodesx;
 
@@ -83,7 +83,7 @@ RelationsX *NewRelationList(int append,int readonly)
  /* Route Relations */
 
  relationsx->rrfilename    =(char*)malloc(strlen(option_tmpdirname)+32);
- relationsx->rrfilename_tmp=(char*)malloc(strlen(option_tmpdirname)+32);
+ relationsx->rrfilename_tmp=(char*)malloc(strlen(option_tmpdirname)+48); /* allow %p to be up to 20 bytes */
 
  sprintf(relationsx->rrfilename    ,"%s/relationsx.route.parsed.mem",option_tmpdirname);
  sprintf(relationsx->rrfilename_tmp,"%s/relationsx.route.%p.tmp"    ,option_tmpdirname,(void*)relationsx);
@@ -119,7 +119,7 @@ RelationsX *NewRelationList(int append,int readonly)
  /* Turn Restriction Relations */
 
  relationsx->trfilename    =(char*)malloc(strlen(option_tmpdirname)+32);
- relationsx->trfilename_tmp=(char*)malloc(strlen(option_tmpdirname)+32);
+ relationsx->trfilename_tmp=(char*)malloc(strlen(option_tmpdirname)+48); /* allow %p to be up to 20 bytes */
 
  sprintf(relationsx->trfilename    ,"%s/relationsx.turn.parsed.mem",option_tmpdirname);
  sprintf(relationsx->trfilename_tmp,"%s/relationsx.turn.%p.tmp"    ,option_tmpdirname,(void*)relationsx);
@@ -127,7 +127,7 @@ RelationsX *NewRelationList(int append,int readonly)
  if(append || readonly)
     if(ExistsFile(relationsx->trfilename))
       {
-       off_t size;
+       offset_t size;
 
        size=SizeFile(relationsx->trfilename);
 
@@ -452,11 +452,7 @@ void SortRelationList(RelationsX* relationsx)
 
     /* Re-open the file read-only and a new file writeable */
 
-    relationsx->rrfd=ReOpenFileBuffered(relationsx->rrfilename_tmp);
-
-    DeleteFile(relationsx->rrfilename_tmp);
-
-    rrfd=OpenFileBufferedNew(relationsx->rrfilename_tmp);
+    rrfd=ReplaceFileBuffered(relationsx->rrfilename_tmp,&relationsx->rrfd);
 
     /* Sort the relations */
 
@@ -491,11 +487,7 @@ void SortRelationList(RelationsX* relationsx)
 
     /* Re-open the file read-only and a new file writeable */
 
-    relationsx->trfd=ReOpenFileBuffered(relationsx->trfilename_tmp);
-
-    DeleteFile(relationsx->trfilename_tmp);
-
-    trfd=OpenFileBufferedNew(relationsx->trfilename_tmp);
+    trfd=ReplaceFileBuffered(relationsx->trfilename_tmp,&relationsx->trfd);
 
     /* Sort the relations */
 
@@ -555,9 +547,9 @@ static int sort_route_by_id(RouteRelX *a,RouteRelX *b)
 
 static int deduplicate_route_by_id(RouteRelX *relationx,index_t index)
 {
- static relation_t previd=NO_RELATION_ID;
+ static relation_t previd; /* internal variable (reset by first call in each sort; index==0) */
 
- if(relationx->id!=previd)
+ if(index==0 || relationx->id!=previd)
    {
     previd=relationx->id;
 
@@ -607,9 +599,9 @@ static int sort_turn_by_id(TurnRelX *a,TurnRelX *b)
 
 static int deduplicate_turn_by_id(TurnRelX *relationx,index_t index)
 {
- static relation_t previd=NO_RELATION_ID;
+ static relation_t previd; /* internal variable (reset by first call in each sort; index==0) */
 
- if(relationx->id!=previd)
+ if(index==0 || relationx->id!=previd)
    {
     previd=relationx->id;
 
@@ -858,14 +850,16 @@ void ProcessTurnRelations(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segme
 
  /* Re-open the file read-only and a new file writeable */
 
- relationsx->trfd=ReOpenFileBuffered(relationsx->trfilename_tmp);
-
  if(keep)
+   {
     RenameFile(relationsx->trfilename_tmp,relationsx->trfilename);
- else
-    DeleteFile(relationsx->trfilename_tmp);
 
- trfd=OpenFileBufferedNew(relationsx->trfilename_tmp);
+    relationsx->trfd=ReOpenFileBuffered(relationsx->trfilename);
+
+    trfd=OpenFileBufferedNew(relationsx->trfilename_tmp);
+   }
+ else
+    trfd=ReplaceFileBuffered(relationsx->trfilename_tmp,&relationsx->trfd);
 
  /* Process all of the relations */
 
@@ -1181,11 +1175,7 @@ void RemovePrunedTurnRelations(RelationsX *relationsx,NodesX *nodesx)
 
  /* Re-open the file read-only and a new file writeable */
 
- relationsx->trfd=ReOpenFileBuffered(relationsx->trfilename_tmp);
-
- DeleteFile(relationsx->trfilename_tmp);
-
- trfd=OpenFileBufferedNew(relationsx->trfilename_tmp);
+ trfd=ReplaceFileBuffered(relationsx->trfilename_tmp,&relationsx->trfd);
 
  /* Process all of the relations */
 
@@ -1231,11 +1221,12 @@ void RemovePrunedTurnRelations(RelationsX *relationsx,NodesX *nodesx)
   NodesX *nodesx The set of nodes to use.
 
   SegmentsX *segmentsx The set of segments to use.
+
+  int convert Set to 1 to convert the segments as well as sorting them (the second time it is called).
   ++++++++++++++++++++++++++++++++++++++*/
 
-void SortTurnRelationListGeographically(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segmentsx)
+void SortTurnRelationListGeographically(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segmentsx,int convert)
 {
- static int which=1;
  int trfd;
 
  if(segmentsx->number==0)
@@ -1257,18 +1248,14 @@ void SortTurnRelationListGeographically(RelationsX *relationsx,NodesX *nodesx,Se
 
  /* Re-open the file read-only and a new file writeable */
 
- relationsx->trfd=ReOpenFileBuffered(relationsx->trfilename_tmp);
-
- DeleteFile(relationsx->trfilename_tmp);
-
- trfd=OpenFileBufferedNew(relationsx->trfilename_tmp);
+ trfd=ReplaceFileBuffered(relationsx->trfilename_tmp,&relationsx->trfd);
 
  /* Update the segments with geographically sorted node indexes and sort them */
 
  sortnodesx=nodesx;
  sortsegmentsx=segmentsx;
 
- if(which==1)
+ if(!convert)
     filesort_fixed(relationsx->trfd,trfd,sizeof(TurnRelX),(int (*)(void*,index_t))geographically_index,
                                                           (int (*)(const void*,const void*))sort_by_via,
                                                           NULL);
@@ -1276,8 +1263,6 @@ void SortTurnRelationListGeographically(RelationsX *relationsx,NodesX *nodesx,Se
     filesort_fixed(relationsx->trfd,trfd,sizeof(TurnRelX),(int (*)(void*,index_t))geographically_index_convert_segments,
                                                           (int (*)(const void*,const void*))sort_by_via,
                                                           NULL);
-
- which++;
 
  /* Close the files */
 

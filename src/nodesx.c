@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2014 Andrew M. Bishop
+ This file Copyright 2008-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -43,7 +43,7 @@ extern char *option_tmpdirname;
 
 /* Local variables */
 
-/*+ Temporary file-local variables for use by the sort functions. +*/
+/*+ Temporary file-local variables for use by the sort functions (re-initialised for each sort). +*/
 static NodesX *sortnodesx;
 static latlong_t lat_min,lat_max,lon_min,lon_max;
 
@@ -76,7 +76,7 @@ NodesX *NewNodeList(int append,int readonly)
  logassert(nodesx,"Failed to allocate memory (try using slim mode?)"); /* Check calloc() worked */
 
  nodesx->filename    =(char*)malloc(strlen(option_tmpdirname)+32);
- nodesx->filename_tmp=(char*)malloc(strlen(option_tmpdirname)+32);
+ nodesx->filename_tmp=(char*)malloc(strlen(option_tmpdirname)+40); /* allow %p to be up to 20 bytes */
 
  sprintf(nodesx->filename    ,"%s/nodesx.parsed.mem",option_tmpdirname);
  sprintf(nodesx->filename_tmp,"%s/nodesx.%p.tmp"    ,option_tmpdirname,(void*)nodesx);
@@ -84,7 +84,7 @@ NodesX *NewNodeList(int append,int readonly)
  if(append || readonly)
     if(ExistsFile(nodesx->filename))
       {
-       off_t size;
+       offset_t size;
 
        size=SizeFile(nodesx->filename);
 
@@ -286,11 +286,7 @@ void SortNodeList(NodesX *nodesx)
 
  /* Re-open the file read-only and a new file writeable */
 
- nodesx->fd=ReOpenFileBuffered(nodesx->filename_tmp);
-
- DeleteFile(nodesx->filename_tmp);
-
- fd=OpenFileBufferedNew(nodesx->filename_tmp);
+ fd=ReplaceFileBuffered(nodesx->filename_tmp,&nodesx->fd);
 
  /* Allocate the array of indexes */
 
@@ -358,9 +354,9 @@ static int sort_by_id(NodeX *a,NodeX *b)
 
 static int deduplicate_and_index_by_id(NodeX *nodex,index_t index)
 {
- static node_t previd=NO_NODE_ID;
+ static node_t previd; /* internal variable (reset by first call in each sort; index==0) */
 
- if(nodex->id!=previd)
+ if(index==0 || nodex->id!=previd)
    {
     previd=nodex->id;
 
@@ -475,14 +471,16 @@ void RemoveNonHighwayNodes(NodesX *nodesx,WaysX *waysx,int keep)
 
  /* Re-open the file read-only and a new file writeable */
 
- nodesx->fd=ReOpenFileBuffered(nodesx->filename_tmp);
-
  if(keep)
+   {
     RenameFile(nodesx->filename_tmp,nodesx->filename);
- else
-    DeleteFile(nodesx->filename_tmp);
 
- fd=OpenFileBufferedNew(nodesx->filename_tmp);
+    nodesx->fd=ReOpenFileBuffered(nodesx->filename);
+
+    fd=OpenFileBufferedNew(nodesx->filename_tmp);
+   }
+ else
+    fd=ReplaceFileBuffered(nodesx->filename_tmp,&nodesx->fd);
 
  /* Modify the on-disk image */
 
@@ -553,11 +551,7 @@ void RemovePrunedNodes(NodesX *nodesx,SegmentsX *segmentsx)
 
  /* Re-open the file read-only and a new file writeable */
 
- nodesx->fd=ReOpenFileBuffered(nodesx->filename_tmp);
-
- DeleteFile(nodesx->filename_tmp);
-
- fd=OpenFileBufferedNew(nodesx->filename_tmp);
+ fd=ReplaceFileBuffered(nodesx->filename_tmp,&nodesx->fd);
 
  /* Modify the on-disk image */
 
@@ -640,11 +634,7 @@ void SortNodeListGeographically(NodesX *nodesx)
 
  /* Re-open the file read-only and a new file writeable */
 
- nodesx->fd=ReOpenFileBuffered(nodesx->filename_tmp);
-
- DeleteFile(nodesx->filename_tmp);
-
- fd=OpenFileBufferedNew(nodesx->filename_tmp);
+ fd=ReplaceFileBuffered(nodesx->filename_tmp,&nodesx->fd);
 
  /* Sort nodes geographically and index them */
 

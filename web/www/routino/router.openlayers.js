@@ -655,8 +655,8 @@ function buildURLArguments(lang)
  for(var marker=1;marker<=vismarkers;marker++)
     if(routino.point[marker].active)
       {
-       url=url + ";lon" + marker + "=" + routino.point[marker].lon;
-       url=url + ";lat" + marker + "=" + routino.point[marker].lat;
+       url=url + ";lon" + marker + "=" + format5f(routino.point[marker].lon);
+       url=url + ";lat" + marker + "=" + format5f(routino.point[marker].lat);
        if(routino.point[marker].search !== "")
           url=url + ";search" + marker + "=" + encodeURIComponent(routino.point[marker].search);
       }
@@ -1144,7 +1144,8 @@ function dragWaypointMapDrop(e)
 
  var rect = document.getElementById("map").getBoundingClientRect();
 
- var lonlat = map.getLonLatFromViewPortPx(new OpenLayers.Pixel(e.clientX-rect.left-dragged_icon_x+8,e.clientY-rect.top-dragged_icon_y+21));
+ var lonlat = map.getLonLatFromViewPortPx(new OpenLayers.Pixel(e.clientX-rect.left-window.scrollX-dragged_icon_x+8,
+                                                               e.clientY-rect.top -window.scrollY-dragged_icon_y+21));
  lonlat.transform(epsg900913,epsg4326);
 
  formSetCoords(dragged_marker,lonlat.lon,lonlat.lat);
@@ -2086,7 +2087,7 @@ function getRouteSuccess(response)
 
        if(rowtype=="c")
          {
-          thisline.match("<td class='r'> *([-0-9.]+) *([-0-9.]+)");
+          thisline.match(": *([-0-9.]+) *([-0-9.]+)");
           points[point]={lat: Number(RegExp.$1), lon: Number(RegExp.$2), html: "", highway: "", distance: "", total: ""};
 
           point++;
@@ -2114,14 +2115,11 @@ function getRouteSuccess(response)
          {
           points[point-1].html += thisline;
 
-          thisline.match("^(.*<td class='r'>)");
-          total_table = RegExp.$1;
-
-          thisline.match("<td class='l'>([^<]+)<");
-          total_word = RegExp.$1;
-
           thisline.match("<span class='j'>([^<]+)</span>");
           points[point-1].total = RegExp.$1;
+
+          thisline.match("<td>(.*)");
+          points[point-1].highway = RegExp.$1;
          }
       }
    }
@@ -2130,20 +2128,16 @@ function getRouteSuccess(response)
 
  var result="<table onmouseout='highlight(\"" + routing_type + "\",-1,\"clear\")'>";
 
- for(var p=0;p<point-1;p++)
+ for(var p=0;p<point;p++)
    {
-    points[p].html += total_table + points[p].total;
+    if(p!=point-1)
+       points[p].html += "<tr><td>" + points[p].total;
 
-    result=result + "<tr onmouseover='highlight(\"" + routing_type + "\"," + p + ",\"show\")'>" +
-                    "<td onclick='highlight(\"" + routing_type + "\"," + p + ",\"zoom\")'" +
-                    " class='distance' title='" + points[p].distance + "'>#" + (p+1) +
+    result=result + "<tr onmouseover='highlight(\"" + routing_type + "\"," + p + ",\"show\")' " +
+                    "onclick='highlight(\"" + routing_type + "\"," + p + ",\"zoom\")'>" +
+                    "<td class='distance' title='" + points[p].distance + "'>#" + (p+1) +
                     "<td class='highway'>" + points[p].highway;
    }
-
- result=result + "<tr onmouseover='highlight(\"" + routing_type + "\"," + p + ",\"show\")'>" +
-                 "<td onclick='highlight(\"" + routing_type + "\"," + p + ",\"zoom\")'" +
-                 " class='distance'>#" + (p+1) +
-                 "<td class='highway'>" + total_word + " " + points[p].total;
 
  result=result + "</table>";
 

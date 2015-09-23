@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2010-2014 Andrew M. Bishop
+ This file Copyright 2010-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -70,7 +70,7 @@ struct _RelationsX
  index_t     rrknumber;        /*+ The number of extended route relations kept for next time. +*/
 
  relation_t *rridata;          /*+ The extended relation IDs (sorted by ID). +*/
- off_t      *rrodata;          /*+ The offset of the route relation in the file (used for error log). +*/
+ offset_t   *rrodata;          /*+ The offset of the route relation in the file (used for error log). +*/
 
  /* Turn restriction relations */
 
@@ -112,7 +112,7 @@ void ProcessTurnRelations(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segme
 
 void RemovePrunedTurnRelations(RelationsX *relationsx,NodesX *nodesx);
 
-void SortTurnRelationListGeographically(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segmentsx);
+void SortTurnRelationListGeographically(RelationsX *relationsx,NodesX *nodesx,SegmentsX *segmentsx,int convert);
 
 void SaveRelationList(RelationsX* relationsx,const char *filename);
 

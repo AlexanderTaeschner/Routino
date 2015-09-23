@@ -70,7 +70,7 @@ struct _Relations
 
  int           fd;              /*+ The file descriptor for the file. +*/
 
- off_t         troffset;        /*+ The offset of the turn relations in the file. +*/
+ offset_t      troffset;        /*+ The offset of the turn relations in the file. +*/
 
  TurnRelation  cached[2];       /*+ Two cached relations read from the file in slim mode. +*/
 
@@ -116,10 +116,12 @@ CACHE_DELETECACHE_PROTO(TurnRelation)
 CACHE_FETCHCACHE_PROTO(TurnRelation)
 CACHE_INVALIDATECACHE_PROTO(TurnRelation)
 
+/* Data type */
+
+CACHE_STRUCTURE(TurnRelation)
 
 /* Inline functions */
 
-CACHE_STRUCTURE(TurnRelation)
 CACHE_NEWCACHE(TurnRelation)
 CACHE_DELETECACHE(TurnRelation)
 CACHE_FETCHCACHE(TurnRelation)

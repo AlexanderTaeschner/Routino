@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2012-2014 Andrew M. Bishop
+ This file Copyright 2012-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,16 @@
 
 
 #include <stdio.h>
+
+#if defined(_MSC_VER)
+#include <io.h>
+#include <basetsd.h>
+#define read(fd,address,length) _read(fd,address,(unsigned int)(length))
+#define ssize_t SSIZE_T
+#else
 #include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -120,10 +129,10 @@
 #define PBF_ERROR_TOO_MANY_GROUPS 112
 
 
-/* Parsing variables and functions */
+/* Local parsing variables (re-initialised for each file) */
 
-static uint64_t byteno=0;
-static uint64_t nnodes=0,nways=0,nrelations=0;
+static uint64_t byteno;
+static uint64_t nnodes,nways,nrelations;
 
 static uint32_t buffer_allocated,zbuffer_allocated;
 static unsigned char *buffer=NULL,*zbuffer=NULL;
@@ -366,6 +375,8 @@ static int ParsePBF(int fd)
  printf_first("Reading: Bytes=0 Nodes=0 Ways=0 Relations=0");
 
  /* The actual parser. */
+
+ byteno=0;
 
  nnodes=0,nways=0,nrelations=0;
 

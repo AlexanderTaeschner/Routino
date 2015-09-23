@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2014 Andrew M. Bishop
+ This file Copyright 2008-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -43,7 +43,7 @@ extern char *option_tmpdirname;
 
 /* Local variables */
 
-/*+ Temporary file-local variables for use by the sort functions. +*/
+/*+ Temporary file-local variables for use by the sort functions (re-initialised for each sort). +*/
 static WaysX *sortwaysx;
 static SegmentsX *sortsegmentsx;
 
@@ -78,7 +78,7 @@ WaysX *NewWayList(int append,int readonly)
  logassert(waysx,"Failed to allocate memory (try using slim mode?)"); /* Check calloc() worked */
 
  waysx->filename    =(char*)malloc(strlen(option_tmpdirname)+32);
- waysx->filename_tmp=(char*)malloc(strlen(option_tmpdirname)+32);
+ waysx->filename_tmp=(char*)malloc(strlen(option_tmpdirname)+32); /* allow %p to be up to 20 bytes */
 
  sprintf(waysx->filename    ,"%s/waysx.parsed.mem",option_tmpdirname);
  sprintf(waysx->filename_tmp,"%s/waysx.%p.tmp"    ,option_tmpdirname,(void*)waysx);
@@ -116,7 +116,7 @@ WaysX *NewWayList(int append,int readonly)
 #endif
 
 
- waysx->nfilename_tmp=(char*)malloc(strlen(option_tmpdirname)+32);
+ waysx->nfilename_tmp=(char*)malloc(strlen(option_tmpdirname)+40); /* allow %p to be up to 20 bytes */
 
  sprintf(waysx->nfilename_tmp,"%s/waynames.%p.tmp",option_tmpdirname,(void*)waysx);
 
@@ -303,11 +303,7 @@ void SortWayList(WaysX *waysx)
 
  /* Re-open the file read-only and a new file writeable */
 
- waysx->fd=ReOpenFileBuffered(waysx->filename_tmp);
-
- DeleteFile(waysx->filename_tmp);
-
- fd=OpenFileBufferedNew(waysx->filename_tmp);
+ fd=ReplaceFileBuffered(waysx->filename_tmp,&waysx->fd);
 
  /* Allocate the array of indexes */
 
@@ -375,9 +371,9 @@ static int sort_by_id(WayX *a,WayX *b)
 
 static int deduplicate_and_index_by_id(WayX *wayx,index_t index)
 {
- static way_t previd=NO_WAY_ID;
+ static way_t previd; /* internal variable (reset by first call in each sort; index==0) */
 
- if(wayx->id!=previd)
+ if(index==0 || wayx->id!=previd)
    {
     previd=wayx->id;
 
@@ -423,14 +419,16 @@ SegmentsX *SplitWays(WaysX *waysx,NodesX *nodesx,int keep)
 
  /* Re-open the file read-only and a new file writeable */
 
- waysx->fd=ReOpenFileBuffered(waysx->filename_tmp);
-
  if(keep)
+   {
     RenameFile(waysx->filename_tmp,waysx->filename);
- else
-    DeleteFile(waysx->filename_tmp);
 
- fd=OpenFileBufferedNew(waysx->filename_tmp);
+    waysx->fd=ReOpenFileBuffered(waysx->filename);
+
+    fd=OpenFileBufferedNew(waysx->filename_tmp);
+   }
+ else
+    fd=ReplaceFileBuffered(waysx->filename_tmp,&waysx->fd);
 
  nfd=OpenFileBufferedNew(waysx->nfilename_tmp);
 
@@ -542,11 +540,7 @@ void SortWayNames(WaysX *waysx)
 
  /* Re-open the file read-only and new file writeable */
 
- waysx->nfd=ReOpenFileBuffered(waysx->nfilename_tmp);
-
- DeleteFile(waysx->nfilename_tmp);
-
- nfd=OpenFileBufferedNew(waysx->nfilename_tmp);
+ nfd=ReplaceFileBuffered(waysx->nfilename_tmp,&waysx->nfd);
 
  /* Sort the way names */
 
@@ -580,11 +574,7 @@ void SortWayNames(WaysX *waysx)
 
  /* Re-open the file read-only and new file writeable */
 
- waysx->nfd=ReOpenFileBuffered(waysx->nfilename_tmp);
-
- DeleteFile(waysx->nfilename_tmp);
-
- nfd=OpenFileBufferedNew(waysx->nfilename_tmp);
+ nfd=ReplaceFileBuffered(waysx->nfilename_tmp,&waysx->nfd);
 
  /* Update the ways and de-duplicate the names */
 
@@ -698,11 +688,7 @@ void CompactWayList(WaysX *waysx,SegmentsX *segmentsx)
 
  /* Re-open the file read-only and a new file writeable */
 
- waysx->fd=ReOpenFileBuffered(waysx->filename_tmp);
-
- DeleteFile(waysx->filename_tmp);
-
- fd=OpenFileBufferedNew(waysx->filename_tmp);
+ fd=ReplaceFileBuffered(waysx->filename_tmp,&waysx->fd);
 
  /* Sort the ways to allow compacting according to the properties */
 
@@ -800,7 +786,7 @@ static int sort_by_name_and_prop_and_id(WayX *a,WayX *b)
 
 static int deduplicate_and_index_by_compact_id(WayX *wayx,index_t index)
 {
- static Way lastway;
+ static Way lastway; /* internal variable (reset by first call in each sort; index==0) */
 
  if(index==0 || wayx->way.name!=lastway.name || WaysCompare(&lastway,&wayx->way))
    {
@@ -872,7 +858,7 @@ void SaveWayList(WaysX *waysx,const char *filename)
 
  /* Write out the ways names */
 
- SeekFileBuffered(fd,sizeof(WaysFile)+(off_t)waysx->number*sizeof(Way));
+ SeekFileBuffered(fd,sizeof(WaysFile)+(offset_t)waysx->number*sizeof(Way));
 
  while(position<waysx->nlength)
    {

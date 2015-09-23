@@ -5,7 +5,7 @@
 
      Part of the Routino routing software.
      ============================================================
-     This file Copyright 2010-2014 Andrew M. Bishop
+     This file Copyright 2010-2015 Andrew M. Bishop
 
      This program is free software: you can redistribute it and/or modify
      it under the terms of the GNU Affero General Public License as published by
@@ -16,7 +16,7 @@
 <routino-translations xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                       xsi:noNamespaceSchemaLocation="http://www.routino.org/xml/routino-translations.xsd">
 
-  <language lang="en">
+  <language lang="en" language="English">
 
     <!-- Copyright of the data being routed, not of this file  -->
     <copyright>
@@ -86,12 +86,13 @@
 
       <title text="%s Route" /> <!-- %s = [shortest|quickest] -->
 
-      <start   string="Start" text="At %s, head %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
-      <node    string="At" text="%s, go %s heading %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
-      <rbnode  string="Leave" text="%s, take the %s exit heading %s" /> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
-      <segment string="Follow" text="%s for %.3f km, %.1f min" /> <!-- 1st %s = street name -->
-      <stop    string="Stop" text="At %s" /> <!-- 1st %s = [waypoint|junction] -->
-      <total   string="Total" text="%.1f km, %.0f minutes" />
+      <start    text="Start at %s, head %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
+      <node     text="At %s, go %s heading %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
+      <rbnode   text="Leave %s, take the %s exit heading %s" /> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
+      <segment  text="Follow %s for %.3f km, %.1f min" /> <!-- 1st %s = street name -->
+      <stop     text="Stop at %s" /> <!-- 1st %s = [waypoint|junction] -->
+      <total    text="Total %.1f km, %.0f minutes" />
+      <subtotal text="%.1f km, %.0f minutes" />
     </output-html>
 
     <!-- GPX output -->
@@ -109,7 +110,7 @@
 
   </language>
 
-  <language lang="de">
+  <language lang="de" language="Deutsch">
 
     <!-- Copyright of the data being routed, not of this file  -->
     <copyright>
@@ -179,12 +180,13 @@
 
       <title text="%s Route" /> <!-- %s = [shortest|quickest] -->
 
-      <start   string="Start" text="Bei %s halten Sie sich Richtung %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
-      <node    string="Bei" text="Bei %s wenden Sie sich nach %s Richtung %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
-      <rbnode  string="Verlassen Sie" text="%s, nehmen Sie die %s Ausfahrt Richtung %s" /> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
-      <segment string="Folgen" text="Folgen Sie der %s für %.3f km bzw. %.1f min" /> <!-- 1st %s = street name -->
-      <stop    string="Stop" text="Sie sind bei %s angekommen" /> <!-- 1st %s = [waypoint|junction] -->
-      <total   string="Gesamt" text="%.1f km, %.0f minuten" />
+      <start    text="Start bei %s halten Sie sich Richtung %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
+      <node     text="Bei %s wenden Sie sich nach %s Richtung %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
+      <rbnode   text="Verlassen Sie %s, nehmen Sie die %s Ausfahrt Richtung %s" /> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
+      <segment  text="Folgen Sie der %s für %.3f km bzw. %.1f min" /> <!-- 1st %s = street name -->
+      <stop     text="Stop Sie sind bei %s angekommen" /> <!-- 1st %s = [waypoint|junction] -->
+      <total    text="Gesamt %.1f km, %.0f minuten" />
+      <subtotal text="%.1f km, %.0f minuten" />
     </output-html>
 
     <!-- GPX output -->
@@ -202,7 +204,7 @@
 
   </language>
 
-  <language lang="fr">
+  <language lang="fr" language="Francais">
 
     <!-- Copyright of the data being routed, not of this file  -->
     <copyright>
@@ -272,12 +274,13 @@
 
       <title text="Itinéraire %s" /> <!-- %s = [shortest|quickest] -->
 
-      <start   string="Débute" text="à %s, direction %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
-      <node    string="à" text="%s, aller %s direction %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
-      <rbnode  string="Quitter" text="%s, prendre le %s sortir direction %s" /> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
-      <segment string="Suivre" text="%s pendant %.3f km, %.1f min" /> <!-- 1st %s = street name -->
-      <stop    string="S'arrêter" text="à %s" /> <!-- 1st %s = [waypoint|junction] -->
-      <total   string="Total" text="%.1f km, %.0f minutes" />
+      <start    text="Débute à %s, direction %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
+      <node     text="à %s, aller %s direction %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
+      <rbnode   text="Quitter %s, prendre le %s sortir direction %s" /> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
+      <segment  text="Suivre %s pendant %.3f km, %.1f min" /> <!-- 1st %s = street name -->
+      <stop     text="S'arrêter à %s" /> <!-- 1st %s = [waypoint|junction] -->
+      <total    text="Total %.1f km, %.0f minutes" />
+      <subtotal text="%.1f km, %.0f minutes" />
     </output-html>
 
     <!-- GPX output -->
@@ -295,7 +298,7 @@
 
   </language>
 
-  <language lang="hu">
+  <language lang="hu" language="Magyar">
 
     <!-- Copyright of the data being routed, not of this file  -->
     <copyright>
@@ -365,12 +368,13 @@
 
       <title text="%s útvonal" /> <!-- %s = [shortest|quickest] -->
 
-      <start   string="Indulás" text="%s, %s felé" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
-      <node    string="Itt" text="%s, menj %s %s felé" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
-      <rbnode  string="Kijárat" text="%s, %s kijárat %s felé" /> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
-      <segment string="Erre" text="%s, %.3f km, %.1f perc" /> <!-- 1st %s = street name -->
-      <!-- TRANSLATION REQUIRED: stop    string="Cél" text="At %s" / --> <!-- 1st %s = [waypoint|junction] -->
-      <total   string="Összesen" text="%.1f km, %.0f perc" />
+      <start    text="Indulás %s, %s felé" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
+      <node     text="Itt %s, menj %s %s felé" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
+      <rbnode   text="Kijárat %s, %s kijárat %s felé" /> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
+      <segment  text="Erre %s, %.3f km, %.1f perc" /> <!-- 1st %s = street name -->
+      <!-- TRANSLATION REQUIRED: stop     text="Stop at %s" / --> <!-- 1st %s = [waypoint|junction] -->
+      <total    text="Összesen %.1f km, %.0f perc" />
+      <subtotal text="%.1f km, %.0f perc" />
     </output-html>
 
     <!-- GPX output -->
@@ -388,7 +392,7 @@
 
   </language>
 
-  <language lang="nl">
+  <language lang="nl" language="Nederlands">
 
     <!-- Copyright of the data being routed, not of this file  -->
     <copyright>
@@ -458,12 +462,13 @@
 
       <title text="%s Route" /> <!-- %s = [shortest|quickest] -->
 
-      <start   string="Start" text="Bij %s neemt u de richting %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
-      <node    string="Bij" text="Bij %s gaat u %s richting %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
-      <rbnode  string="Leave" text="Aan de %s, neem de %s afslag richting %s" /> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
-      <segment string="Volg" text="Volgt u de %s voor %.3f km %.1f min" /> <!-- 1st %s = street name -->
-      <stop    string="Stop" text="U bent bij  %s aangekomen" /> <!-- 1st %s = [waypoint|junction] -->
-      <total   string="Totaal" text="%.1f km, %.0f minuten" />
+      <start    text="Start bij %s neemt u de richting %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
+      <node     text="Bij %s gaat u %s richting %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
+      <rbnode   text="Leave aan de %s, neem de %s afslag richting %s" /> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
+      <segment  text="Volg u de %s voor %.3f km %.1f min" /> <!-- 1st %s = street name -->
+      <stop     text="Stop U bent bij %s aangekomen" /> <!-- 1st %s = [waypoint|junction] -->
+      <total    text="Totaal %.1f km, %.0f minuten" />
+      <subtotal text="%.1f km, %.0f minuten" />
     </output-html>
 
     <!-- GPX output -->
@@ -476,12 +481,106 @@
       <desc  text="%s Route tussen 'Start' und 'Finish'" /> <!-- %s = [shortest|quickest] -->
       <name  text="%s Route" /> <!-- %s = [shortest|quickest] -->
       <step  text="%s op '%s' voor %.3f km, %.1f min" /> <!-- 1st %s = [turn], 2nd %s = street name -->
-      <final text="Totaal trip  %.1f km, %.0f minuten" />
+      <final text="Totaal trip %.1f km, %.0f minuten" />
     </output-gpx>
 
   </language>
 
-  <language lang="ru">
+  <language lang="pl" language="Polski">
+
+    <!-- Copyright of the data being routed, not of this file  -->
+    <copyright>
+      <creator string="Twórca" text="Routino - http://www.routino.org/" />
+      <source  string="Źródło" text="Oparte na danych OpenStreetMap ze strony http://www.openstreetmap.org/" />
+      <license string="Licencja" text="http://www.openstreetmap.org/copyright" />
+    </copyright>
+
+    <!-- Turn directions, 0 = ahead, -2 = left, +/-4 = behind, +2 = right -->
+    <turn direction="-4" string="Bardzo ostro w lewo" />
+    <turn direction="-3" string="Ostro w lewo" />
+    <turn direction="-2" string="W lewo" />
+    <turn direction="-1" string="Lekko w lewo" />
+    <turn direction="0"  string="Prosto" />
+    <turn direction="1"  string="Lekko w prawo" />
+    <turn direction="2"  string="W prawo" />
+    <turn direction="3"  string="Ostro w prawo" />
+    <turn direction="4"  string="Bardzo ostro w prawo" />
+
+    <!-- Heading directions, 0 = North, -2 = West, +/-4 = South, +2 = East -->
+    <heading direction="-4" string="Na południe" />
+    <heading direction="-3" string="Na południowy zachód" />
+    <heading direction="-2" string="Na zachód" />
+    <heading direction="-1" string="Na północny zachód" />
+    <heading direction="0"  string="Na północ" />
+    <heading direction="1"  string="Na północny wschód" />
+    <heading direction="2"  string="Na wschód" />
+    <heading direction="3"  string="Na południowy wschód" />
+    <heading direction="4"  string="Na południe" />
+
+    <!-- Ordinals, 1 = first, 2 = second ... -->
+    <ordinal number="1"  string="Pierwszy" />
+    <ordinal number="2"  string="Drugi" />
+    <ordinal number="3"  string="Trzeci" />
+    <ordinal number="4"  string="Czwarty" />
+    <ordinal number="5"  string="Piąty" />
+    <ordinal number="6"  string="Szósty" />
+    <ordinal number="7"  string="Siódmy" />
+    <ordinal number="8"  string="Ósmy" />
+    <ordinal number="9"  string="Dziewiąty" />
+    <ordinal number="10" string="Dziesiąty" />
+
+    <!-- Highway names -->
+    <highway type="motorway"     string="Autostrada" />
+    <highway type="trunk"        string="Droga ekspresowa" />
+    <highway type="primary"      string="Droga krajowa" />
+    <highway type="secondary"    string="Droga powiatowa" />
+    <highway type="tertiary"     string="Droga lokalna" />
+    <highway type="unclassified" string="Droga nieznanego typu" />
+    <highway type="residential"  string="Droga osiedlowa" />
+    <highway type="service"      string="Droga dojazdowa" />
+    <highway type="track"        string="Droga polna" />
+    <highway type="cycleway"     string="Droga rowerowa" />
+    <highway type="path"         string="Ścieżka" />
+    <highway type="steps"        string="Pieszo" />
+    <highway type="ferry"        string="Prom" />
+
+    <!-- The type of route -->
+    <route type="shortest" string="Najkrótsza" /> <!-- For the description and route name -->
+    <route type="quickest" string="Najszybsza" /> <!-- For the description and route name -->
+
+    <!-- HTML output -->
+    <output-html>
+      <waypoint type="waypoint"   string="Punkt" /> <!-- For the chosen waypoints -->
+      <!-- TRANSLATION REQUIRED: waypoint type="junction"   string="Junction" / --> <!-- For the interesting junctions -->
+      <waypoint type="roundabout" string="Rondo" /> <!-- For roundabouts -->
+
+      <title text="%s Trasa" /> <!-- %s = [shortest|quickest] -->
+
+      <start    text="Start %s kieruj się na %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
+      <!-- TRANSLATION REQUIRED: node     text="At %s, go %s heading %s" / --> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
+      <!-- TRANSLATION REQUIRED: rbnode   text="Leave %s, take the %s exit heading %s" / --> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
+      <segment  text="Podążaj %s przez %.3f km, %.1f min." /> <!-- 1st %s = street name -->
+      <stop     text="Stop Na %s" /> <!-- 1st %s = [waypoint|junction] -->
+      <total    text="Całkowity %.1f km, %.0f min." />
+      <subtotal text="%.1f km, %.0f min." />
+    </output-html>
+
+    <!-- GPX output -->
+    <output-gpx>
+      <waypoint type="start" string="START" /> <!-- For the first route waypoint -->
+      <waypoint type="inter" string="INTER" /> <!-- For the intermediate route waypoints -->
+      <waypoint type="trip" string="TRIP" /> <!-- For the other route points -->
+      <waypoint type="finish" string="KONIEC"/> <!-- For the last route waypoint -->
+
+      <desc  text="%s trasa pomiędzy 'start' a 'koniec'" /> <!-- %s = [shortest|quickest] -->
+      <name  text="%s trasa" /> <!-- %s = [shortest|quickest] -->
+      <step  text="%s na %s przez %.3f km, %.1f min." /> <!-- 1st %s = [turn], 2nd %s = street name -->
+      <final text="Całkowita podróż %.1f km, %.0f min." />
+    </output-gpx>
+
+  </language>
+
+  <language lang="ru" language="Русский">
 
     <!-- Copyright of the data being routed, not of this file  -->
     <copyright>
@@ -551,12 +650,13 @@
 
       <title text="%s маршрут" /> <!-- %s = [shortest|quickest] -->
 
-      <start   string="Старт" text=" %s, на %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
-      <node    string="на" text="%s, %s,  на %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
-      <!-- TRANSLATION REQUIRED: rbnode  string="Покинуть" text="%s, take the %s exit heading %s" / --> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
-      <segment string="Следуйте" text="по %s %.3f км, %.1f мин" /> <!-- 1st %s = street name -->
-      <stop    string="Стоп" text=" %s" /> <!-- 1st %s = [waypoint|junction] -->
-      <total   string="Всего" text="%.1f км, %.0f минут" />
+      <start    text="Старт  %s, на %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [heading] -->
+      <node     text="на %s, %s, на %s" /> <!-- 1st %s = [waypoint|junction], 2nd %s = [turn], 3rd %s = [heading] -->
+      <!-- TRANSLATION REQUIRED: rbnode   text="Leave %s, take the %s exit heading %s" / --> <!-- 1st %s = [roundabout], 2nd %s = [first|second|...], 3rd %s = [heading] -->
+      <segment  text="Следуйте по %s %.3f км, %.1f мин" /> <!-- 1st %s = street name -->
+      <stop     text="Стоп  %s" /> <!-- 1st %s = [waypoint|junction] -->
+      <total    text="Всего %.1f км, %.0f минут" />
+      <subtotal text="%.1f км, %.0f минут" />
     </output-html>
 
     <!-- GPX output -->

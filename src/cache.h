@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2013-2014 Andrew M. Bishop
+ This file Copyright 2013-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,6 @@
 #ifndef CACHE_H
 #define CACHE_H    /*+ To stop multiple inclusions. +*/
 
-#include <unistd.h>
 #include <stdlib.h>
 
 #include "types.h"
@@ -62,9 +61,9 @@ struct _##type##Cache                                                     \
 
 #define CACHE_DELETECACHE_PROTO(type) static inline void Delete##type##Cache(type##Cache *cache);
 
-#define CACHE_FETCHCACHE_PROTO(type) static inline type *FetchCached##type(type##Cache *cache,index_t index,int fd,off_t offset);
+#define CACHE_FETCHCACHE_PROTO(type) static inline type *FetchCached##type(type##Cache *cache,index_t index,int fd,offset_t offset);
 
-#define CACHE_REPLACECACHE_PROTO(type) static inline void ReplaceCached##type(type##Cache *cache,type *value,index_t index,int fd,off_t offset);
+#define CACHE_REPLACECACHE_PROTO(type) static inline void ReplaceCached##type(type##Cache *cache,type *value,index_t index,int fd,offset_t offset);
 
 #define CACHE_INVALIDATECACHE_PROTO(type) static inline void Invalidate##type##Cache(type##Cache *cache);
 
@@ -98,7 +97,7 @@ static inline void Delete##type##Cache(type##Cache *cache)      \
 /*+ A macro to create a function that fetches an item from a cache data structure or reads from file. +*/
 #define CACHE_FETCHCACHE(type) \
                                \
-static inline type *FetchCached##type(type##Cache *cache,index_t index,int fd,off_t offset) \
+static inline type *FetchCached##type(type##Cache *cache,index_t index,int fd,offset_t offset) \
 {                                                                                           \
  int row=index%CACHEWIDTH;                                                                  \
  int col;                                                                                   \
@@ -111,7 +110,7 @@ static inline type *FetchCached##type(type##Cache *cache,index_t index,int fd,of
                                                                                             \
  cache->first[row]=(cache->first[row]+1)%CACHEDEPTH;                                        \
                                                                                             \
- SlimFetch(fd,&cache->data[row][col],sizeof(type),offset+(off_t)index*sizeof(type));        \
+ SlimFetch(fd,&cache->data[row][col],sizeof(type),offset+(offset_t)index*sizeof(type));     \
                                                                                             \
  cache->indices[row][col]=index;                                                            \
                                                                                             \
@@ -122,7 +121,7 @@ static inline type *FetchCached##type(type##Cache *cache,index_t index,int fd,of
 /*+ A macro to create a function that replaces an item in a cache data structure and writes to file. +*/
 #define CACHE_REPLACECACHE(type) \
                                  \
-static inline void ReplaceCached##type(type##Cache *cache,type *value,index_t index,int fd,off_t offset) \
+static inline void ReplaceCached##type(type##Cache *cache,type *value,index_t index,int fd,offset_t offset) \
 {                                                                                                        \
  int row=index%CACHEWIDTH;                                                                               \
  int col;                                                                                                \
@@ -142,7 +141,7 @@ static inline void ReplaceCached##type(type##Cache *cache,type *value,index_t in
                                                                                                          \
  cache->data[row][col]=*value;                                                                           \
                                                                                                          \
- SlimReplace(fd,&cache->data[row][col],sizeof(type),offset+(off_t)index*sizeof(type));                   \
+ SlimReplace(fd,&cache->data[row][col],sizeof(type),offset+(offset_t)index*sizeof(type));                \
 }
 
 
