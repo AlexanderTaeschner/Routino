@@ -83,7 +83,7 @@ struct _Ways
 #else
 
  int        fd;                 /*+ The file descriptor for the file. +*/
- off_t      namesoffset;        /*+ The offset of the names within the file. +*/
+ offset_t   namesoffset;        /*+ The offset of the names within the file. +*/
 
  Way        cached[3];          /*+ Two cached nodes read from the file in slim mode. +*/
 
@@ -125,10 +125,12 @@ CACHE_DELETECACHE_PROTO(Way)
 CACHE_FETCHCACHE_PROTO(Way)
 CACHE_INVALIDATECACHE_PROTO(Way)
 
+/* Data type */
+
+CACHE_STRUCTURE(Way)
 
 /* Inline functions */
 
-CACHE_STRUCTURE(Way)
 CACHE_NEWCACHE(Way)
 CACHE_DELETECACHE(Way)
 CACHE_FETCHCACHE(Way)
@@ -167,7 +169,7 @@ static inline Way *LookupWay(Ways *ways,index_t index,int position)
 
 static inline char *WayName(Ways *ways,Way *wayp)
 {
- int position=wayp-&ways->cached[-1];
+ int position=(int)(wayp-&ways->cached[-1]);
  int n=0;
 
  if(!ways->ncached[position-1])

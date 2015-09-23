@@ -85,7 +85,7 @@ struct _Nodes
 
  index_t  *offsets;             /*+ An allocated array with a copy of the file offsets. +*/
 
- off_t     nodesoffset;         /*+ The offset of the nodes within the file. +*/
+ offset_t  nodesoffset;         /*+ The offset of the nodes within the file. +*/
 
  Node      cached[6];           /*+ Some cached nodes read from the file in slim mode. +*/
 
@@ -143,10 +143,12 @@ CACHE_DELETECACHE_PROTO(Node)
 CACHE_FETCHCACHE_PROTO(Node)
 CACHE_INVALIDATECACHE_PROTO(Node)
 
+/* Data type */
+
+CACHE_STRUCTURE(Node)
 
 /* Inline functions */
 
-CACHE_STRUCTURE(Node)
 CACHE_NEWCACHE(Node)
 CACHE_DELETECACHE(Node)
 CACHE_FETCHCACHE(Node)

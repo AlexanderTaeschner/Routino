@@ -20,14 +20,41 @@
  ***************************************/
 
 
+#if defined(_MSC_VER)
+#include <io.h>
+#include <basetsd.h>
+#define read(fd,address,length)  _read(fd,address,(unsigned int)(length))
+#define write(fd,address,length) _write(fd,address,(unsigned int)(length))
+#define open    _open
+#define close   _close
+#define unlink  _unlink
+#define ssize_t SSIZE_T
+#else
 #include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#undef lseek
+#undef stat
+#undef fstat
+#define lseek _lseeki64
+#define stat  _stati64
+#define fstat _fstati64
+#endif
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#include "mman-win32.h"
+#else
 #include <sys/mman.h>
+#endif
+
 #include <sys/types.h>
 
 #include "files.h"
@@ -54,7 +81,6 @@ static int nmappedfiles=0;
 /*+ A structure to contain the list of file buffers. +*/
 struct filebuffer
 {
- int    fd;                     /*+ The file descriptor used when it was opened. +*/
  char   buffer[BUFFLEN];        /*+ The data buffer. +*/
  size_t pointer;                /*+ The read/write pointer for the file buffer. +*/
  size_t length;                 /*+ The read pointer for the file buffer. +*/
@@ -68,9 +94,33 @@ static struct filebuffer **filebuffers=NULL;
 static int nfilebuffers=0;
 
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+
+/*+ A structure to contain the list of opened files to record which are to be deleted when closed. +*/
+struct openedfile
+{
+ const char *filename;          /*+ The name of the file. +*/
+       int   delete;            /*+ Set to non-zero value if the file is to be deleted when closed. +*/
+};
+
+/*+ The list of opened files. +*/
+static struct openedfile **openedfiles=NULL;
+
+/*+ The number of allocated opened file buffer pointers. +*/
+static int nopenedfiles=0;
+
+#endif
+
+
 /* Local functions */
 
 static void CreateFileBuffer(int fd,int read_write);
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+
+static void CreateOpenedFile(int fd,const char *filename);
+
+#endif
 
 
 /*++++++++++++++++++++++++++++++++++++++
@@ -107,25 +157,37 @@ void *MapFile(const char *filename)
 {
  int fd;
  struct stat buf;
- off_t size;
+ offset_t size;
  void *address;
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDONLY|O_BINARY|O_RANDOM);
+#else
  fd=open(filename,O_RDONLY);
+#endif
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  /* Get its size */
 
  if(stat(filename,&buf))
    {
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot stat file '%s' [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  size=buf.st_size;
@@ -138,11 +200,17 @@ void *MapFile(const char *filename)
    {
     close(fd);
 
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot mmap file '%s' for reading [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
+#ifndef LIBROUTINO
  log_mmap(size);
+#endif
 
  /* Store the information about the mapped file */
 
@@ -171,25 +239,37 @@ void *MapFileWriteable(const char *filename)
 {
  int fd;
  struct stat buf;
- off_t size;
+ offset_t size;
  void *address;
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDWR|O_BINARY|O_RANDOM);
+#else
  fd=open(filename,O_RDWR);
+#endif
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading and writing [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  /* Get its size */
 
  if(stat(filename,&buf))
    {
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot stat file '%s' [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  size=buf.st_size;
@@ -202,11 +282,17 @@ void *MapFileWriteable(const char *filename)
    {
     close(fd);
 
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"Cannot mmap file '%s' for reading and writing [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
+#ifndef LIBROUTINO
  log_mmap(size);
+#endif
 
  /* Store the information about the mapped file */
 
@@ -241,8 +327,12 @@ void *UnmapFile(const void *address)
 
  if(i==nmappedfiles)
    {
+#ifdef LIBROUTINO
+    return(NULL);
+#else
     fprintf(stderr,"The data at address %p was not mapped using MapFile().\n",address);
     exit(EXIT_FAILURE);
+#endif
    }
 
  /* Close the file */
@@ -253,7 +343,9 @@ void *UnmapFile(const void *address)
 
  munmap(mappedfiles[i].address,mappedfiles[i].length);
 
+#ifndef LIBROUTINO
  log_munmap(mappedfiles[i].length);
+#endif
 
  /* Shuffle the list of files */
 
@@ -280,12 +372,20 @@ int SlimMapFile(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDONLY|O_BINARY|O_RANDOM);
+#else
  fd=open(filename,O_RDONLY);
+#endif
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  CreateFileBuffer(fd,0);
@@ -308,12 +408,20 @@ int SlimMapFileWriteable(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDWR|O_BINARY|O_RANDOM);
+#else
  fd=open(filename,O_RDWR);
+#endif
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading and writing [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  CreateFileBuffer(fd,0);
@@ -352,15 +460,27 @@ int OpenFileBufferedNew(const char *filename)
 
  /* Open the file */
 
- fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC|O_BINARY|O_RANDOM,S_IREAD|S_IWRITE);
+#else
+ fd=open(filename,O_WRONLY|O_CREAT|O_TRUNC                  ,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+#endif
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for writing [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  CreateFileBuffer(fd,-1);
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ CreateOpenedFile(fd,filename);
+#endif
 
  return(fd);
 }
@@ -380,15 +500,27 @@ int OpenFileBufferedAppend(const char *filename)
 
  /* Open the file */
 
- fd=open(filename,O_WRONLY|O_CREAT|O_APPEND,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_WRONLY|O_CREAT|O_APPEND|O_BINARY|O_RANDOM,S_IREAD|S_IWRITE);
+#else
+ fd=open(filename,O_WRONLY|O_CREAT|O_APPEND                  ,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+#endif
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for appending [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  CreateFileBuffer(fd,-1);
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ CreateOpenedFile(fd,filename);
+#endif
 
  return(fd);
 }
@@ -408,17 +540,71 @@ int ReOpenFileBuffered(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDONLY|O_BINARY|O_RANDOM);
+#else
  fd=open(filename,O_RDONLY);
+#endif
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  CreateFileBuffer(fd,1);
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ CreateOpenedFile(fd,filename);
+#endif
+
  return(fd);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
+  Open an existing file on disk for reading (with buffering), delete
+  it and open a new file on disk for writing (with buffering).
+
+  int ReplaceFileBuffered Returns the file descriptor of the new writable file.
+
+  const char *filename The name of the file to open, delete and replace.
+
+  int *oldfd Returns the file descriptor of the old, readable file.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+int ReplaceFileBuffered(const char *filename,int *oldfd)
+{
+ int newfd;
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+
+ char *filename2;
+
+ filename2=strcpy(malloc(strlen(filename)+2),filename);
+ strcat(filename2,"2");
+
+ RenameFile(filename,filename2);
+
+ *oldfd=ReOpenFileBuffered(filename2);
+ 
+ DeleteFile(filename2);
+
+#else
+
+ *oldfd=ReOpenFileBuffered(filename);
+ 
+ DeleteFile(filename);
+
+#endif
+
+ newfd=OpenFileBufferedNew(filename);
+
+ return(newfd);
 }
 
 
@@ -436,11 +622,13 @@ int ReOpenFileBuffered(const char *filename)
 
 int WriteFileBuffered(int fd,const void *address,size_t length)
 {
+#ifndef LIBROUTINO
  logassert(fd!=-1,"File descriptor is in error - report a bug");
 
  logassert(fd<nfilebuffers && filebuffers[fd],"File descriptor has no buffer - report a bug");
 
  logassert(!filebuffers[fd]->reading,"File descriptor was not opened for writing - report a bug");
+#endif
 
  /* Write the data */
 
@@ -482,11 +670,13 @@ int WriteFileBuffered(int fd,const void *address,size_t length)
 
 int ReadFileBuffered(int fd,void *address,size_t length)
 {
+#ifndef LIBROUTINO
  logassert(fd!=-1,"File descriptor is in error - report a bug");
 
  logassert(fd<nfilebuffers && filebuffers[fd],"File descriptor has no buffer - report a bug");
 
  logassert(filebuffers[fd]->reading,"File descriptor was not opened for reading - report a bug");
+#endif
 
  /* Read the data */
 
@@ -517,7 +707,6 @@ int ReadFileBuffered(int fd,void *address,size_t length)
     if(len<=0)
        return(-1);
 
-
     filebuffers[fd]->length=len;
     filebuffers[fd]->pointer=0;
    }
@@ -540,14 +729,16 @@ int ReadFileBuffered(int fd,void *address,size_t length)
 
   int fd The file descriptor to seek within.
 
-  off_t position The position to seek to.
+  offset_t position The position to seek to.
   ++++++++++++++++++++++++++++++++++++++*/
 
-int SeekFileBuffered(int fd,off_t position)
+int SeekFileBuffered(int fd,offset_t position)
 {
+#ifndef LIBROUTINO
  logassert(fd!=-1,"File descriptor is in error - report a bug");
 
  logassert(fd<nfilebuffers && filebuffers[fd],"File descriptor has no buffer - report a bug");
+#endif
 
  /* Seek the data - doesn't need to be highly optimised */
 
@@ -572,22 +763,24 @@ int SeekFileBuffered(int fd,off_t position)
 
   int fd The file descriptor to skip within.
 
-  off_t skip The amount to skip forward.
+  offset_t skip The amount to skip forward.
   ++++++++++++++++++++++++++++++++++++++*/
 
-int SkipFileBuffered(int fd,off_t skip)
+int SkipFileBuffered(int fd,offset_t skip)
 {
+#ifndef LIBROUTINO
  logassert(fd!=-1,"File descriptor is in error - report a bug");
 
  logassert(fd<nfilebuffers && filebuffers[fd],"File descriptor has no buffer - report a bug");
 
  logassert(filebuffers[fd]->reading,"File descriptor was not opened for reading - report a bug");
+#endif
 
  /* Skip the data - needs to be optimised */
 
  if((filebuffers[fd]->pointer+skip)>filebuffers[fd]->length)
    {
-    skip-=filebuffers[fd]->length-filebuffers[fd]->pointer;
+    skip-=(offset_t)(filebuffers[fd]->length-filebuffers[fd]->pointer);
 
     filebuffers[fd]->pointer=0;
     filebuffers[fd]->length=0;
@@ -605,19 +798,23 @@ int SkipFileBuffered(int fd,off_t skip)
 /*++++++++++++++++++++++++++++++++++++++
   Get the size of a file.
 
-  off_t SizeFile Returns the file size if OK or exits in case of an error.
+  offset_t SizeFile Returns the file size if OK or exits in case of an error.
 
   const char *filename The name of the file to check.
   ++++++++++++++++++++++++++++++++++++++*/
 
-off_t SizeFile(const char *filename)
+offset_t SizeFile(const char *filename)
 {
  struct stat buf;
 
  if(stat(filename,&buf))
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot stat file '%s' [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  return(buf.st_size);
@@ -627,19 +824,23 @@ off_t SizeFile(const char *filename)
 /*++++++++++++++++++++++++++++++++++++++
   Get the size of a file from a file descriptor.
 
-  off_t SizeFileFD Returns the file size if OK or exits in case of an error.
+  offset_t SizeFileFD Returns the file size if OK or exits in case of an error.
 
   int fd The file descriptor to check.
   ++++++++++++++++++++++++++++++++++++++*/
 
-off_t SizeFileFD(int fd)
+offset_t SizeFileFD(int fd)
 {
  struct stat buf;
 
  if(fstat(fd,&buf))
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot stat file descriptor '%d' [%s].\n",fd,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
 
  return(buf.st_size);
@@ -675,7 +876,9 @@ int ExistsFile(const char *filename)
 
 int CloseFileBuffered(int fd)
 {
+#ifndef LIBROUTINO
  logassert(fd<nfilebuffers && filebuffers[fd],"File descriptor has no buffer - report a bug");
+#endif
 
  if(!filebuffers[fd]->reading)
     if(write(fd,filebuffers[fd]->buffer,filebuffers[fd]->pointer)!=(ssize_t)filebuffers[fd]->pointer)
@@ -684,8 +887,21 @@ int CloseFileBuffered(int fd)
  close(fd);
 
  free(filebuffers[fd]);
-
  filebuffers[fd]=NULL;
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+
+#ifndef LIBROUTINO
+ logassert(fd<nopenedfiles && openedfiles[fd],"File descriptor has no record of opening - report a bug");
+#endif
+
+ if(openedfiles[fd]->delete)
+    unlink(openedfiles[fd]->filename);
+
+ free(openedfiles[fd]);
+ openedfiles[fd]=NULL;
+
+#endif
 
  return(-1);
 }
@@ -705,13 +921,25 @@ int OpenFile(const char *filename)
 
  /* Open the file */
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ fd=open(filename,O_RDONLY|O_BINARY|O_RANDOM);
+#else
  fd=open(filename,O_RDONLY);
+#endif
 
  if(fd<0)
    {
+#ifdef LIBROUTINO
+    return(-1);
+#else
     fprintf(stderr,"Cannot open file '%s' for reading [%s].\n",filename,strerror(errno));
     exit(EXIT_FAILURE);
+#endif
    }
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+ CreateOpenedFile(fd,filename);
+#endif
 
  return(fd);
 }
@@ -726,6 +954,20 @@ int OpenFile(const char *filename)
 void CloseFile(int fd)
 {
  close(fd);
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+
+#ifndef LIBROUTINO
+ logassert(fd<nopenedfiles && openedfiles[fd],"File descriptor has no record of opening - report a bug");
+#endif
+
+ if(openedfiles[fd]->delete)
+    unlink(openedfiles[fd]->filename);
+
+ free(openedfiles[fd]);
+ openedfiles[fd]=NULL;
+
+#endif
 }
 
 
@@ -739,6 +981,19 @@ void CloseFile(int fd)
 
 int DeleteFile(const char *filename)
 {
+#if defined(_MSC_VER) || defined(__MINGW32__)
+
+ int fd;
+
+ for(fd=0;fd<nopenedfiles;fd++)
+    if(openedfiles[fd] && !strcmp(openedfiles[fd]->filename,filename))
+      {
+       openedfiles[fd]->delete=1;
+       return(0);
+      }
+
+#endif
+
  unlink(filename);
 
  return(0);
@@ -792,3 +1047,36 @@ static void CreateFileBuffer(int fd,int read_write)
     filebuffers[fd]->reading=(read_write==1);
    }
 }
+
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+
+/*++++++++++++++++++++++++++++++++++++++
+  Create an opened file record.
+
+  int fd The file descriptor.
+
+  const char *filename The name of the file.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+static void CreateOpenedFile(int fd,const char *filename)
+{
+ if(nopenedfiles<=fd)
+   {
+    int i;
+
+    openedfiles=(struct openedfile**)realloc((void*)openedfiles,(fd+1)*sizeof(struct openedfile*));
+
+    for(i=nopenedfiles;i<=fd;i++)
+       openedfiles[i]=NULL;
+
+    nopenedfiles=fd+1;
+   }
+
+ openedfiles[fd]=(struct openedfile*)calloc(sizeof(struct openedfile),1);
+
+ openedfiles[fd]->filename=strcpy(malloc(strlen(filename)+1),filename);
+ openedfiles[fd]->delete=0;
+}
+
+#endif

@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2012-2014 Andrew M. Bishop
+ This file Copyright 2012-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,16 @@
 
 
 #include <stdlib.h>
+
+#if defined(_MSC_VER)
+#include <io.h>
+#define read(fd,address,length)  _read(fd,address,(unsigned int)(length))
+#define write(fd,address,length) _write(fd,address,(unsigned int)(length))
+#define close                    _close
+#else
 #include <unistd.h>
+#endif
+
 #include <signal.h>
 
 #if defined(USE_BZIP2) && USE_BZIP2
@@ -43,7 +52,11 @@
 
 /* Local functions */
 
+#if !defined(_MSC_VER) && !defined(__MINGW32__)
+
+#if (defined(USE_BZIP2) && USE_BZIP2) || (defined(USE_GZIP) && USE_GZIP) || (defined(USE_XZ) && USE_XZ)
 static int pipe_and_fork(int filefd,int *pipefd);
+#endif
 
 #if defined(USE_BZIP2) && USE_BZIP2
 static void uncompress_bzip2_pipe(int filefd,int pipefd);
@@ -57,6 +70,8 @@ static void uncompress_gzip_pipe(int filefd,int pipefd);
 static void uncompress_xz_pipe(int filefd,int pipefd);
 #endif
 
+#endif /* !defined(_MSC_VER) && !defined(__MINGW32__) */
+
 
 /*++++++++++++++++++++++++++++++++++++++
   Create a child process to uncompress data on a file descriptor as if it were a pipe.
@@ -68,7 +83,7 @@ static void uncompress_xz_pipe(int filefd,int pipefd);
 
 int Uncompress_Bzip2(int filefd)
 {
-#if defined(USE_BZIP2) && USE_BZIP2
+#if defined(USE_BZIP2) && USE_BZIP2 && !defined(_MSC_VER) && !defined(__MINGW32__)
 
  int pipefd=-1;
 
@@ -99,7 +114,7 @@ int Uncompress_Bzip2(int filefd)
 
 int Uncompress_Gzip(int filefd)
 {
-#if defined(USE_GZIP) && USE_GZIP
+#if defined(USE_GZIP) && USE_GZIP && !defined(_MSC_VER) && !defined(__MINGW32__)
 
  int pipefd=-1;
 
@@ -130,7 +145,7 @@ int Uncompress_Gzip(int filefd)
 
 int Uncompress_Xz(int filefd)
 {
-#if defined(USE_XZ) && USE_XZ
+#if defined(USE_XZ) && USE_XZ && !defined(_MSC_VER) && !defined(__MINGW32__)
 
  int pipefd=-1;
 
@@ -150,6 +165,10 @@ int Uncompress_Xz(int filefd)
 #endif /* USE_XZ */
 }
 
+
+#if !defined(_MSC_VER) && !defined(__MINGW32__)
+
+#if (defined(USE_BZIP2) && USE_BZIP2) || (defined(USE_GZIP) && USE_GZIP) || (defined(USE_XZ) && USE_XZ)
 
 /*++++++++++++++++++++++++++++++++++++++
   Create a pipe and then fork returning in the parent and child with a different end of the pipe.
@@ -223,6 +242,8 @@ static int pipe_and_fork(int filefd,int *pipefd)
     return(1);
    }
 }
+
+#endif /* (defined(USE_BZIP2) && USE_BZIP2) || (defined(USE_GZIP) && USE_GZIP) || (defined(USE_XZ) && USE_XZ) */
 
 
 #if defined(USE_BZIP2) && USE_BZIP2
@@ -448,3 +469,5 @@ static void uncompress_xz_pipe(int filefd,int pipefd)
 }
 
 #endif /* USE_XZ */
+
+#endif /* !defined(_MSC_VER) && !defined(__MINGW32__) */

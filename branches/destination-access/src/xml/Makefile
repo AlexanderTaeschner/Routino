@@ -2,7 +2,7 @@
 #
 # Part of the Routino routing software.
 #
-# This file Copyright 2010-2014 Andrew M. Bishop
+# This file Copyright 2010-2015 Andrew M. Bishop
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -24,15 +24,17 @@ include ../../Makefile.conf
 
 # Compilation targets
 
+DEPDIR=.deps
+
 XMLDIR=../../xml
 
 X=$(notdir $(wildcard $(XMLDIR)/*.xsd))
 C=$(foreach f,$(X),$(addsuffix -skeleton.c,$(basename $f)))
-D=$(wildcard .deps/*.d)
+D=$(wildcard $(DEPDIR)/*.d)
 O=$(foreach f,$(C),$(addsuffix .o,$(basename $f)))
-E=$(foreach f,$(C),$(basename $f))
+E=$(foreach f,$(C),$(addsuffix $(.EXE),$(basename $f)))
 
-EXE=xsd-to-xmlparser
+EXE=xsd-to-xmlparser$(.EXE)
 
 ########
 
@@ -40,17 +42,17 @@ all: $(EXE) $(C) $(E)
 
 ########
 
-xsd-to-xmlparser : xsd-to-xmlparser.o ../xmlparse.o
-	$(LD) xsd-to-xmlparser.o ../xmlparse.o -o $@ $(LDFLAGS)
+xsd-to-xmlparser$(.EXE) : xsd-to-xmlparser.o ../xmlparse.o
+	$(LD) $^ -o $@ $(LDFLAGS)
 
 ########
 
-%-skeleton.c : $(XMLDIR)/%.xsd xsd-to-xmlparser
+%-skeleton.c : $(XMLDIR)/%.xsd xsd-to-xmlparser$(.EXE)
 	-./xsd-to-xmlparser < $< > $@
 	@test -s $@ || rm $@
 
-%-skeleton : %-skeleton.o ../xmlparse.o
-	$(LD) $< ../xmlparse.o -o $@ $(LDFLAGS)
+%-skeleton$(.EXE) : %-skeleton.o ../xmlparse.o
+	$(LD) $^ -o $@ $(LDFLAGS)
 
 .SECONDARY : $(O)
 
@@ -61,13 +63,15 @@ xsd-to-xmlparser : xsd-to-xmlparser.o ../xmlparse.o
 
 ########
 
-%.o : %.c
-	@[ -d .deps ] || mkdir .deps
-	$(CC) -c $(CFLAGS) -I.. $< -o $@ -MMD -MP -MF $(addprefix .deps/,$(addsuffix .d,$(basename $@)))
+$(DEPDIR) :
+	@[ -d $(DEPDIR) ] || mkdir $(DEPDIR)
+
+%.o : %.c $(DEPDIR)
+	$(CC) -c $(CFLAGS) -I.. $< -o $@ -MMD -MP -MF $(addprefix $(DEPDIR)/,$(addsuffix .d,$(basename $@)))
 
 ########
 
-test: test-skeleton
+test: test-skeleton$(.EXE)
 	@status=true ;\
 	echo "" ;\
 	for good in test/good*.xml; do \
@@ -83,10 +87,10 @@ test: test-skeleton
 	if $$status; then echo "Success: all tests passed"; else echo "Warning: Some tests FAILED"; fi ;\
 	$$status
 
-test-skeleton : test-skeleton.o
-	$(LD) $< ../xmlparse.o -o $@ $(LDFLAGS)
+test-skeleton$(.EXE) : test-skeleton.o ../xmlparse.o
+	$(LD) $^ -o $@ $(LDFLAGS)
 
-test-skeleton.c : test/test.xsd xsd-to-xmlparser
+test-skeleton.c : test/test.xsd xsd-to-xmlparser$(.EXE)
 	./xsd-to-xmlparser < $< | sed -e 's/XMLPARSE_UNKNOWN_ATTR_WARN/XMLPARSE_UNKNOWN_ATTR_ERROR/' > $@
 
 ########
@@ -98,17 +102,17 @@ install:
 clean:
 	rm -f *~
 	rm -f *.o
+	rm -f $(EXE)
+	rm -f $(E) test-skeleton$(.EXE)
+	rm -f $(D) $(DEPDIR)/test-skeleton.d
+	rm -f $(C) test-skeleton.c
+	rm -fr $(DEPDIR)
 	rm -f core
 	rm -f *.gcda *.gcno *.gcov gmon.out
 
 ########
 
 distclean: clean
-	-rm -f $(EXE)
-	-rm -f $(E) test-skeleton
-	-rm -f $(D) .deps/test-skeleton.d
-	-rm -f $(C) test-skeleton.c
-	-rm -fr .deps
 
 ########
 

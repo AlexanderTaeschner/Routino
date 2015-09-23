@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2014 Andrew M. Bishop
+ This file Copyright 2008-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -45,7 +45,7 @@ extern char *option_tmpdirname;
 
 /* Local variables */
 
-/*+ Temporary file-local variables for use by the sort functions. +*/
+/*+ Temporary file-local variables for use by the sort functions (re-initialised for each sort). +*/
 static NodesX *sortnodesx;
 static SegmentsX *sortsegmentsx;
 static WaysX *sortwaysx;
@@ -77,7 +77,7 @@ SegmentsX *NewSegmentList(void)
 
  logassert(segmentsx,"Failed to allocate memory (try using slim mode?)"); /* Check calloc() worked */
 
- segmentsx->filename_tmp=(char*)malloc(strlen(option_tmpdirname)+32);
+ segmentsx->filename_tmp=(char*)malloc(strlen(option_tmpdirname)+40); /* allow %p to be up to 20 bytes */
 
  sprintf(segmentsx->filename_tmp,"%s/segmentsx.%p.tmp",option_tmpdirname,(void*)segmentsx);
 
@@ -294,11 +294,7 @@ void SortSegmentList(SegmentsX *segmentsx)
 
  /* Re-open the file read-only and a new file writeable */
 
- segmentsx->fd=ReOpenFileBuffered(segmentsx->filename_tmp);
-
- DeleteFile(segmentsx->filename_tmp);
-
- fd=OpenFileBufferedNew(segmentsx->filename_tmp);
+ fd=ReplaceFileBuffered(segmentsx->filename_tmp,&segmentsx->fd);
 
  /* Sort by node indexes */
 
@@ -413,11 +409,7 @@ void ProcessSegments(SegmentsX *segmentsx,NodesX *nodesx,WaysX *waysx)
 
  /* Re-open the file read-only and a new file writeable */
 
- segmentsx->fd=ReOpenFileBuffered(segmentsx->filename_tmp);
-
- DeleteFile(segmentsx->filename_tmp);
-
- fd=OpenFileBufferedNew(segmentsx->filename_tmp);
+ fd=ReplaceFileBuffered(segmentsx->filename_tmp,&segmentsx->fd);
 
  /* Modify the on-disk image */
 
@@ -654,11 +646,7 @@ void RemovePrunedSegments(SegmentsX *segmentsx,WaysX *waysx)
 
  /* Re-open the file read-only and a new file writeable */
 
- segmentsx->fd=ReOpenFileBuffered(segmentsx->filename_tmp);
-
- DeleteFile(segmentsx->filename_tmp);
-
- fd=OpenFileBufferedNew(segmentsx->filename_tmp);
+ fd=ReplaceFileBuffered(segmentsx->filename_tmp,&segmentsx->fd);
 
  /* Sort by node indexes */
 
@@ -734,11 +722,7 @@ void DeduplicateSuperSegments(SegmentsX *segmentsx,WaysX *waysx)
 
  /* Re-open the file read-only and a new file writeable */
 
- segmentsx->fd=ReOpenFileBuffered(segmentsx->filename_tmp);
-
- DeleteFile(segmentsx->filename_tmp);
-
- fd=OpenFileBufferedNew(segmentsx->filename_tmp);
+ fd=ReplaceFileBuffered(segmentsx->filename_tmp,&segmentsx->fd);
 
  /* Sort by node indexes */
 
@@ -782,10 +766,10 @@ void DeduplicateSuperSegments(SegmentsX *segmentsx,WaysX *waysx)
 
 static int deduplicate_super(SegmentX *segmentx,index_t index)
 {
- static int nprev=0;
- static index_t prevnode1=NO_NODE,prevnode2=NO_NODE;
- static SegmentX prevsegx[MAX_SEG_PER_NODE];
- static Way prevway[MAX_SEG_PER_NODE];
+ static int nprev;                           /* internal variable (reset by first call in each sort; index==0) */
+ static index_t prevnode1,prevnode2;         /* internal variable (reset by first call in each sort; index==0) */
+ static SegmentX prevsegx[MAX_SEG_PER_NODE]; /* internal variable (reset by first call in each sort; index==0) */
+ static Way prevway[MAX_SEG_PER_NODE];       /* internal variable (reset by first call in each sort; index==0) */
 
  WayX *wayx=LookupWayX(sortwaysx,segmentx->way,1);
  int isduplicate=0;
@@ -858,11 +842,7 @@ void SortSegmentListGeographically(SegmentsX *segmentsx,NodesX *nodesx)
 
  /* Re-open the file read-only and a new file writeable */
 
- segmentsx->fd=ReOpenFileBuffered(segmentsx->filename_tmp);
-
- DeleteFile(segmentsx->filename_tmp);
-
- fd=OpenFileBufferedNew(segmentsx->filename_tmp);
+ fd=ReplaceFileBuffered(segmentsx->filename_tmp,&segmentsx->fd);
 
  /* Update the segments with geographically sorted node indexes and sort them */
 

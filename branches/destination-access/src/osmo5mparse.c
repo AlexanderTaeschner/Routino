@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2012-2014 Andrew M. Bishop
+ This file Copyright 2012-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,16 @@
 
 
 #include <stdio.h>
+
+#if defined(_MSC_VER)
+#include <io.h>
+#include <basetsd.h>
+#define read(fd,address,length) _read(fd,address,(unsigned int)(length))
+#define ssize_t SSIZE_T
+#else
 #include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
@@ -56,9 +65,7 @@
 #define O5M_ERROR_EXPECTED_O5C     104
 #define O5M_ERROR_FILE_LEVEL       105
 
-
-
-/* Parsing variables and functions */
+/* Local parsing variables (re-initialised for each file) */
 
 static uint64_t byteno=0;
 static uint64_t nnodes=0,nways=0,nrelations=0;

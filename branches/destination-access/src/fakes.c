@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2008-2014 Andrew M. Bishop
+ This file Copyright 2008-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,8 @@
 /*+ The minimum distance along a segment from a node to insert a fake node. (in km). +*/
 #define MINSEGMENT 0.005
 
+
+/* Local variables (re-initialised by DeleteFakeNodes() function) */
 
 /*+ A set of fake segments to allow start/finish in the middle of a segment. +*/
 static Segment fake_segments[4*NWAYPOINTS+1];
@@ -73,7 +75,7 @@ index_t CreateFakes(Nodes *nodes,Segments *segments,int point,Segment *segmentp,
  index_t fakenode;
  double lat1,lon1,lat2,lon2;
 
- /* Initialise the segments to fake values */
+ /* Initialise all the connecting segments to fake values */
 
  fake_segments[4*point-4].node1=NO_NODE;
  fake_segments[4*point-4].node2=NO_NODE;
@@ -231,6 +233,27 @@ index_t CreateFakeNullSegment(Segments *segments,index_t node,index_t segment,in
 
 
 /*++++++++++++++++++++++++++++++++++++++
+  Re-initialise the fake node data storage.
+  ++++++++++++++++++++++++++++++++++++++*/
+
+void DeleteFakeNodes(void)
+{
+ unsigned int i;
+
+ for(i=0;i<sizeof(fake_segments)/sizeof(fake_segments[0]);i++)
+   {
+    fake_segments[i].node1=NO_NODE;
+    fake_segments[i].node2=NO_NODE;
+   }
+
+ for(i=0;i<sizeof(real_segments)/sizeof(real_segments[0]);i++)
+    real_segments[i]=NO_SEGMENT;
+
+ prevpoint=0;
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++
   Lookup the latitude and longitude of a fake node.
 
   index_t fakenode The fake node to lookup.
@@ -345,7 +368,7 @@ Segment *LookupFakeSegment(index_t fakesegment)
 
 index_t IndexFakeSegment(Segment *fakesegmentp)
 {
- index_t whichsegment=fakesegmentp-&fake_segments[0];
+ index_t whichsegment=(index_t)(fakesegmentp-&fake_segments[0]);
 
  return(whichsegment+SEGMENT_FAKE);
 }

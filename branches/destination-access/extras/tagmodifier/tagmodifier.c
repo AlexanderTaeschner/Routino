@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2010-2014 Andrew M. Bishop
+ This file Copyright 2010-2015 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -22,11 +22,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdint.h>
+
+#include "version.h"
 
 #include "xmlparse.h"
 #include "tagging.h"
@@ -35,11 +36,11 @@
 #include "uncompress.h"
 
 
-/* Local variables */
+/* Local variables (re-initialised for each file) */
 
-static uint64_t nnodes=0,nways=0,nrelations=0;
+static uint64_t nnodes,nways,nrelations;
 
-TagList *current_tags=NULL;
+TagList *current_tags;
 
 
 /* Local functions */
@@ -64,70 +65,70 @@ static int boundsType_function(const char *_tag_,int _type_,const char *minlat,c
 /* The XML tag definitions */
 
 /*+ The boundsType type tag. +*/
-static xmltag boundsType_tag=
+static const xmltag boundsType_tag=
               {"bounds",
                5, {"minlat","minlon","maxlat","maxlon","origin"},
                boundsType_function,
                {NULL}};
 
 /*+ The boundType type tag. +*/
-static xmltag boundType_tag=
+static const xmltag boundType_tag=
               {"bound",
                2, {"box","origin"},
                boundType_function,
                {NULL}};
 
 /*+ The tagType type tag. +*/
-static xmltag tagType_tag=
+static const xmltag tagType_tag=
               {"tag",
                2, {"k","v"},
                tagType_function,
                {NULL}};
 
 /*+ The nodeType type tag. +*/
-static xmltag nodeType_tag=
+static const xmltag nodeType_tag=
               {"node",
                9, {"id","lat","lon","timestamp","uid","user","visible","version","action"},
                nodeType_function,
                {&tagType_tag,NULL}};
 
 /*+ The ndType type tag. +*/
-static xmltag ndType_tag=
+static const xmltag ndType_tag=
               {"nd",
                1, {"ref"},
                ndType_function,
                {NULL}};
 
 /*+ The memberType type tag. +*/
-static xmltag memberType_tag=
+static const xmltag memberType_tag=
               {"member",
                3, {"type","ref","role"},
                memberType_function,
                {NULL}};
 
 /*+ The wayType type tag. +*/
-static xmltag wayType_tag=
+static const xmltag wayType_tag=
               {"way",
                7, {"id","timestamp","uid","user","visible","version","action"},
                wayType_function,
                {&ndType_tag,&tagType_tag,NULL}};
 
 /*+ The relationType type tag. +*/
-static xmltag relationType_tag=
+static const xmltag relationType_tag=
               {"relation",
                7, {"id","timestamp","uid","user","visible","version","action"},
                relationType_function,
                {&memberType_tag,&tagType_tag,NULL}};
 
 /*+ The osmType type tag. +*/
-static xmltag osmType_tag=
+static const xmltag osmType_tag=
               {"osm",
                2, {"version","generator"},
                osmType_function,
                {&boundsType_tag,&boundType_tag,&nodeType_tag,&wayType_tag,&relationType_tag,NULL}};
 
 /*+ The xmlDeclaration type tag. +*/
-static xmltag xmlDeclaration_tag=
+static const xmltag xmlDeclaration_tag=
               {"xml",
                2, {"version","encoding"},
                xmlDeclaration_function,
@@ -135,7 +136,7 @@ static xmltag xmlDeclaration_tag=
 
 
 /*+ The complete set of tags at the top level. +*/
-static xmltag *xml_toplevel_tags[]={&xmlDeclaration_tag,&osmType_tag,NULL};
+static const xmltag *const xml_toplevel_tags[]={&xmlDeclaration_tag,&osmType_tag,NULL};
 
 
 /* The XML tag processing functions */
@@ -256,7 +257,7 @@ static int tagType_function(const char *_tag_,int _type_,const char *k,const cha
 
 static int nodeType_function(const char *_tag_,int _type_,const char *id,const char *lat,const char *lon,const char *timestamp,const char *uid,const char *user,const char *visible,const char *version,const char *action)
 {
- static int64_t llid;
+ static int64_t llid; /* static variable to store attributes from <node> tag until </node> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {
@@ -378,7 +379,7 @@ static int memberType_function(const char *_tag_,int _type_,const char *type,con
 
 static int wayType_function(const char *_tag_,int _type_,const char *id,const char *timestamp,const char *uid,const char *user,const char *visible,const char *version,const char *action)
 {
- static int64_t llid;
+ static int64_t llid; /* static variable to store attributes from <way> tag until </way> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {
@@ -450,7 +451,7 @@ static int wayType_function(const char *_tag_,int _type_,const char *id,const ch
 
 static int relationType_function(const char *_tag_,int _type_,const char *id,const char *timestamp,const char *uid,const char *user,const char *visible,const char *version,const char *action)
 {
- static int64_t llid;
+ static int64_t llid; /* static variable to store attributes from <relation> tag until </relation> tag */
 
  if(_type_&XMLPARSE_TAG_START)
    {
@@ -559,7 +560,9 @@ int main(int argc,char **argv)
 
  for(arg=1;arg<argc;arg++)
    {
-    if(!strcmp(argv[arg],"--help"))
+    if(!strcmp(argv[arg],"--version"))
+       print_usage(-1,NULL,NULL);
+    else if(!strcmp(argv[arg],"--help"))
        print_usage(1,NULL,NULL);
     else if(!strncmp(argv[arg],"--tagging=",10))
        tagging=&argv[arg][10];
@@ -567,6 +570,8 @@ int main(int argc,char **argv)
        option_loggable=1;
     else if(!strcmp(argv[arg],"--logtime"))
        option_logtime=1;
+    else if(!strcmp(argv[arg],"--logmemory"))
+       option_logmemory=1;
     else if(!strcmp(argv[arg],"--errorlog"))
        errorlog="error.log";
     else if(!strncmp(argv[arg],"--errorlog=",11))
@@ -629,6 +634,12 @@ int main(int argc,char **argv)
 
  /* Parse the file */
 
+ nnodes=0;
+ nways=0;
+ nrelations=0;
+
+ current_tags=NULL;
+
  fprintf_first(stderr,"Reading: Lines=0 Nodes=0 Ways=0 Relations=0");
 
  retval=ParseXML(fd,xml_toplevel_tags,XMLPARSE_UNKNOWN_ATTR_IGNORE);
@@ -651,7 +662,7 @@ int main(int argc,char **argv)
 /*++++++++++++++++++++++++++++++++++++++
   Print out the usage information.
 
-  int detail The level of detail to use - 0 = low, 1 = high.
+  int detail The level of detail to use: -1 = just version number, 0 = low detail, 1 = full details.
 
   const char *argerr The argument that gave the error (if there is one).
 
@@ -660,35 +671,48 @@ int main(int argc,char **argv)
 
 static void print_usage(int detail,const char *argerr,const char *err)
 {
- fprintf(stderr,
-         "Usage: tagmodifier [--help]\n"
-         "                   [--tagging=<filename>]\n"
-         "                   [--loggable] [--logtime]\n"
-         "                   [--errorlog[=<name>]]\n"
-         "                   <filename.osm>"
+ if(detail<0)
+   {
+    fprintf(stderr,
+            "Routino version " ROUTINO_VERSION " " ROUTINO_URL ".\n"
+            );
+   }
+
+ if(detail>=0)
+   {
+    fprintf(stderr,
+            "Usage: tagmodifier [--version]\n"
+            "                   [--help]\n"
+            "                   [--tagging=<filename>]\n"
+            "                   [--loggable] [--logtime] [--logmemory]\n"
+            "                   [--errorlog[=<name>]]\n"
+            "                   <filename.osm>"
 #if defined(USE_BZIP2) && USE_BZIP2
-         " | <filename.osm.bz2>"
+            " | <filename.osm.bz2>"
 #endif
 #if defined(USE_GZIP) && USE_GZIP
-         " | <filename.osm.gz>"
+            " | <filename.osm.gz>"
 #endif
 #if defined(USE_XZ) && USE_XZ
-         " | <filename.osm.xz>"
+            " | <filename.osm.xz>"
 #endif
-         "\n");
+            "\n");
 
- if(argerr)
+    if(argerr)
+       fprintf(stderr,
+               "\n"
+               "Error with command line parameter: %s\n",argerr);
+
+    if(err)
+       fprintf(stderr,
+               "\n"
+               "Error: %s\n",err);
+   }
+
+ if(detail==1)
     fprintf(stderr,
             "\n"
-            "Error with command line parameter: %s\n",argerr);
-
- if(err)
-    fprintf(stderr,
-            "\n"
-            "Error: %s\n",err);
-
- if(detail)
-    fprintf(stderr,
+            "--version                 Print the version of Routino.\n"
             "\n"
             "--help                    Prints this information.\n"
             "\n"
@@ -697,6 +721,7 @@ static void print_usage(int detail,const char *argerr,const char *err)
             "\n"
             "--loggable                Print progress messages suitable for logging to file.\n"
             "--logtime                 Print the elapsed time for the processing.\n"
+            "--logmemory               Print the max allocated/mapped memory for each step.\n"
             "--errorlog[=<name>]       Log parsing errors to 'error.log' or the given name.\n"
             "\n"
             "<filename.osm>            The name of the file to process.\n"
