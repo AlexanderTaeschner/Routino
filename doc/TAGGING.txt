@@ -302,7 +302,7 @@ Generic Access Permissions
    The access tag is used to specify the default access restrictions
    through the node. If the tag value is no or false or 0 or a selection
    of other values then all transport types are denied access. If the tag
-   value is destination or privatethen access is only allowed to get to
+   value is destination or private then access is only allowed to get to
    the first or last waypoint. If the tag value is yes or true or 1or a
    selection of other values then all transport types are allowed access.
 
