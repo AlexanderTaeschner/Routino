@@ -199,7 +199,7 @@ the software is distributed or interacted with over a network.
 <p>
 <span class="cxref-define-comment"> A version number for the Routino API. </span>
 <br>
-<span class="cxref-define">#define ROUTINO_API_VERSION 7</span>
+<span class="cxref-define">#define ROUTINO_API_VERSION 8</span>
 
 <h4 id="H_1_3_1_1">Error Definitions</h4>
 
@@ -780,7 +780,7 @@ the software is distributed or interacted with over a network.
 <p>
 <span class="cxref-function-comment">  Finds the nearest point in the database to the specified latitude and longitude.</span>
 <br>
-<span class="cxref-function">Routino_Waypoint* Routino_FindWaypoint ( Routino_Database* database, Routino_Profile* profile, double latitude, double longitude )</span>
+<span class="cxref-function">Routino_Waypoint* Routino_FindWaypoint ( Routino_Database* database, Routino_Profile* profile, double latitude, double longitude, int allow_destination )</span>
 <br>
 <dl>
   <dt><span class="cxref-function">Routino_Waypoint* Routino_FindWaypoint</span>
@@ -793,6 +793,8 @@ the software is distributed or interacted with over a network.
   <dd><span class="cxref-function-comment">The latitude in degrees of the point.</span>
   <dt><span class="cxref-function">double longitude</span>
   <dd><span class="cxref-function-comment">The longitude in degrees of the point.</span>
+  <dt><span class="cxref-function">int allow_destination</span>
+  <dd><span class="cxref-function-comment">The option to allow routing to follow highways tagged as 'destination'.</span>
 </dl>
 
 <h4 id="H_1_3_4_7"><a name="func-Routino_FreeXMLProfiles">Global Function Routino_FreeXMLProfiles()</a></h4>
