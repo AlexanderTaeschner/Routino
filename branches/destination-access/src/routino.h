@@ -61,7 +61,7 @@ extern "C"
 
  /* Routino library API version */
 
-#define ROUTINO_API_VERSION                 7 /*+ A version number for the Routino API. +*/
+#define ROUTINO_API_VERSION                 8 /*+ A version number for the Routino API. +*/
 
 
  /* Routino error constants */
@@ -269,7 +269,7 @@ extern "C"
 
  DLL_PUBLIC int Routino_ValidateProfile(Routino_Database *database,Routino_Profile *profile);
 
- DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Routino_Profile *profile,double latitude,double longitude);
+ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Routino_Profile *profile,double latitude,double longitude,int allow_destination);
 
  DLL_PUBLIC Routino_Output *Routino_CalculateRoute(Routino_Database *database,Routino_Profile *profile,Routino_Translation *translation,
                                                    Routino_Waypoint **waypoints,int nwaypoints,int options,Routino_ProgressFunc progress);

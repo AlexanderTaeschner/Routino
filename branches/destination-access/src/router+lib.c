@@ -365,7 +365,14 @@ int main(int argc,char** argv)
  for(waypoint=first_waypoint;waypoint!=last_waypoint;waypoint+=inc_dec_waypoint)
     if(point_used[waypoint]==3)
       {
-       waypoints[nwaypoints]=Routino_FindWaypoint(database,profile,point_lat[waypoint],point_lon[waypoint]);
+       int allow_destination;
+
+       if(waypoint==first_waypoint || (waypoint==last_waypoint-1 && !loop))
+          allow_destination=1;
+       else
+          allow_destination=0;
+
+       waypoints[nwaypoints]=Routino_FindWaypoint(database,profile,point_lat[waypoint],point_lon[waypoint],allow_destination);
 
        if(!waypoints[nwaypoints])
          {

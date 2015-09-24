@@ -83,6 +83,7 @@ struct _Routino_Waypoint
  index_t segment;
  index_t node1,node2;
  distance_t dist1,dist2;
+ int allow_destination;
 };
 
 
@@ -484,9 +485,11 @@ DLL_PUBLIC int Routino_ValidateProfile(Routino_Database *database,Routino_Profil
   double latitude The latitude in degrees of the point.
 
   double longitude The longitude in degrees of the point.
+
+  int allow_destination The option to allow routing to follow highways tagged as 'destination'.
   ++++++++++++++++++++++++++++++++++++++*/
 
-DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Routino_Profile *profile,double latitude,double longitude)
+DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Routino_Profile *profile,double latitude,double longitude,int allow_destination)
 {
  distance_t dist;
  Routino_Waypoint *waypoint;
@@ -513,7 +516,10 @@ DLL_PUBLIC Routino_Waypoint *Routino_FindWaypoint(Routino_Database *database,Rou
 
  waypoint->segment=FindClosestSegment(database->nodes,database->segments,database->ways,
                                       degrees_to_radians(latitude),degrees_to_radians(longitude),distmax,profile,
-                                      &dist,&waypoint->node1,&waypoint->node2,&waypoint->dist1,&waypoint->dist2,0);
+                                      &dist,&waypoint->node1,&waypoint->node2,&waypoint->dist1,&waypoint->dist2,
+                                      allow_destination);
+
+ waypoint->allow_destination=allow_destination;
 
  if(waypoint->segment==NO_SEGMENT)
    {
@@ -645,7 +651,8 @@ DLL_PUBLIC Routino_Output *Routino_CalculateRoute(Routino_Database *database,Rou
        continue;
 
     results[waypoint-1]=CalculateRoute(database->nodes,database->segments,database->ways,database->relations,
-                                       profile,start_node,join_segment,finish_node,waypoint,waypoint+1,0,0);
+                                       profile,start_node,join_segment,finish_node,waypoint,waypoint+1,
+                                       waypoints[waypoint-1]->allow_destination,waypoints[waypoint]->allow_destination);
 
     if(!results[waypoint-1])
       {

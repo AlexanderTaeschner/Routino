@@ -92,7 +92,7 @@ Preprocessor Definitions
 - - - - - - - - - - - -
 
    A version number for the Routino API.
-   #define ROUTINO_API_VERSION 7
+   #define ROUTINO_API_VERSION 8
 
 Error Definitions
 
@@ -517,7 +517,8 @@ Global Function Routino_FindWaypoint()
    longitude.
 
    Routino_Waypoint* Routino_FindWaypoint ( Routino_Database* database,
-   Routino_Profile* profile, double latitude, double longitude )
+   Routino_Profile* profile, double latitude, double longitude, int
+   allow_destination )
 
    Routino_Waypoint* Routino_FindWaypoint
           Returns a pointer to a newly allocated Routino waypoint or NULL
@@ -534,6 +535,10 @@ Global Function Routino_FindWaypoint()
 
    double longitude
           The longitude in degrees of the point.
+
+   int allow_destination
+          The option to allow routing to follow highways tagged as
+          'destination'.
 
 Global Function Routino_FreeXMLProfiles()
 
