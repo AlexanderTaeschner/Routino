@@ -68,7 +68,7 @@ int main(int argc,char** argv)
  int                  html=0,gpx_track=0,gpx_route=0,text=0,text_all=0,none=0,use_stdout=0;
  int                  list_html=0,list_html_all=0,list_text=0,list_text_all=0;
  int                  arg;
- int                  first_waypoint=NWAYPOINTS,last_waypoint=1,inc_dec_waypoint,waypoint,nwaypoints=0;
+ int                  first_waypoint=NWAYPOINTS,last_waypoint=1,waypoint,nwaypoints=0;
  int                  routing_options;
 
  /* Check the libroutino API version */
@@ -100,10 +100,20 @@ int main(int argc,char** argv)
        profiles=&argv[arg][11];
     else if(!strncmp(argv[arg],"--translations=",15))
        translations=&argv[arg][15];
-    else if(!strcmp(argv[arg],"--reverse"))
-       reverse=1;
-    else if(!strcmp(argv[arg],"--loop"))
-       loop=1;
+    else if(!strncmp(argv[arg],"--reverse",9))
+      {
+       if(argv[arg][9]=='=')
+          reverse=atoi(&argv[arg][10]);
+       else
+          reverse=1;
+      }
+    else if(!strncmp(argv[arg],"--loop",6))
+      {
+       if(argv[arg][6]=='=')
+          loop=atoi(&argv[arg][7]);
+       else
+          loop=1;
+      }
     else if(!strcmp(argv[arg],"--output-html"))
        html=1;
     else if(!strcmp(argv[arg],"--output-gpx-track"))
@@ -335,56 +345,36 @@ int main(int argc,char** argv)
 
  /* Check the profile is valid for use with this database */
 
- Routino_ValidateProfile(database,profile);
-
- /* Check for reverse direction */
-
- if(reverse)
+ if(Routino_ValidateProfile(database,profile)!=ROUTINO_ERROR_NONE)
    {
-    int temp;
-
-    temp=first_waypoint;
-    first_waypoint=last_waypoint;
-    last_waypoint=temp;
-
-    last_waypoint--;
-
-    inc_dec_waypoint=-1;
-   }
- else
-   {
-    last_waypoint++;
-
-    inc_dec_waypoint=1;
+    fprintf(stderr,"Error: Profile is invalid or not compatible with database.\n");
+    exit(EXIT_FAILURE);
    }
 
  /* Loop through all waypoints */
 
  nwaypoints=0;
 
- for(waypoint=first_waypoint;waypoint!=last_waypoint;waypoint+=inc_dec_waypoint)
-    if(point_used[waypoint]==3)
+ for(waypoint=first_waypoint;waypoint<=last_waypoint;waypoint++)
+   {
+    int allow_destination=0;
+
+    if(point_used[waypoint]!=3)
+       continue;
+
+    if(waypoint==first_waypoint || (waypoint==last_waypoint && !loop))
+       allow_destination=1;
+
+    waypoints[nwaypoints]=Routino_FindWaypoint(database,profile,point_lat[waypoint],point_lon[waypoint],allow_destination);
+
+    if(!waypoints[nwaypoints])
       {
-       int allow_destination;
-
-       if(waypoint==first_waypoint || (waypoint==last_waypoint-1 && !loop))
-          allow_destination=1;
-       else
-          allow_destination=0;
-
-       waypoints[nwaypoints]=Routino_FindWaypoint(database,profile,point_lat[waypoint],point_lon[waypoint],allow_destination);
-
-       if(!waypoints[nwaypoints])
-         {
-          fprintf(stderr,"Error: Cannot find node close to specified point %d.\n",waypoint);
-          exit(EXIT_FAILURE);
-         }
-
-       nwaypoints++;
+       fprintf(stderr,"Error: Cannot find node close to specified point %d.\n",waypoint);
+       exit(EXIT_FAILURE);
       }
 
- if(loop)
-    waypoints[nwaypoints++]=waypoints[0];
+    nwaypoints++;
+   }
 
  /* Create the route */
 
@@ -405,6 +395,9 @@ int main(int argc,char** argv)
  if(list_html_all) routing_options|=ROUTINO_ROUTE_LIST_HTML_ALL;
  if(list_text)     routing_options|=ROUTINO_ROUTE_LIST_TEXT;
  if(list_text_all) routing_options|=ROUTINO_ROUTE_LIST_TEXT_ALL;
+
+ if(reverse) routing_options|=ROUTINO_ROUTE_REVERSE;
+ if(loop)    routing_options|=ROUTINO_ROUTE_LOOP;
 
  route=Routino_CalculateRoute(database,profile,translation,waypoints,nwaypoints,routing_options,NULL);
 
@@ -474,9 +467,6 @@ int main(int argc,char** argv)
 
  Routino_FreeXMLTranslations();
 
- if(loop)
-    nwaypoints--;
-
  for(waypoint=0;waypoint<nwaypoints;waypoint++)
     free(waypoints[waypoint]);
 
@@ -523,7 +513,9 @@ static void print_usage(int detail,const char *argerr,const char *err)
  if(detail<0)
    {
     fprintf(stderr,
-            "Routino version " ROUTINO_VERSION " " ROUTINO_URL ".\n"
+            "Routino version " ROUTINO_VERSION " " ROUTINO_URL " "
+            "[Library version: %s, API version: %d]\n",
+            Routino_Version,Routino_APIVersion
             );
    }
 

@@ -92,7 +92,7 @@ Preprocessor Definitions
 - - - - - - - - - - - -
 
    A version number for the Routino API.
-   #define ROUTINO_API_VERSION 8
+   #define ROUTINO_API_VERSION 9
 
 Error Definitions
 
@@ -203,6 +203,12 @@ Routino Option Definitions
    Output a linked list of points containing the text all file
    information.
    #define ROUTINO_ROUTE_LIST_TEXT_ALL 1024
+
+   Route between the points in a loop returning to the first point.
+   #define ROUTINO_ROUTE_LOOP 2048
+
+   Route between the points in reverse order.
+   #define ROUTINO_ROUTE_REVERSE 4096
 
 Linked List Output Point Definitions
 
@@ -408,7 +414,13 @@ Global Variable Routino_APIVersion
 
    Contains the libroutino API version number.
 
-   int Routino_APIVersion
+   const int Routino_APIVersion
+
+Global Variable Routino_Version
+
+   Contains the Routino version number.
+
+   const char* Routino_Version
 
 Global Variable Routino_errno
 
