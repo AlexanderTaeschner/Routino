@@ -158,7 +158,7 @@ $(WEBICONDIR)/ball-0.png: $(WEBICONDIR)/create-icons.pl
 ####
 
 all-exe:
-	cd $(SRCDIR) && $(MAKE) $(EXE_FILES)
+	cd $(SRCDIR) && $(MAKE) all-exe
 
 ####
 
@@ -226,3 +226,5 @@ distclean-all-icons: clean-all-icons
 .PHONY:: clean-all-bin clean-all-data clean-all-doc clean-all-profiles clean-all-translations clean-all-icons
 
 .PHONY:: distclean-all-bin distclean-all-data distclean-all-doc distclean-all-profiles distclean-all-translations distclean-all-icons
+
+.NOTPARALLEL:

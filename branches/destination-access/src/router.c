@@ -76,6 +76,7 @@ int main(int argc,char** argv)
  Results     *results[NWAYPOINTS+1]={NULL};
  int          point_used[NWAYPOINTS+1]={0};
  double       point_lon[NWAYPOINTS+1],point_lat[NWAYPOINTS+1];
+ index_t      point_node[NWAYPOINTS+1]={NO_NODE};
  double       heading=-999;
  int          help_profile=0,help_profile_xml=0,help_profile_json=0,help_profile_pl=0;
  char        *dirname=NULL,*prefix=NULL;
@@ -85,11 +86,12 @@ int main(int argc,char** argv)
  Transport    transport=Transport_None;
  Profile     *profile=NULL;
  Translation *translation=NULL;
- index_t      start_node,finish_node=NO_NODE,first_node=NO_NODE;
+ index_t      start_node,finish_node=NO_NODE;
  index_t      join_segment=NO_SEGMENT;
  int          arg,nresults=0;
  waypoint_t   start_waypoint,finish_waypoint=NO_WAYPOINT;
- waypoint_t   first_waypoint=NWAYPOINTS,last_waypoint=1,inc_dec_waypoint,waypoint;
+ waypoint_t   first_waypoint=NWAYPOINTS,last_waypoint=1,waypoint;
+ int          inc_dec_waypoint=1;
 
  printf_program_start();
 
@@ -124,10 +126,20 @@ int main(int argc,char** argv)
        translations=&argv[arg][15];
     else if(!strcmp(argv[arg],"--exact-nodes-only"))
        exactnodes=1;
-    else if(!strcmp(argv[arg],"--reverse"))
-       reverse=1;
-    else if(!strcmp(argv[arg],"--loop"))
-       loop=1;
+    else if(!strncmp(argv[arg],"--reverse",9))
+      {
+       if(argv[arg][9]=='=')
+          reverse=atoi(&argv[arg][10]);
+       else
+          reverse=1;
+      }
+    else if(!strncmp(argv[arg],"--loop",6))
+      {
+       if(argv[arg][6]=='=')
+          loop=atoi(&argv[arg][7]);
+       else
+          loop=1;
+      }
     else if(!strcmp(argv[arg],"--quiet"))
        option_quiet=1;
     else if(!strcmp(argv[arg],"--loggable"))
@@ -154,6 +166,63 @@ int main(int argc,char** argv)
        profilename=&argv[arg][10];
     else if(!strncmp(argv[arg],"--language=",11))
        language=&argv[arg][11];
+    else if(!strcmp(argv[arg],"--shortest"))
+       option_quickest=0;
+    else if(!strcmp(argv[arg],"--quickest"))
+       option_quickest=1;
+    else if(!strncmp(argv[arg],"--lon",5) && isdigit(argv[arg][5]))
+      {
+       int point;
+       char *p=&argv[arg][6];
+
+       while(isdigit(*p)) p++;
+       if(*p++!='=')
+          print_usage(0,argv[arg],NULL);
+
+       point=atoi(&argv[arg][5]);
+       if(point>NWAYPOINTS || point_used[point]&1)
+          print_usage(0,argv[arg],NULL);
+
+       point_lon[point]=degrees_to_radians(atof(p));
+       point_used[point]+=1;
+
+       if(point<first_waypoint)
+          first_waypoint=point;
+       if(point>last_waypoint)
+          last_waypoint=point;
+      }
+    else if(!strncmp(argv[arg],"--lat",5) && isdigit(argv[arg][5]))
+      {
+       int point;
+       char *p=&argv[arg][6];
+
+       while(isdigit(*p)) p++;
+       if(*p++!='=')
+          print_usage(0,argv[arg],NULL);
+
+       point=atoi(&argv[arg][5]);
+       if(point>NWAYPOINTS || point_used[point]&2)
+          print_usage(0,argv[arg],NULL);
+
+       point_lat[point]=degrees_to_radians(atof(p));
+       point_used[point]+=2;
+
+       if(point<first_waypoint)
+          first_waypoint=point;
+       if(point>last_waypoint)
+          last_waypoint=point;
+      }
+    else if(!strncmp(argv[arg],"--heading=",10))
+      {
+       double h=atof(&argv[arg][10]);
+
+       if(h>=-360 && h<=360)
+         {
+          heading=h;
+
+          if(heading<0) heading+=360;
+         }
+      }
     else if(!strncmp(argv[arg],"--transport=",12))
       {
        transport=TransportType(&argv[arg][12]);
@@ -228,71 +297,12 @@ int main(int argc,char** argv)
     profile->transport=transport;
    }
 
- /* Parse the other command line arguments */
+ /* Parse the other command line arguments that modify the profile */
 
  for(arg=1;arg<argc;arg++)
    {
     if(!argv[arg])
        continue;
-    else if(!strcmp(argv[arg],"--shortest"))
-       option_quickest=0;
-    else if(!strcmp(argv[arg],"--quickest"))
-       option_quickest=1;
-    else if(!strncmp(argv[arg],"--lon",5) && isdigit(argv[arg][5]))
-      {
-       int point;
-       char *p=&argv[arg][6];
-
-       while(isdigit(*p)) p++;
-       if(*p++!='=')
-          print_usage(0,argv[arg],NULL);
-
-       point=atoi(&argv[arg][5]);
-       if(point>NWAYPOINTS || point_used[point]&1)
-          print_usage(0,argv[arg],NULL);
-
-       point_lon[point]=degrees_to_radians(atof(p));
-       point_used[point]+=1;
-
-       if(point<first_waypoint)
-          first_waypoint=point;
-       if(point>last_waypoint)
-          last_waypoint=point;
-      }
-    else if(!strncmp(argv[arg],"--lat",5) && isdigit(argv[arg][5]))
-      {
-       int point;
-       char *p=&argv[arg][6];
-
-       while(isdigit(*p)) p++;
-       if(*p++!='=')
-          print_usage(0,argv[arg],NULL);
-
-       point=atoi(&argv[arg][5]);
-       if(point>NWAYPOINTS || point_used[point]&2)
-          print_usage(0,argv[arg],NULL);
-
-       point_lat[point]=degrees_to_radians(atof(p));
-       point_used[point]+=2;
-
-       if(point<first_waypoint)
-          first_waypoint=point;
-       if(point>last_waypoint)
-          last_waypoint=point;
-      }
-    else if(!strncmp(argv[arg],"--heading=",10))
-      {
-       double h=atof(&argv[arg][10]);
-
-       if(h>=-360 && h<=360)
-         {
-          heading=h;
-
-          if(heading<0) heading+=360;
-         }
-      }
-    else if(!strncmp(argv[arg],"--transport=",12))
-       ; /* Done this already */
     else if(!strncmp(argv[arg],"--highway-",10))
       {
        Highway highway;
@@ -417,15 +427,6 @@ int main(int argc,char** argv)
     exit(EXIT_SUCCESS);
    }
 
- /* Check the waypoints are valid */
-
- for(waypoint=1;waypoint<=NWAYPOINTS;waypoint++)
-    if(point_used[waypoint]==1 || point_used[waypoint]==2)
-       print_usage(0,NULL,"All waypoints must have latitude and longitude.");
-
- if(first_waypoint>=last_waypoint)
-    print_usage(0,NULL,"At least two waypoints must be specified.");
-
  /* Load in the selected translation */
 
  if(option_file_html || option_file_gpx_route || option_file_gpx_track || option_file_text || option_file_text_all)
@@ -484,6 +485,15 @@ int main(int argc,char** argv)
       }
    }
 
+ /* Check the waypoints are valid */
+
+ for(waypoint=1;waypoint<=NWAYPOINTS;waypoint++)
+    if(point_used[waypoint]==1 || point_used[waypoint]==2)
+       print_usage(0,NULL,"All waypoints must have latitude and longitude.");
+
+ if(first_waypoint>=last_waypoint)
+    print_usage(0,NULL,"At least two waypoints must be specified.");
+
  /* Load in the data - Note: No error checking because Load*List() will call exit() in case of an error. */
 
  if(!option_quiet)
@@ -500,12 +510,74 @@ int main(int argc,char** argv)
  if(!option_quiet)
     printf_last("Loaded Files: nodes, segments, ways & relations");
 
- /* Check the profile compared to the types of ways available */
+ /* Check the profile is valid for use with this database */
 
  if(UpdateProfile(profile,OSMWays))
    {
     fprintf(stderr,"Error: Profile is invalid or not compatible with database.\n");
     exit(EXIT_FAILURE);
+   }
+
+ /* Find all waypoints */
+
+ for(waypoint=first_waypoint;waypoint<=last_waypoint;waypoint++)
+   {
+    distance_t distmax=km_to_distance(MAXSEARCH);
+    distance_t distmin;
+    index_t segment=NO_SEGMENT;
+    index_t node1,node2,node=NO_NODE;
+    int allow_destination=0;
+
+    if(point_used[waypoint]!=3)
+       continue;
+
+    if(waypoint==first_waypoint || (waypoint==last_waypoint && !loop))
+       allow_destination=1;
+
+    /* Find the closest point */
+
+    if(!option_quiet)
+       printf_first("Finding Closest Point: Waypoint %d",waypoint);
+
+    if(exactnodes)
+       node=FindClosestNode(OSMNodes,OSMSegments,OSMWays,point_lat[waypoint],point_lon[waypoint],distmax,profile,&distmin,allow_destination);
+    else
+      {
+       distance_t dist1,dist2;
+
+       segment=FindClosestSegment(OSMNodes,OSMSegments,OSMWays,point_lat[waypoint],point_lon[waypoint],distmax,profile,&distmin,&node1,&node2,&dist1,&dist2,allow_destination);
+
+       if(segment!=NO_SEGMENT)
+          node=CreateFakes(OSMNodes,OSMSegments,waypoint,LookupSegment(OSMSegments,segment,1),node1,node2,dist1,dist2);
+      }
+
+    if(!option_quiet)
+       printf_last("Found Closest Point: Waypoint %d",waypoint);
+
+    if(node==NO_NODE)
+      {
+       fprintf(stderr,"Error: Cannot find node close to specified point %d.\n",waypoint);
+       exit(EXIT_FAILURE);
+      }
+
+    if(!option_quiet)
+      {
+       double lat,lon;
+
+       if(IsFakeNode(node))
+          GetFakeLatLong(node,&lat,&lon);
+       else
+          GetLatLong(OSMNodes,node,NULL,&lat,&lon);
+
+       if(IsFakeNode(node))
+          printf("Waypoint %d is segment %"Pindex_t" (node %"Pindex_t" -> %"Pindex_t"): %3.6f %4.6f = %2.3f km\n",waypoint,segment,node1,node2,
+                 radians_to_degrees(lon),radians_to_degrees(lat),distance_to_km(distmin));
+       else
+          printf("Waypoint %d is node %"Pindex_t": %3.6f %4.6f = %2.3f km\n",waypoint,node,
+                 radians_to_degrees(lon),radians_to_degrees(lat),distance_to_km(distmin));
+      }
+
+    point_node[waypoint]=node;
    }
 
  /* Check for reverse direction */
@@ -520,95 +592,37 @@ int main(int argc,char** argv)
 
     inc_dec_waypoint=-1;
    }
- else
-   {
-    inc_dec_waypoint=1;
-   }
 
  /* Loop through all pairs of waypoints */
 
+ if(loop && reverse)
+   {
+    finish_node=point_node[last_waypoint];
+
+    finish_waypoint=last_waypoint;
+   }
+
  for(waypoint=first_waypoint;waypoint!=(last_waypoint+inc_dec_waypoint);waypoint+=inc_dec_waypoint)
    {
-    distance_t distmax=km_to_distance(MAXSEARCH);
-    distance_t distmin;
-    int allow_destination;
-    index_t segment=NO_SEGMENT;
-    index_t node1,node2;
-
-    if(point_used[waypoint]!=3)
-       continue;
-
-    if(!option_quiet)
-       printf_first("Finding Closest Point: Waypoint %d",waypoint);
-
-    /* Find the closest point */
-
     start_node=finish_node;
+    finish_node=point_node[waypoint];
+
     start_waypoint=finish_waypoint;
-
-    if(waypoint==first_waypoint || (waypoint==last_waypoint && !loop))
-       allow_destination=1;
-    else
-       allow_destination=0;
-
-    if(exactnodes)
-      {
-       finish_node=FindClosestNode(OSMNodes,OSMSegments,OSMWays,point_lat[waypoint],point_lon[waypoint],distmax,profile,&distmin,allow_destination);
-      }
-    else
-      {
-       distance_t dist1,dist2;
-
-       segment=FindClosestSegment(OSMNodes,OSMSegments,OSMWays,point_lat[waypoint],point_lon[waypoint],distmax,profile,&distmin,&node1,&node2,&dist1,&dist2,allow_destination);
-
-       if(segment!=NO_SEGMENT)
-          finish_node=CreateFakes(OSMNodes,OSMSegments,waypoint,LookupSegment(OSMSegments,segment,1),node1,node2,dist1,dist2);
-       else
-          finish_node=NO_NODE;
-      }
-
-    if(!option_quiet)
-       printf_last("Found Closest Point: Waypoint %d",waypoint);
-
-    if(finish_node==NO_NODE)
-      {
-       fprintf(stderr,"Error: Cannot find node close to specified point %d.\n",waypoint);
-       exit(EXIT_FAILURE);
-      }
-
     finish_waypoint=waypoint;
-
-    if(!option_quiet)
-      {
-       double lat,lon;
-
-       if(IsFakeNode(finish_node))
-          GetFakeLatLong(finish_node,&lat,&lon);
-       else
-          GetLatLong(OSMNodes,finish_node,NULL,&lat,&lon);
-
-       if(IsFakeNode(finish_node))
-          printf("Waypoint %d is segment %"Pindex_t" (node %"Pindex_t" -> %"Pindex_t"): %3.6f %4.6f = %2.3f km\n",waypoint,segment,node1,node2,
-                 radians_to_degrees(lon),radians_to_degrees(lat),distance_to_km(distmin));
-       else
-          printf("Waypoint %d is node %"Pindex_t": %3.6f %4.6f = %2.3f km\n",waypoint,finish_node,
-                 radians_to_degrees(lon),radians_to_degrees(lat),distance_to_km(distmin));
-      }
-
-    /* Check the nodes */
 
     if(start_node==NO_NODE)
        continue;
-
-    if(first_node==NO_NODE)
-       first_node=start_node;
 
     if(heading!=-999 && join_segment==NO_SEGMENT)
        join_segment=FindClosestSegmentHeading(OSMNodes,OSMSegments,OSMWays,start_node,heading,profile);
 
     /* Calculate the route */
 
-    results[nresults]=CalculateRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,join_segment,finish_node,start_waypoint,finish_waypoint,(start_waypoint==first_waypoint),(finish_waypoint==last_waypoint));
+    if(!option_quiet)
+       printf("Routing from waypoint %d to waypoint %d\n",start_waypoint,finish_waypoint);
+
+    results[nresults]=CalculateRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,join_segment,finish_node,start_waypoint,finish_waypoint,
+                                     (start_waypoint==first_waypoint)||(loop && reverse && start_waypoint==last_waypoint),(finish_waypoint==last_waypoint));
 
     if(!results[nresults])
        exit(EXIT_FAILURE);
@@ -618,11 +632,24 @@ int main(int argc,char** argv)
     nresults++;
    }
 
- /* Finish the loop */
-
- if(loop && finish_node!=NO_NODE)
+ if(loop && !reverse)
    {
-    results[nresults]=CalculateRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,finish_node,join_segment,first_node,last_waypoint,first_waypoint,0,1);
+    start_node=finish_node;
+    finish_node=point_node[first_waypoint];
+
+    start_waypoint=finish_waypoint;
+    finish_waypoint=first_waypoint;
+
+    /* Calculate the route */
+
+    if(!option_quiet)
+       printf("Routing from waypoint %d to waypoint %d\n",start_waypoint,finish_waypoint);
+
+    results[nresults]=CalculateRoute(OSMNodes,OSMSegments,OSMWays,OSMRelations,profile,start_node,join_segment,finish_node,start_waypoint,finish_waypoint,
+                                     0,1);
+
+    if(!results[nresults])
+       exit(EXIT_FAILURE);
 
     nresults++;
    }
@@ -677,10 +704,6 @@ int main(int argc,char** argv)
   const char *argerr The argument that gave the error (if there is one).
 
   const char *err Other error message (if there is one).
-
-  int allow_start_destination A flag to indicate if the start of the route can use highways marked as 'destination'.
-
-  int allow_finish_destination A flag to indicate if the finish of the route can use highways marked as 'destination'.
   ++++++++++++++++++++++++++++++++++++++*/
 
 static void print_usage(int detail,const char *argerr,const char *err)

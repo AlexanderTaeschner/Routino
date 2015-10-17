@@ -61,7 +61,7 @@ extern "C"
 
  /* Routino library API version */
 
-#define ROUTINO_API_VERSION                 8 /*+ A version number for the Routino API. +*/
+#define ROUTINO_API_VERSION                 9 /*+ A version number for the Routino API. +*/
 
 
  /* Routino error constants */
@@ -117,6 +117,9 @@ extern "C"
 #define ROUTINO_ROUTE_LIST_HTML_ALL       256 /*+ Output a linked list of points containing the HTML file information as plain text and with all points. +*/
 #define ROUTINO_ROUTE_LIST_TEXT           512 /*+ Output a linked list of points containing the text file information. +*/
 #define ROUTINO_ROUTE_LIST_TEXT_ALL      1024 /*+ Output a linked list of points containing the text all file information. +*/
+
+#define ROUTINO_ROUTE_LOOP               2048 /*+ Route between the points in a loop returning to the first point. +*/
+#define ROUTINO_ROUTE_REVERSE            4096 /*+ Route between the points in reverse order. +*/
 
 
  /* Routino output point types */
@@ -238,7 +241,10 @@ extern "C"
  /* Routino error number variable */
 
  /*+ Contains the libroutino API version number. +*/
- DLL_PUBLIC extern int Routino_APIVersion;
+ DLL_PUBLIC extern const int Routino_APIVersion;
+
+ /*+ Contains the Routino version number. +*/
+ DLL_PUBLIC extern const char *Routino_Version;
 
  /*+ Contains the error number of the most recent Routino function (one of the ROUTINO_ERROR_* values). +*/
  DLL_PUBLIC extern int Routino_errno;
