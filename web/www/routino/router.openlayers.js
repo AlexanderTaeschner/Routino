@@ -1511,8 +1511,8 @@ function markerSetClearHome(marker,home)
 
  if(home)
    {
-    homelat=routino.point[marker].lat;
-    homelon=routino.point[marker].lon;
+    homelat=format5f(routino.point[marker].lat);
+    homelon=format5f(routino.point[marker].lon);
 
     cookie="Routino-home=lon:" + homelon + ":lat:" + homelat;
 
