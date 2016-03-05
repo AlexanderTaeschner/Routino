@@ -1,0 +1,212 @@
+#
+# Polish language translation phrases
+#
+
+#
+# Router output XML definition
+#
+
+%%copyright_creator_string%%	Twórca
+%%copyright_source_string%%	Źródło
+%%copyright_source_text%%	Oparte na danych OpenStreetMap ze strony http://www.openstreetmap.org/
+%%copyright_license_string%%	Licencja
+
+%%turn_-4%%	Bardzo ostro w lewo
+%%turn_-3%%	Ostro w lewo
+%%turn_-2%%	W lewo
+%%turn_-1%%	Lekko w lewo
+%%turn_0%%	Prosto
+%%turn_1%%	Lekko w prawo
+%%turn_2%%	W prawo
+%%turn_3%%	Ostro w prawo
+%%turn_4%%	Bardzo ostro w prawo
+
+%%heading_-4%%	Na południe
+%%heading_-3%%	Na południowy zachód
+%%heading_-2%%	Na zachód
+%%heading_-1%%	Na północny zachód
+%%heading_0%%	Na północ
+%%heading_1%%	Na północny wschód
+%%heading_2%%	Na wschód
+%%heading_3%%	Na południowy wschód
+%%heading_4%%	Na południe
+
+%%ordinal_1%%	Pierwszy
+%%ordinal_2%%	Drugi
+%%ordinal_3%%	Trzeci
+%%ordinal_4%%	Czwarty
+%%ordinal_5%%	Piąty
+%%ordinal_6%%	Szósty
+%%ordinal_7%%	Siódmy
+%%ordinal_8%%	Ósmy
+%%ordinal_9%%	Dziewiąty
+%%ordinal_10%%	Dziesiąty
+
+%%highway_motorway%%	Autostrada
+%%highway_trunk%%	Droga ekspresowa
+%%highway_primary%%	Droga krajowa
+%%highway_secondary%%	Droga powiatowa
+%%highway_tertiary%%	Droga lokalna
+%%highway_unclassified%%	Droga nieznanego typu
+%%highway_residential%%	Droga osiedlowa
+%%highway_service%%	Droga dojazdowa
+%%highway_track%%	Droga polna
+%%highway_cycleway%%	Droga rowerowa
+%%highway_path%%	Ścieżka
+%%highway_steps%%	Pieszo
+%%highway_ferry%%	Prom
+
+%%route_shortest%%	Najkrótsza
+%%route_quickest%%	Najszybsza
+
+%%output-html_waypoint_waypoint%%	Punkt
+%%output-html_waypoint_roundabout%%	Rondo
+%%output-html_title%%	%s Trasa
+%%output-html_start%%	Start %s kieruj się na %s
+%%output-html_segment%%	Podążaj %s przez %.3f km, %.1f min.
+%%output-html_stop%%	Stop Na %s
+%%output-html_total%%	Całkowity %.1f km, %.0f min.
+%%output-html_subtotal%%	%.1f km, %.0f min.
+
+%%output-gpx_desc%%	%s trasa pomiędzy 'start' a 'koniec'
+%%output-gpx_name%%	%s trasa
+%%output-gpx_step%%	%s na %s przez %.3f km, %.1f min.
+%%output-gpx_final%%	Całkowita podróż %.1f km, %.0f min.
+
+#
+# Router (and some shared) translations
+#
+
+@@LANGUAGE@@	Polski
+@@LANGUAGE-WEBPAGE@@	Polski webpage
+
+@@ROUTER-TITLE@@	Planowanie trasy dla Danych OpenStreetMap
+
+@@OPTION-TAB@@	Opcje
+@@OPTION-TAB-HELP@@	Ustaw punkty trasy
+
+@@RESULTS-TAB@@	Wyniki
+@@RESULTS-TAB-HELP@@	Zobacz wyniki
+
+@@DATA-TAB@@	Dane
+@@DATA-TAB-HELP@@	Zobacz informacje bazy danych
+
+@@ROUTINO-ROUTER@@	Routino OpenStreetMap Planowanie Trasy
+@@ROUTINO-WEBSITE@@	Strona Routino
+@@DOCUMENTATION@@	Dokumentacja
+
+@@LANGUAGE-BOX@@	Język
+@@WAYPOINTS-BOX@@	Punkty
+@@TRANSPORT-TYPE-BOX@@	Typ transportu
+@@HIGHWAY-PREFERENCES-BOX@@	Preferowanie autostrad
+@@SPEED-LIMITS-BOX@@	Ograniczenia prędkości
+@@OTHER-RESTRICTIONS-BOX@@	Inne ograniczenia
+@@FIND-BOX@@	Znajdź
+@@LINKS-BOX@@	Połączenia
+@@HELP-BOX@@	Pomoc
+
+@@STATUS-BOX@@	Status
+@@SHORTEST-ROUTE@@	Najkrótsza trasa
+@@QUICKEST-ROUTE@@	Najszybsza trasa
+
+@@STATISTICS-BOX@@	Statystyki Routino
+@@VISUALISER-BOX@@	Wizualizer Routino
+
+@@WAYPOINT-SEARCH@@	Znajdź miejsce
+@@WAYPOINT-GET@@	Pobierz aktualna lokalizację
+@@WAYPOINT-CENTRE1@@	Wycentruj mapę na tym punkcie
+@@WAYPOINT-HOME@@	Współrzędne lokalizacji
+
+@@TRANSPORT-FOOT@@	Pieszo
+@@TRANSPORT-HORSE@@	Konno
+@@TRANSPORT-WHEELCHAIR@@	Wózek inwalidzki
+@@TRANSPORT-BICYCLE@@	Rower
+@@TRANSPORT-MOPED@@	Moped
+@@TRANSPORT-MOTORCYCLE@@	Motocykl
+@@TRANSPORT-MOTORCAR@@	Samochód
+@@TRANSPORT-PSV@@	Pojazd użyteczności publicznej
+
+@@HIGHWAY-MOTORWAY@@	Autostrada
+@@HIGHWAY-PRIMARY@@	Droga krajowa
+@@HIGHWAY-SECONDARY@@	Droga wojewódzka
+@@HIGHWAY-TERTIARY@@	Droga powiatowa
+@@HIGHWAY-UNCLASSIFIED@@	Niesklasyfikowana
+@@HIGHWAY-RESIDENTIAL@@	W obszarze zamieszkania
+@@HIGHWAY-SERVICE@@	Dojazdowa
+@@HIGHWAY-CYCLEWAY@@	Rowerowa
+@@HIGHWAY-PATH@@	Ścieżka
+@@HIGHWAY-FERRY@@	Przeprawa
+
+@@PROPERTY-MULTILANE@@	Wiele pasów
+@@PROPERTY-BRIDGE@@	Most
+@@PROPERTY-TUNNEL@@	Tunel
+@@PROPERTY-WALKINGROUTE@@	Trasa piesza
+@@PROPERTY-BICYCLEROUTE@@	Trasa rowerowa
+
+@@RESTRICT-ONEWAY@@	Respektuj ulice jednokierunkowe
+@@RESTRICT-TURNS@@	Respektuj ograniczenia skrętu
+@@RESTRICT-WEIGHT@@	Waga
+@@RESTRICT-HEIGHT@@	Wysokość
+@@RESTRICT-WIDTH@@	Szerokość
+@@RESTRICT-LENGTH@@	Długość
+
+@@FIND-SHORTEST-ROUTE@@	Znajdź najkrótsza trasę
+@@FIND-QUICKEST-ROUTE@@	Znajdź najdłuższą trasę
+
+@@ROUTER-NOT-RUN@@	Nie uruchomiono wyznaczania trasy
+@@ROUTER-RUNNING@@	Wyznaczanie trasy w trakcie...
+@@ROUTER-COMPLETED@@	Trasa wyznaczona
+@@ROUTER-ERROR@@	Błąd wyznaczania trasy
+@@ROUTER-FAILED@@	Błąd uruchomienia wyznaczania trasy
+@@VIEW-DETAILS@@	Zobacz szczegóły
+
+@@NO-INFORMATION@@	Brak informacji
+@@GPX-TRACK-ROUTE@@	Plik trasy w formacie GPX
+@@GPX-ROUTE@@	Plik nawigacji w formacie GPX
+@@TEXT-ROUTE@@	Plik tekstowy
+
+@@TILES@@	Kafelki
+
+#
+# Visualiser specific translations
+#
+
+@@INSTRUCTIONS-BOX@@	Instrukcje
+
+@@NO-DATA-DISPLAYED@@	Brak danych do wyświetlenia
+
+@@TURNS-BUTTON@@	Wyświetlaj zakazy skrętu
+
+@@SPEED-BUTTON@@	Wyświetlaj ograniczenia prędkości
+
+@@SPEED-LIMIT-80@@	Ograniczenie prędkości do 80 km/h
+
+@@WEIGHT-BUTTON@@	Wyświetlaj ograniczenia ciężaru
+
+@@WEIGHT-LIMIT-8@@	Ograniczenie ciężaru do 8.0 ton
+
+@@HEIGHT-BUTTON@@	Wyświetlaj ograniczenia wysokości
+
+@@HEIGHT-LIMIT-4@@	Ograniczenie wysokości do 4.0 m
+
+@@WIDTH-BUTTON@@	Wyświetlaj ograniczenia szerokości
+
+@@WIDTH-LIMIT-3@@	Ograniczenie szerokości do 3.0 m
+
+@@LENGTH-BUTTON@@	Wyświetlaj ograniczenia długości
+
+@@LENGTH-LIMIT-9@@	Ograniczenie długości do 9.0 m
+
+@@CLEAR-DATA-BUTTON@@	Wyczyść
+
+#
+# Multi-line descriptive translations (router)
+#
+
+#
+# Multi-line descriptive translations (visualiser)
+#
+
+$$VISUALISER-ROUTER-INFO$$
+Aby wyznaczyć trasę na mapie użyj linku poniżej
+$$VISUALISER-ROUTER-INFO$$
