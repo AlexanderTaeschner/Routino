@@ -134,6 +134,9 @@ Results *CalculateRoute(Nodes *nodes,Segments *segments,Ways *ways,Relations *re
        prev_segment=FindClosestSegment(nodes,segments,ways,lat,lon,1,profile,&distmin,&node1,&node2,&dist1,&dist2,(allow_start_destination||allow_finish_destination));
       }
 
+    if(IsFakeSegment(prev_segment))
+       prev_segment=IndexRealSegment(prev_segment);
+
     fake_segment=CreateFakeNullSegment(segments,start_node,prev_segment,finish_waypoint);
 
     result1=InsertResult(complete,start_node,prev_segment);
