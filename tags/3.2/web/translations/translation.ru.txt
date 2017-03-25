@@ -1,0 +1,246 @@
+#
+# Russian language translation phrases
+#
+
+#
+# Router output XML definition
+#
+
+%%copyright_creator_string%%	Автор
+%%copyright_source_string%%	Источник
+%%copyright_source_text%%	Использованы данные OpenStreetMap http://www.openstreetmap.org/
+%%copyright_license_string%%	Лицензия
+
+%%turn_-4%%	очень крутой поворот налево
+%%turn_-3%%	крутой поворот налево
+%%turn_-2%%	налево
+%%turn_-1%%	плавно налево
+%%turn_0%%	прямо
+%%turn_1%%	плавно направо
+%%turn_2%%	направо
+%%turn_3%%	крутой поворот направо
+%%turn_4%%	очень крутой поворот направо
+
+%%heading_-4%%	юг
+%%heading_-3%%	юго-запад
+%%heading_-2%%	запад
+%%heading_-1%%	северо-запад
+%%heading_0%%	север
+%%heading_1%%	северо-восток
+%%heading_2%%	восток
+%%heading_3%%	юго-восток
+%%heading_4%%	юг
+
+%%ordinal_1%%	Первый
+%%ordinal_2%%	Второй
+%%ordinal_3%%	Третий
+%%ordinal_4%%	Четвертый
+%%ordinal_5%%	Пятый
+%%ordinal_6%%	Шестой
+%%ordinal_7%%	Седьмой
+%%ordinal_8%%	Восьмой
+%%ordinal_9%%	Девятый
+%%ordinal_10%%	Десятый
+
+%%highway_motorway%%	автомагистраль
+%%highway_trunk%%	международная трасса
+%%highway_primary%%	дорога регионального значения
+%%highway_secondary%%	дорога областного значения
+%%highway_tertiary%%	дорога районного значения
+%%highway_unclassified%%	дорога местного значения
+%%highway_residential%%	улица
+%%highway_service%%	проезд
+%%highway_track%%	дорога с/х назначения
+%%highway_cycleway%%	велодорожка
+%%highway_path%%	тропинка
+%%highway_steps%%	лестница
+%%highway_ferry%%	паром
+
+%%route_shortest%%	Кратчайший
+%%route_quickest%%	Быстрый
+
+%%output-html_waypoint_waypoint%%	Точка
+%%output-html_waypoint_junction%%	перекрестке
+%%output-html_waypoint_roundabout%%	круговое движение
+%%output-html_title%%	%s маршрут
+%%output-html_start%%	Старт  %s, на %s
+%%output-html_node%%	на %s, %s, на %s
+%%output-html_segment%%	Следуйте по %s %.3f км, %.1f мин
+%%output-html_stop%%	Стоп  %s
+%%output-html_total%%	Всего %.1f км, %.0f минут
+%%output-html_subtotal%%	%.1f км, %.0f минут
+
+%%output-gpx_waypoint_waypt%%	ТОЧКА
+
+%%output-gpx_desc%%	%s маршрут от 'Старта' до 'Финиша'
+%%output-gpx_name%%	%s маршрут
+%%output-gpx_step%%	на %s по '%s' %.3f км, %.1f мин
+%%output-gpx_final%%	Всего - %.1f км, продолжительность - %.0f минут
+
+#
+# Router (and some shared) translations
+#
+
+@@LANGUAGE@@	Русский
+@@LANGUAGE-WEBPAGE@@	Страница на Русском языке
+
+@@OPTION-TAB@@	Настройки
+@@OPTION-TAB-HELP@@	Задать настройки маршрутизации
+
+@@RESULTS-TAB@@	Результаты
+@@RESULTS-TAB-HELP@@	Смотрите результат прокладки маршрута
+
+@@DATA-TAB@@	Данные
+
+@@ROUTINO-WEBSITE@@	Сайт Routino
+@@DOCUMENTATION@@	Документация
+
+@@LANGUAGE-BOX@@	Язык
+@@WAYPOINTS-BOX@@	Точки
+@@TRANSPORT-TYPE-BOX@@	Тип транспорта
+@@HIGHWAY-PREFERENCES-BOX@@	Настройки типа дорог
+@@SPEED-LIMITS-BOX@@	Ограничения скорости
+@@PROPERTY-PREFERENCES-BOX@@	Настройки качества дорог
+@@OTHER-RESTRICTIONS-BOX@@	Другие ограничения
+@@FIND-BOX@@	Найти
+@@LINKS-BOX@@	Ссылки
+@@HELP-BOX@@	Помощь
+
+@@STATUS-BOX@@	Статус
+@@SHORTEST-ROUTE@@	Кратчайший маршрут
+@@QUICKEST-ROUTE@@	Быстрейший маршрут
+
+@@STATISTICS-BOX@@	Routino Статистика
+
+@@WAYPOINT-SEARCH@@	Поиск по адресу
+@@WAYPOINT-GET@@	Текущее местоположение
+@@WAYPOINT-CENTRE1@@	Центрировать карту на этой точке
+@@WAYPOINT-UP@@	Поместить точку выше
+@@WAYPOINT-ADD@@	Добавить следующую точку 
+@@WAYPOINT-COORDS@@	По координатам
+@@WAYPOINT-HOME@@	Переключение домашней локации
+@@WAYPOINT-CENTRE2@@	Переместить точку в центр карты
+@@WAYPOINT-DOWN@@	Поместить точку ниже
+@@WAYPOINT-REMOVE@@	Удалить эту путевую точку
+@@WAYPOINT-REVERSE@@	Перестроить в обратном порядке
+@@WAYPOINT-REVERSE-BUTTON@@	Обратный порядок
+@@WAYPOINT-LOOP@@	Добавить точку для зацикливания
+@@WAYPOINT-LOOP-BUTTON@@	Зациклить
+
+@@TRANSPORT-FOOT@@	Пешком
+@@TRANSPORT-HORSE@@	Лошадь
+@@TRANSPORT-WHEELCHAIR@@	Инвалидное кресло
+@@TRANSPORT-BICYCLE@@	Велосипед
+@@TRANSPORT-MOPED@@	Мопед
+@@TRANSPORT-MOTORCYCLE@@	Мотоцикл
+@@TRANSPORT-MOTORCAR@@	Машина
+@@TRANSPORT-GOODS@@	Фургон
+@@TRANSPORT-HGV@@	Грузовой автомобиль
+@@TRANSPORT-PSV@@	Автобус
+
+@@HIGHWAY-MOTORWAY@@	Автомагистраль
+@@HIGHWAY-TRUNK@@	Международная трасса
+@@HIGHWAY-PRIMARY@@	Дорога регионального значения
+@@HIGHWAY-SECONDARY@@	Дорога областного значения
+@@HIGHWAY-TERTIARY@@	Дорога районного значения
+@@HIGHWAY-UNCLASSIFIED@@	Дорога местного значения
+@@HIGHWAY-RESIDENTIAL@@	Улица
+@@HIGHWAY-SERVICE@@	Проезд
+@@HIGHWAY-TRACK@@	Дорога с/х назначения
+@@HIGHWAY-CYCLEWAY@@	Велодорожка
+@@HIGHWAY-PATH@@	Тропинка
+@@HIGHWAY-STEPS@@	Лестница
+@@HIGHWAY-FERRY@@	Паром
+
+@@PROPERTY-PAVED@@	Мощеная
+@@PROPERTY-MULTILANE@@	Многополосная
+@@PROPERTY-BRIDGE@@	Мост
+@@PROPERTY-TUNNEL@@	Туннель
+@@PROPERTY-WALKINGROUTE@@	Пеший маршрут
+@@PROPERTY-BICYCLEROUTE@@	Велодорожка
+
+@@RESTRICT-ONEWAY@@	Односторонняя улица
+@@RESTRICT-TURNS@@	Ограничения поворота
+@@RESTRICT-WEIGHT@@	Вес
+@@RESTRICT-HEIGHT@@	Высота
+@@RESTRICT-WIDTH@@	Ширина
+@@RESTRICT-LENGTH@@	Длина
+
+@@FIND-SHORTEST-ROUTE@@	Найти кратчайший маршрут
+@@FIND-QUICKEST-ROUTE@@	Найти быстрейший маршут
+
+@@EDIT-OSM-DATA@@	Редактировать данные OSM
+
+@@ROUTER-NOT-RUN@@	Роутер не запущен
+@@ROUTER-RUNNING@@	Прокладка маршрута...
+@@ROUTER-COMPLETED@@	Прокладка маршрута завершена
+@@ROUTER-ERROR@@	Ошибка прокладки маршрута
+@@ROUTER-FAILED@@	Ошибка при запуске
+@@VIEW-DETAILS@@	Подробнее
+
+@@NO-INFORMATION@@	Пусто
+@@HTML-ROUTE@@	HTML навигатор
+@@GPX-TRACK-ROUTE@@	Трек в формате GPX
+@@GPX-ROUTE@@	Маршрут в формате GPX
+@@FULL-TEXT-ROUTE@@	Подробный текстовый файл
+@@TEXT-ROUTE@@	Текстовый файл
+@@OPEN-POPUP@@	Открыть
+
+@@DISPLAY-STATISTICS@@	Показать статистику данных
+
+@@JAVASCRIPT-REQUIRED@@	Javascript <em>обязателен</em> для просмотра данной страницы, так как на ней используется интерактивная карта.
+@@GEO-DATA@@	Гео данные
+@@TILES@@	Тайлы
+
+#
+# Visualiser specific translations
+#
+
+@@INSTRUCTIONS-BOX@@	Инструкции
+
+@@NO-DATA-DISPLAYED@@	Нет данных для отображения
+
+@@VISUALISER-NUM-NODES@@	Обработано # нод
+@@VISUALISER-NUM-TURNS@@	Обработано # ограничений поворотов
+
+@@WAYTYPE-ONEWAY@@	сегмент односторонней дороги
+
+@@TURNS-BUTTON@@	Показывать ограничения поворотов
+
+@@SPEED-BUTTON@@	Показывать ограничения скорости
+
+@@LIMIT-CHANGE@@	Изменить ограничения
+@@LIMIT-NONE@@	Нет отграничений
+@@SPEED-LIMIT-80@@	Ограничение скорости 80 км/ч
+
+@@WEIGHT-BUTTON@@	Показывать ограничения по весу
+
+@@WEIGHT-LIMIT-8@@	Ограничение веса 8 тонн
+
+@@HEIGHT-BUTTON@@	Показывать ограничение по высоте
+
+@@HEIGHT-LIMIT-4@@	Ограничение высоты 4.0 метра
+
+@@WIDTH-BUTTON@@	Показывать ограничение ширины
+
+@@WIDTH-LIMIT-3@@	Ограничение ширины 3.0 метра
+
+@@LENGTH-BUTTON@@	Показать ограничения длинны
+
+@@LENGTH-LIMIT-9@@	Ограничение длинны 9.0 метров
+
+@@ERROR-LOG-BUTTON@@	Показать лог ошибок
+
+@@CLEAR-DATA-BUTTON@@	Очистить данные
+
+#
+# Multi-line descriptive translations (router)
+#
+
+#
+# Multi-line descriptive translations (visualiser)
+#
+
+$$VISUALISER-ROUTER-INFO$$
+Для прокладки маршрута на карте используйте ссылку ниже.
+$$VISUALISER-ROUTER-INFO$$

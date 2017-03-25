@@ -1,0 +1,32 @@
+##
+## Options for Apache web server for language specific web pages and to run
+## Routino Fixme-finder CGI script.
+##
+
+# For some of the configuration options in this file to be accepted the
+# 'AllowOverride' option in the main Apache configuration file must be set to a
+# particular value.  A suitable value for the 'AllowOverride' option is
+# 'Options=MultiViews,ExecCGI FileInfo Limit' which will allow this file to be
+# used unmodified.  Alternatively the specific option can be commented out from
+# this file and set in the main Apache configuration file.
+
+
+# The Routino CGI scripts are stored in this directory and use the filename
+# extension ".cgi".  This filename extension needs to be registered with Apache
+# for the scripts to be executed.
+
+AddHandler cgi-script .cgi
+
+# The ExecCGI option must be set for the CGIs in this directory to be executed
+# by Apache.
+
+Options +ExecCGI
+
+# The CGI scripts that are used by Routino also call some other Perl scripts, to
+# stop these scripts from being seen by web users they can be denied by the
+# following entry.
+
+<FilesMatch .*\.pl$>
+   Order Deny,Allow
+   Deny from all
+</FilesMatch>
