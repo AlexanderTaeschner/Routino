@@ -23,7 +23,7 @@
 #ifndef VERSION_H
 #define VERSION_H    /*+ To stop multiple inclusions. +*/
 
-#define ROUTINO_VERSION "3.2+routino-destination"
+#define ROUTINO_VERSION "3.2+svn+routino-destination"
 
 #define ROUTINO_URL     "<http://www.routino.org/>"
 
