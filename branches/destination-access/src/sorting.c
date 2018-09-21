@@ -3,7 +3,7 @@
 
  Part of the Routino routing software.
  ******************/ /******************
- This file Copyright 2009-2015 Andrew M. Bishop
+ This file Copyright 2009-2015, 2017 Andrew M. Bishop
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
@@ -76,7 +76,8 @@ typedef struct _thread_data
 #if defined(USE_PTHREADS) && USE_PTHREADS
 
 static pthread_mutex_t running_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t running_cond = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t files_mutex   = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  running_cond  = PTHREAD_COND_INITIALIZER;
 
 #endif
 
@@ -154,7 +155,7 @@ index_t filesort_fixed(int fd_in,int fd_out,size_t itemsize,int (*pre_sort_funct
     threads[i].data=malloc(nitems*itemsize);
     threads[i].datap=malloc(nitems*sizeof(void*));
 
-    log_malloc(threads[i].data,nitems*itemsize);
+    log_malloc(threads[i].data ,nitems*itemsize);
     log_malloc(threads[i].datap,nitems*sizeof(void*));
 
     threads[i].filename=(char*)malloc(strlen(option_tmpdirname)+24);
@@ -295,6 +296,11 @@ index_t filesort_fixed(int fd_in,int fd_out,size_t itemsize,int (*pre_sort_funct
    }
 
 #endif
+
+ /* Shortcut if there are no files */
+
+ if(nfiles==0)
+    goto tidy_and_exit;
 
  /* Shortcut if only one file, lucky for us we still have the data in RAM) */
 
@@ -699,6 +705,11 @@ index_t filesort_vary(int fd_in,int fd_out,int (*pre_sort_function)(void*,index_
 
 #endif
 
+ /* Shortcut if there are no files */
+
+ if(nfiles==0)
+    goto tidy_and_exit;
+
  /* Shortcut if only one file, lucky for us we still have the data in RAM) */
 
  if(nfiles==1)
@@ -904,6 +915,13 @@ static void *filesort_fixed_heapsort_thread(thread_data *thread)
 
  /* Create a temporary file and write the result */
 
+#if defined(USE_PTHREADS) && USE_PTHREADS
+
+ if(option_filesort_threads>1)
+    pthread_mutex_lock(&files_mutex);
+
+#endif
+
  fd=OpenFileBufferedNew(thread->filename);
 
  for(item=0;item<thread->n;item++)
@@ -915,6 +933,8 @@ static void *filesort_fixed_heapsort_thread(thread_data *thread)
 
  if(option_filesort_threads>1)
    {
+    pthread_mutex_unlock(&files_mutex);
+
     pthread_mutex_lock(&running_mutex);
 
     thread->running=2;
@@ -949,6 +969,13 @@ static void *filesort_vary_heapsort_thread(thread_data *thread)
 
  /* Create a temporary file and write the result */
 
+#if defined(USE_PTHREADS) && USE_PTHREADS
+
+ if(option_filesort_threads>1)
+    pthread_mutex_lock(&files_mutex);
+
+#endif
+
  fd=OpenFileBufferedNew(thread->filename);
 
  for(item=0;item<thread->n;item++)
@@ -964,6 +991,8 @@ static void *filesort_vary_heapsort_thread(thread_data *thread)
 
  if(option_filesort_threads>1)
    {
+    pthread_mutex_unlock(&files_mutex);
+
     pthread_mutex_lock(&running_mutex);
 
     thread->running=2;

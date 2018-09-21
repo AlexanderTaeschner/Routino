@@ -57,10 +57,10 @@ Quick Start Guide
         cd /var/www/routino/www/leaflet
         sh -x install.sh
 
-   To make full use of the location search feature on the Routino web page
-   you will need to install some extra perl packages.
+   To run the Perl scripts that are used on the Routino web page you will
+   need to install some extra perl packages.
 
-       apt-get install libwww-perl liburi-perl libjson-pp-perl
+       apt-get install libcgi-pm-perl libwww-perl liburi-perl libjson-pp-perl
 
    Finally to make the web pages work you will need to add the extra lines
    to the Apache configuration file as described in the Configuration of
@@ -134,8 +134,18 @@ Pre-Requisites
 Compilation
 -----------
 
-   To compile the programs just type 'make' at the top level of the source
-   tree.
+   To compile the programs just type make at the top level of the source
+   tree. There are a number of options that can be given when compiling to
+   change the compilation options:
+
+   make CLANG=1
+          Compile with clang instead of gcc (default is CLANG=0).
+
+   make FASTMATHS=0
+          Compile without fast maths option (default is FASTMATHS=1).
+
+   make SANITIZE=1
+          Compile with gcc (or clang) sanitizer (default is SANITIZER=0).
 
    This program has been written to run on Linux, no cross-platform
    compatibility has been specifically included but on the other hand
@@ -309,4 +319,4 @@ Configuration of Web Server
 
 --------
 
-Copyright 2008-2016 Andrew M. Bishop.
+Copyright 2008-2018 Andrew M. Bishop.

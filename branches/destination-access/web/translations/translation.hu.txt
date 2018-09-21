@@ -6,30 +6,30 @@
 # Router output XML definition
 #
 
-%%copyright_creator_string%%	Készítő
+%%copyright_creator_string%%	Alkotó
 %%copyright_source_string%%	Forrás
 %%copyright_source_text%%	Openstreetmap adatok alapján http://www.openstreetmap.org/
-%%copyright_license_string%%	Liszenc
+%%copyright_license_string%%	Licenc
 
 %%turn_-4%%	Nagyon élesen balra
 %%turn_-3%%	Élesen balra
 %%turn_-2%%	Balra
-%%turn_-1%%	Balra tarts
+%%turn_-1%%	Enyhén balra
 %%turn_0%%	Egyenesen
-%%turn_1%%	Jobbra tarts
+%%turn_1%%	Enyhén jobbra
 %%turn_2%%	Jobbra
 %%turn_3%%	Élesen jobbra
 %%turn_4%%	Nagyon élesen jobbra
 
-%%heading_-4%%	dél
-%%heading_-3%%	délnyugat
-%%heading_-2%%	nyugat
-%%heading_-1%%	északnyugat
-%%heading_0%%	észak
-%%heading_1%%	északkelet
-%%heading_2%%	kelet
-%%heading_3%%	délkelet
-%%heading_4%%	dél
+%%heading_-4%%	Dél
+%%heading_-3%%	Délnyugat
+%%heading_-2%%	Nyugat
+%%heading_-1%%	Északnyugat
+%%heading_0%%	Észak
+%%heading_1%%	Északkelet
+%%heading_2%%	Kelet
+%%heading_3%%	Délkelet
+%%heading_4%%	Dél
 
 %%ordinal_1%%	első
 %%ordinal_2%%	második
@@ -49,7 +49,7 @@
 %%highway_tertiary%%	bekötőút
 %%highway_unclassified%%	egyéb közút
 %%highway_residential%%	lakóút
-%%highway_service%%	szervízút
+%%highway_service%%	szervizút
 %%highway_track%%	földút
 %%highway_cycleway%%	kerékpárút
 %%highway_path%%	ösvény
@@ -63,16 +63,20 @@
 %%output-html_waypoint_junction%%	Kereszteződés
 %%output-html_waypoint_roundabout%%	Körforgalom
 %%output-html_title%%	%s útvonal
-%%output-html_start%%	Indulás %s, %s felé
-%%output-html_node%%	Itt %s, menj %s %s felé
-%%output-html_rbnode%%	Kijárat %s, %s kijárat %s felé
-%%output-html_segment%%	Erre %s, %.3f km, %.1f perc
+%%output-html_start%%	%s, indulás %s felé
+%%output-html_node%%	%s, menj %s, %s felé
+%%output-html_rbnode%%	%s, hagyd el %s kijáraton %s felé
+%%output-html_segment%%	Haladj ezen: %s, %.3f km-t, %.1f percig
+%%output-html_stop%%	Állj meg itt: %s
 %%output-html_total%%	Összesen %.1f km, %.0f perc
 %%output-html_subtotal%%	%.1f km, %.0f perc
 
-%%output-gpx_waypoint_trip%%	Utazás
+%%output-gpx_waypoint_waypt%%	ÚTPONT
+%%output-gpx_waypoint_trip%%	ÚT
 
-%%output-gpx_desc%%	%s útvonal a kezdő és utolsó pont között
+%%output-gpx_desc%%	A kiindulási és a célpont közötti %s útvonal
+%%output-gpx_name%%	%s útvonal
+%%output-gpx_step%%	%s felé itt: %s, %.3f km, %.1f min
 %%output-gpx_final%%	Az egész út %.1f km, %.0f perc
 
 #
@@ -80,30 +84,31 @@
 #
 
 @@LANGUAGE@@	Magyar
-@@LANGUAGE-WEBPAGE@@	Magyar weblap
+@@LANGUAGE-WEBPAGE@@	Magyar weboldal
 
-@@ROUTER-TITLE@@	Openstreetmap alapú útvonaltervező
+@@ROUTER-TITLE@@	OpenStreetMap-alapú útvonaltervező
 
 @@OPTION-TAB@@	Beállítások
-@@OPTION-TAB-HELP@@	Útvonaltervező beállítások
+@@OPTION-TAB-HELP@@	Útvonaltervező-beállítások
 
 @@RESULTS-TAB@@	Eredmény
-@@RESULTS-TAB-HELP@@	Útvonaltervező eredmények
+@@RESULTS-TAB-HELP@@	Az útvonaltervezés eredményei
 
 @@DATA-TAB@@	Adatok
-@@DATA-TAB-HELP@@	Adatbázis információk
+@@DATA-TAB-HELP@@	Adatbázis-információk megtekintése
 
-@@ROUTINO-ROUTER@@	Routino openstreetmap útvonaltervező
+@@ROUTINO-ROUTER@@	Routino OpenStreetMap-útvonaltervező
 @@ROUTINO-WEBSITE@@	Routino weboldal
 @@DOCUMENTATION@@	Dokumentáció
 
 @@LANGUAGE-BOX@@	Nyelv
 @@WAYPOINTS-BOX@@	Útpontok
 @@TRANSPORT-TYPE-BOX@@	Közlekedési mód
-@@HIGHWAY-PREFERENCES-BOX@@	Út preferencia
-@@SPEED-LIMITS-BOX@@	Sebességkorlát
-@@PROPERTY-PREFERENCES-BOX@@	Út tulajdonságok
-@@OTHER-RESTRICTIONS-BOX@@	Kizáró tényezők
+@@HIGHWAY-PREFERENCES-BOX@@	Útvonal-beállítások
+@@SPEED-LIMITS-BOX@@	Sebességkorlátozás
+@@PROPERTY-PREFERENCES-BOX@@	Útjelleg-beállítások
+@@OTHER-RESTRICTIONS-BOX@@	További korlátozások
+@@FIND-BOX@@	Keresés
 @@LINKS-BOX@@	Linkek
 @@HELP-BOX@@	Súgó
 
@@ -112,32 +117,37 @@
 @@QUICKEST-ROUTE@@	Leggyorsabb út
 
 @@STATISTICS-BOX@@	Routino statisztika
-@@VISUALISER-BOX@@	Routino vizualizáció
+@@VISUALISER-BOX@@	Routino megjelenítő
 
+@@WAYPOINT-POSITION@@	XXX útpont pozíciója
+@@WAYPOINT-LONGITUDE@@	XXX útpont: szélesség
+@@WAYPOINT-LATITUDE@@	XXX útpont: hosszúság
+@@WAYPOINT-LOCATION@@	XXX útpont helye
 @@WAYPOINT-SEARCH@@	Hely keresése
-@@WAYPOINT-GET@@	Aktuális helyzet
-@@WAYPOINT-CENTRE1@@	Legyen ez a pont a térkép közepe
-@@WAYPOINT-UP@@	Mozgasd feljebb ezt a pontot
-@@WAYPOINT-ADD@@	Új pont ezután a pont után
-@@WAYPOINT-COORDS@@	Hely koordinátája
-@@WAYPOINT-CENTRE2@@	Ez legyen a térkép középpontja
-@@WAYPOINT-DOWN@@	Mozgasd ezt a pontot lejjebb
-@@WAYPOINT-REMOVE@@	Pont törlése
-@@WAYPOINT-REVERSE@@	Útirány megfordítása
-@@WAYPOINT-REVERSE-BUTTON@@	Ellenkező irány
-@@WAYPOINT-LOOP@@	Új pont létrehozása a kezdőpontban
+@@WAYPOINT-GET@@	Jelenlegi helyzet megjelenítése
+@@WAYPOINT-CENTRE1@@	Legyen ez az útpont a térkép közepe
+@@WAYPOINT-UP@@	Útpont feljebb mozgatása
+@@WAYPOINT-ADD@@	Útpont hozzáadása ezen útpont után
+@@WAYPOINT-COORDS@@	Hely koordinátái
+@@WAYPOINT-HOME@@	Beállítás otthonnak
+@@WAYPOINT-CENTRE2@@	A térkép mostani közepe legyen az útpont
+@@WAYPOINT-DOWN@@	Útpont lejjebb mozgatása
+@@WAYPOINT-REMOVE@@	Útpont eltávolítása
+@@WAYPOINT-REVERSE@@	Útpontok sorrendjének megfordítása
+@@WAYPOINT-REVERSE-BUTTON@@	Sorrend megfordítása
+@@WAYPOINT-LOOP@@	Új utolsó útpont hozzáadása a kezdőpontban (körútvonal)
 @@WAYPOINT-LOOP-BUTTON@@	Kör bezárása
 
-@@TRANSPORT-FOOT@@	Gyalog
-@@TRANSPORT-HORSE@@	Lovas
-@@TRANSPORT-WHEELCHAIR@@	Kerekesszékes
-@@TRANSPORT-BICYCLE@@	Kerékpáros
-@@TRANSPORT-MOPED@@	Robogós
-@@TRANSPORT-MOTORCYCLE@@	Motoros
-@@TRANSPORT-MOTORCAR@@	Autós
-@@TRANSPORT-GOODS@@	Kisteherautós
-@@TRANSPORT-HGV@@	Kamionos
-@@TRANSPORT-PSV@@	Buszos
+@@TRANSPORT-FOOT@@	Gyalogos
+@@TRANSPORT-HORSE@@	Ló
+@@TRANSPORT-WHEELCHAIR@@	Kerekesszék
+@@TRANSPORT-BICYCLE@@	Kerékpár
+@@TRANSPORT-MOPED@@	Robogó
+@@TRANSPORT-MOTORCYCLE@@	Motor
+@@TRANSPORT-MOTORCAR@@	Autó
+@@TRANSPORT-GOODS@@	Kisteherautó
+@@TRANSPORT-HGV@@	Nehéz tehergépkocsi
+@@TRANSPORT-PSV@@	Busz
 
 @@HIGHWAY-MOTORWAY@@	Autópálya
 @@HIGHWAY-TRUNK@@	Autóút
@@ -145,8 +155,8 @@
 @@HIGHWAY-SECONDARY@@	Összekötőút
 @@HIGHWAY-TERTIARY@@	Bekötőút
 @@HIGHWAY-UNCLASSIFIED@@	Egyéb közút
-@@HIGHWAY-RESIDENTIAL@@	Lakóövezeti út
-@@HIGHWAY-SERVICE@@	Szervízút
+@@HIGHWAY-RESIDENTIAL@@	Lakóút
+@@HIGHWAY-SERVICE@@	Szervizút
 @@HIGHWAY-TRACK@@	Földút
 @@HIGHWAY-CYCLEWAY@@	Kerékpárút
 @@HIGHWAY-PATH@@	Ösvény
@@ -158,102 +168,155 @@
 @@PROPERTY-BRIDGE@@	Híd
 @@PROPERTY-TUNNEL@@	Alagút
 @@PROPERTY-WALKINGROUTE@@	Gyalogút
-@@PROPERTY-BICYCLEROUTE@@	Kijelölt kerékpárút
+@@PROPERTY-BICYCLEROUTE@@	Kerékpárút
 
-@@RESTRICT-ONEWAY@@	Egyirányúsítás mellőzése
-@@RESTRICT-TURNS@@	Kanyarodási tilalmak mellőzése
-@@RESTRICT-WEIGHT@@	Súly
+@@RESTRICT-ONEWAY@@	Egyirányú utcák tiszteletben tartása
+@@RESTRICT-TURNS@@	Bekanyarodási tilalmak tiszteletben tartása
+@@RESTRICT-WEIGHT@@	Tömeg
 @@RESTRICT-HEIGHT@@	Magasság
 @@RESTRICT-WIDTH@@	Szélesség
 @@RESTRICT-LENGTH@@	Hosszúság
 
-@@FIND-SHORTEST-ROUTE@@	A legrövidebb út keresése
-@@FIND-QUICKEST-ROUTE@@	A leggyorsabb út keresése
+@@FIND-SHORTEST-ROUTE@@	A legrövidebb út megkeresése
+@@FIND-QUICKEST-ROUTE@@	A leggyorsabb út megkeresése
 
-@@MAP-VIEW-LINK@@	Link erre a nézetre
-@@EDIT-OSM-DATA@@	OSM adatok szerkesztése
+@@MAP-VIEW-LINK@@	Link ehhez a térképnézethez
+@@EDIT-OSM-DATA@@	Ezen OSM-adatok szerkesztése
 
-@@ROUTER-NOT-RUN@@	Az útvonaltervező nem fut
-@@ROUTER-RUNNING@@	Az útvonaltervező számol ...
+@@ROUTER-NOT-RUN@@	Az útvonaltervező nem működik
+@@ROUTER-RUNNING@@	Az útvonaltervező számol…
 @@ROUTER-COMPLETED@@	Az útvonaltervezés kész
 @@ROUTER-ERROR@@	Útvonaltervezési hiba
-@@ROUTER-FAILED@@	Az útvonaltervezőt nem sikerült futtatni
-@@VIEW-DETAILS@@	Részletek
+@@ROUTER-FAILED@@	Az útvonaltervezőt nem sikerült lefuttatni
+@@VIEW-DETAILS@@	Részletek megtekintése
 
 @@NO-INFORMATION@@	Nincs információ
-@@HTML-ROUTE@@	HTML irányok
-@@GPX-TRACK-ROUTE@@	GPX file
-@@FULL-TEXT-ROUTE@@	Teljes szöveges file
-@@TEXT-ROUTE@@	Szöveges file
-@@OPEN-POPUP@@	Új ablak
+@@HTML-ROUTE@@	HTML-irányok
+@@GPX-TRACK-ROUTE@@	GPX-nyomvonalfájl
+@@GPX-ROUTE@@	GPX útvonalfájl
+@@FULL-TEXT-ROUTE@@	Teljes szöveges fájl
+@@TEXT-ROUTE@@	Szöveges fájl
+@@OPEN-POPUP@@	Megnyitás új ablakban
 
-@@DISPLAY-STATISTICS@@	Statisztika mutatása
+@@DISPLAY-STATISTICS@@	Adatstatisztika megjelenítése
 
+@@JAVASCRIPT-REQUIRED@@	Az interaktív térkép miatt Javascript <em>szükséges</em> a weboldal használatához
 @@ROUTER@@	Útvonaltervező
-@@TILES@@	Térképszeletek
+@@GEO-DATA@@	Geo Data
+@@TILES@@	Mozaikok
 
 #
 # Visualiser specific translations
 #
 
-@@VISUALISER-TITLE@@	Útvonaltervező adatok vizuálisan
+@@VISUALISER-TITLE@@	Az útvonal-tervezési adatok megjelenítője
 
-@@INSTRUCTIONS-BOX@@	Útmutatók
-@@ROUTER-BOX@@	Routino Útvonaltervező
+@@INSTRUCTIONS-BOX@@	Használati utasítás
+@@ROUTER-BOX@@	Routino útvonaltervező
 
-@@NO-DATA-DISPLAYED@@	Nincs megjelenítendő adat
+@@NO-DATA-DISPLAYED@@	Nincs megjelenített adat
 
-@@VISUALISER-FAILED@@	Sikertelen az adatok betöltése
-@@VISUALISER-NUM-JUNCTIONS@@	Feldolgozva # kereszteződés
-@@VISUALISER-NUM-SUPER@@	Feldolgozva # szuper-pont/szegmens
-@@VISUALISER-NUM-WAYTYPE@@	Feldolgozva # út típus szegmens
-@@VISUALISER-NUM-SEGMENTS@@	Feldolgozva # szegmens
-@@VISUALISER-NUM-NODES@@	Feldolgozva # pont
-@@VISUALISER-NUM-TURNS@@	Feldolgozva # kanyarodási korlátozás
+@@VISUALISER-FAILED@@	A megjelenítő adatait nem sikerült betölteni
+@@VISUALISER-NUM-JUNCTIONS@@	# kereszteződés feldolgozva
+@@VISUALISER-NUM-SUPER@@	# főpont/főszakasz feldolgozva
+@@VISUALISER-NUM-WAYTYPE@@	# úttípusszakasz feldolgozva
+@@VISUALISER-NUM-SEGMENTS@@	# szakasz feldolgozva
+@@VISUALISER-NUM-NODES@@	# pont feldolgozva
+@@VISUALISER-NUM-TURNS@@	# bekanyarodási korlátozás feldolgozva
+@@VISUALISER-NUM-LIMITS@@	# sebességkorlátozás-változás feldolgozva
+@@VISUALISER-NUM-ERRORS@@	# hibanapló feldolgozva
 
-@@JUNCTIONS-BUTTON@@	Kereszteződések mutatása
-@@JUNCTIONS-3@@	három út talákozása
-@@JUNCTIONS-4@@	négy út találkozása
-@@JUNCTIONS-5@@	öt út találkozása
-@@JUNCTIONS-6@@	hat út találkozása
-@@JUNCTIONS-MORE@@	hét, vagy több út találkozása
+@@JUNCTIONS-BUTTON@@	Kereszteződések megjelenítése
+$$JUNCTIONS-INFO$$
+Színkóddal jelenik meg minden zsákutca végét jelentő pont, a két különböző típusú (vagy különböző tulajdonságú) utat összekapcsoló kereszteződés, valamint az a kereszteződés, amelyben legalább három szakasz kapcsolódik össze.
+$$JUNCTIONS-INFO$$
+@@JUNCTIONS-1@@	csak egy út – zsákutca.
+@@JUNCTIONS-2@@	két különböző típusú út találkozása.
+@@JUNCTIONS-3@@	három út találkozása.
+@@JUNCTIONS-4@@	négy út találkozása.
+@@JUNCTIONS-5@@	öt út találkozása.
+@@JUNCTIONS-6@@	hat út találkozása.
+@@JUNCTIONS-MORE@@	legalább hét út találkozása.
 
-@@SUPER-BUTTON@@	Szuper szegmens mutatása
+@@SUPER-BUTTON@@	Főszakaszok megjelenítése
+$$SUPER-INFO$$
+Minden főpont és hozzá kapcsolódó főszakasz látható (a leírást lásd az algoritmust bemutató oldalon).
+$$SUPER-INFO$$
 
-@@WAYTYPE-BUTTON@@	Út típus szakaszok megjelenítese
+@@WAYTYPE-BUTTON@@	Úttípusszakaszok megjelenítése
+$$WAYTYPE-INFO$$
+Minden különleges (egyirányú, kerékpárral mindkét irányba járható és körforgalmi) útszakasz látható.
+
+Az egyirányú szakaszoknál színes háromszög mutatja a megengedett irányt. A háromszögek színe az útszakasz irányától függ.
+$$WAYTYPE-INFO$$
 
 @@WAYTYPE-ONEWAY@@	Egyirányú szakaszok
+@@WAYTYPE-CYCLE-BOTH-WAYS@@	Kerékpárral mindkét irányba járható szakaszok
 @@WAYTYPE-ROUNDABOUT@@	Körforgalmi szakaszok
 
-@@HIGHWAY-BUTTON@@	Út szakaszok megjelenítése
+@@HIGHWAY-BUTTON@@	Útszakaszok megjelenítése
+$$HIGHWAY-INFO$$
+A kiválasztott úttípushoz tartozó összes szakasz látható.
+$$HIGHWAY-INFO$$
 
-@@TURNS-BUTTON@@	Kanyarodási korlátozások
+@@TRANSPORT-BUTTON@@	Közlekedésimód-szakaszok megjelenítése
+$$TRANSPORT-INFO$$
+A kiválasztott közlekedési móddal járható összes szakasz látható.
+$$TRANSPORT-INFO$$
 
-@@SPEED-BUTTON@@	Sebességhatárok
+@@BARRIER-BUTTON@@	Akadálypontok megjelenítése
+$$BARRIER-INFO$$
+A kiválasztott közlekedési módot elzáró összes akadály látható.
+$$BARRIER-INFO$$
+
+@@TURNS-BUTTON@@	Bekanyarodási korlátozások megjelenítése
+$$TURNS-INFO$$
+Minden bekanyarodási korlátozás megjelenik egy vonal formájában, amely a tiltott bekanyarodást jelzi.
+$$TURNS-INFO$$
+
+@@SPEED-BUTTON@@	Sebességkorlátozások megjelenítése
+$$SPEED-INFO$$
+Megjelennek a különböző sebességkorlátozásokat összekapcsoló pontok és az adott szakaszokra vonatkozó sebességkorlátozás.
+$$SPEED-INFO$$
 
 @@LIMIT-CHANGE@@	Korlátozás változása
-@@LIMIT-NONE@@	Nincs korlátozás
-@@SPEED-LIMIT-80@@	80 km/óra sebességkorlátozás
+@@LIMIT-NONE@@	Nincs meghatározott korlátozás
+@@SPEED-LIMIT-80@@	80 km/h sebességkorlátozás
 
-@@WEIGHT-BUTTON@@	Súlykorlátozások
+@@WEIGHT-BUTTON@@	Súlykorlátozások megjelenítése
+$$WEIGHT-INFO$$
+Megjelennek a különböző súlykorlátozásokat összekapcsoló pontok és az adott szakaszokra vonatkozó súlykorlátozás.
+$$WEIGHT-INFO$$
 
-@@WEIGHT-LIMIT-8@@	8 tonnás súlykorlátozás
+@@WEIGHT-LIMIT-8@@	8 t súlykorlátozás
 
-@@HEIGHT-BUTTON@@	Magasságkorlátozások
+@@HEIGHT-BUTTON@@	Magasságkorlátozások megjelenítése
+$$HEIGHT-INFO$$
+Megjelennek a különböző magasságkorlátozásokat összekapcsoló pontok és az adott szakaszokra vonatkozó magasságkorlátozás.
+$$HEIGHT-INFO$$
 
-@@HEIGHT-LIMIT-4@@	4 méter magasságkorlátozás
+@@HEIGHT-LIMIT-4@@	4 m magasságkorlátozás
 
-@@WIDTH-BUTTON@@	Szélességkorlátozások
+@@WIDTH-BUTTON@@	Szélességkorlátozások megjelenítése
+$$WIDTH-INFO$$
+Megjelennek a különböző szélességkorlátozásokat összekapcsoló pontok és az adott szakaszokra vonatkozó szélességkorlátozás.
+$$WIDTH-INFO$$
 
-@@WIDTH-LIMIT-3@@	3 méter szélességkorlátozás
+@@WIDTH-LIMIT-3@@	3 m szélességkorlátozás
 
-@@LENGTH-BUTTON@@	Hosszúságkorlátozások
+@@LENGTH-BUTTON@@	Hosszúságkorlátozások megjelenítése
+$$LENGTH-INFO$$
+Megjelennek a különböző hosszúságkorlátozásokat összekapcsoló pontok és az adott szakaszokra vonatkozó hosszúság korlátozás.
+$$LENGTH-INFO$$
 
-@@LENGTH-LIMIT-9@@	9 méter hosszúságkorlátozás
+@@LENGTH-LIMIT-9@@	9 m hosszúságkorlátozás
 
-@@PROPERTY-BUTTON@@	Út tulajdonságok megjelenítése
+@@PROPERTY-BUTTON@@	Úttulajdonságok megjelenítése
+$$PROPERTY-INFO$$
+Megjelennek az utak különleges tulajdonságú szakaszai.
+$$PROPERTY-INFO$$
 
-@@ERROR-LOG-BUTTON@@	Hiba logok megmutatása
+@@ERROR-LOG-BUTTON@@	Hibanaplók megjelenítése
 $$ERROR-LOG-INFO$$
 Lehetséges hibák fordultak elő az adatok feldolgozása során
 $$ERROR-LOG-INFO$$
@@ -264,7 +327,99 @@ $$ERROR-LOG-INFO$$
 # Multi-line descriptive translations (router)
 #
 
+$$ROUTER-INFO$$
+Ezzel a honlappal útvonalakat lehet tervezni az OpenStreetMapről gyűjtott adatok segítségével.
+Válaszd ki a kiindulási és a célpontot (kattints az alábbi jelzőkre), jelöld ki az útvonaltervezési beállításokat, és találd meg az utat.
+$$ROUTER-INFO$$
+
+$$ROUTER-OPTIONS-HELP$$
+<b>Rövid útmutató</b>
+<br>
+Kattintsunk a jelzőikonokra (fent) és helyezzük el őket a térképen (jobbra), majd húzzuk őket a megfelelő helyre. Valószínűleg az a legegyszerűbb, ha először ránagyítunk a térkép megfelelő részére, és ez után helyezzük el a jelzőket. Másik lehetőségként beírhatjuk a fenti mezőkbe a megfelelő szélességi és hosszúsági adatokat.
+<p>
+A fenti beállításoknál jelöljük ki a közlekedés módját, a megengedett úttípusokat, sebességkorlátozásokat, úttulajdonságokat és más korlátozásokat. Az út kiszámításához és térképen való megjelenítéséhez jelöljük ki a „Legrövidebb” vagy a „Leggyorsabb” lehetőséget.
+<p>
+<b>Útpontok</b>
+<br>
+A jelzőikonra történő kattintás elrejti/megjeleníti az ikont a térképen. Az út úgy számíttatik ki, hogy (a kijelölt közlekedési mód szerint a lehető legközelebb) érintse a megadott sorrendben az összes útpontot, amelyek jelzőikonja látható a térképen.
+<p>
+<b>Közlekedési mód</b>
+<br>
+A közlekedési mód kijelölése a kiválasztott útvonalat azokra korlátozza, amelyek így lehetséges közlekedni, a többi paraméter értékét pedig az alapértelmezettre állítja.
+<p>
+<b>Úttulajdonságok</b>
+<br>
+Az úttulajdonságokat százalékként lehet kijelölni, a kiválasztott útvonalak pedig igyekeznek az előnyben részesített úttípusokat követni. Ha például a „Főút” 110%-os értéket kap, az „Összekötő út” pedig 100%-ot, az azt jelenti, hogy még akkor is főúton vezető útvonal fog megjelenni, ha az akár 10%-kal is hosszabb, mint az összekötő utakon vezető.
+<p>
+<b>Sebességkorlátozások</b>
+<br>
+A különböző úttípusokhoz itt kiválasztott sebességkorlátozások akkor érvényesek, ha az úton nincs más sebességkorlátozás-jelzés vagy az magasabb, mint a kiválasztott.
+<p>
+<b>Útjelleg-beállítások</b>
+<br>
+Az útjelleg-beállítást százalékként lehet kijelölni, és az útvonal oly módon terveztetik meg, hogy lehetőleg a kívánt tulajdonságú utakon vezessen.
+Ha például a „burkolt” út 75%-ot kap, akkor a „burkolatlan” automatikusan 25%-ot. Ez azt jelenti, hogy még akkor is a burkolt úton vezető útvonal fog megjelenni, ha az akár 3× hosszabb, mint a burkolatlan úton vezető.
+<p>
+<b>Más korlátozások</b>
+<br>
+Ezekkel olyan utak is megtalálhatók, amelyek elkerülik a jelzett súly-, magasság-, szélesség- és hosszúságkorlátozásokat. Az egyirányú utcák is figyelmen kívül hagyhatók (pl. gyaloglásnál).
+$$ROUTER-OPTIONS-HELP$$
+
+$$ROUTER-RESULTS-HELP$$
+<b>Rövid útmutató</b>
+<br>
+Az útvonal kiszámítását követően letölthetjük a GPX-fájlt vagy az út (összefoglaló vagy részletes) leírását egyszerű szöveges (txt) fájlban. Az út leírását meg is nézhetjük, és ránagyíthatunk a kijelölt részekre.
+<p>
+<b>Problémamegoldás</b>
+<br>
+Ha az útvonaltervező hibajelzéssel fejezi be a számítást, annak legvalószínűbb oka az, hogy a kijelölt pontok között lehetetlen utat találni. Valamelyik (vagy mindkét) jelző elmozdításával vagy az útvonal-tervezési beállítások módosításával minden bizonnyal sikerül utat találni.
+<p>
+<b>Kimeneti formátumok</b>
+<br>
+<dl>
+  <dt>HTML utasítások
+  <dd>Az út leírása a megfelelő irányokkal minden fontosabb csomópontban.
+  <dt>GPX-nyomvonalfájl
+  <dd>A térképen láthatóval megegyező információ; minden pont és szakasz.
+  <dt>GPX-útvonalfájl
+  <dd>Az út szöveges leírásában szereplő információ egy útponttal az útvonal minden fontos csomópontjánál.
+  <dt>Teljes szöveges fájl
+  <dd>Minden érintett pont felsorolása a köztük lévő távolsággal, és az út össze fontos lépésének halmozott távolsága.
+  <dt>Szövegfájl
+  <dd>Az útvonal esetében megjelentő szövegben megtalálható információ.
+</dl>
+
+$$ROUTER-RESULTS-HELP$$
+
+$$ROUTER-VISUALISER-INFO$$
+Hogy megnézhessük, a Routino hogyan látja az adatokat, létezik egy adatmegjelenítő, amellyel különféle módokon jeleníthetők meg a számítás alapját jelentő adatok.
+$$ROUTER-VISUALISER-INFO$$
+
 #
 # Multi-line descriptive translations (visualiser)
 #
 
+$$VISUALISER-INFO$$
+Ezen a weboldalon vizuálisan is megjeleníthetők azok az adatok, amelyeket a Routino használ az útvonaltervezéshez.
+Csak az út szempontjából fontos adatok jelennek meg, így az adatok egy része ki van zárva.
+$$VISUALISER-INFO$$
+
+$$VISUALISER-INSTRUCTIONS$$
+Nagyíts, majd használd az alábbi gombokat az adatok letöltéséhez. A kiszolgáló csak akkor küld adatokat, ha a kijelölt terület elég kicsi.
+$$VISUALISER-INSTRUCTIONS$$
+
+$$VISUALISER-HELP$$
+<b>Rövid útmutató</b>
+<br>
+Az adatok típusának megjelenítéséhez nagyíts egy területre, és jelöld ki az egyik gombot.
+<br>
+További adatbeállításokat találhatunk, ha kinyitjuk az egyes gombok alatti részleteket.
+<p>
+<b>Adatkudarc</b>
+<br>
+Ha a kijelölt terület túl nagy (adattípusfüggő), akkor a státusz azt fogja kiírni, hogy „A megjelenítő adatait nem sikerült betölteni”. Ilyenkor nagyítsunk rá jobban a területre, és próbáljuk meg újra.
+$$VISUALISER-HELP$$
+
+$$VISUALISER-ROUTER-INFO$$
+A térképen való útvonaltervezés végrehajtásához használd az alábbi linket.
+$$VISUALISER-ROUTER-INFO$$
