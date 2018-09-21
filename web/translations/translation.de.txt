@@ -109,7 +109,7 @@
 @@PROPERTY-PREFERENCES-BOX@@	Vorgaben zur Wegbeschaffenheit
 @@OTHER-RESTRICTIONS-BOX@@	andere Vorgaben
 @@FIND-BOX@@	Suche
-@@LINKS-BOX@@	Links
+@@LINKS-BOX@@	Verbindungen
 @@HELP-BOX@@	Hilfe
 
 @@STATUS-BOX@@	Status
@@ -200,7 +200,7 @@
 
 @@DISPLAY-STATISTICS@@	zeige die Statistik
 
-@@JAVASCRIPT-REQUIRED@@	Um die interaktive Karte zu nutzen iWork Javascript benötigt. 
+@@JAVASCRIPT-REQUIRED@@	Um die interaktive Karte zu nutzen iWork Javascript benötigt.
 @@ROUTER@@	Router
 @@GEO-DATA@@	Geodaten
 @@TILES@@	Kacheln
@@ -227,6 +227,9 @@
 @@VISUALISER-NUM-ERRORS@@	# Error Logs erstellt
 
 @@JUNCTIONS-BUTTON@@	Kreuzungen anzeigen
+$$JUNCTIONS-INFO$$
+Jeder Knoten der eine Sackgasse, eine Kreuzung zwischen zwei Autobahnen mit unterschiedlichen Typ (oder unterschiedlichen Eigenschaften), oder eine Kreuzung zwischen mehr als zwei Segmenten ist, wird rot dargestellt.
+$$JUNCTIONS-INFO$$
 @@JUNCTIONS-1@@	ein Weg - Sackgasse
 @@JUNCTIONS-2@@	Aufeinandertreffen zweier Wege unterschiedlichen Typs.
 @@JUNCTIONS-3@@	Aufeinandertreffen von drei Wegen.
@@ -240,7 +243,7 @@
 @@WAYTYPE-BUTTON@@	Wegart des Abschnittes anzeigen
 $$WAYTYPE-INFO$$
 Spezial-Arten der Abschnitte (Einbahnstraße, beidseitige Fahrradwege und Kreisverkehre) werden angezeigt.
-Ein koloriertes Dreieck zeigt die erlaubte Fahrtrichtung an. Die Farben der Dreiecke hängen von der jeweiligen Art des Abschnittes ab. 
+Ein koloriertes Dreieck zeigt die erlaubte Fahrtrichtung an. Die Farben der Dreiecke hängen von der jeweiligen Art des Abschnittes ab.
 $$WAYTYPE-INFO$$
 
 @@WAYTYPE-ONEWAY@@	Einbahnstraßen Segmente
@@ -253,7 +256,7 @@ Jeder Abschnitt der ausgewählten Wegart ist gezeichnet.
 $$HIGHWAY-INFO$$
 
 $$BARRIER-INFO$$
-Jedes blockierendes Hindernis die den gewählten Transporttyp ist dargestellt.
+Jedes Hindernis welches den gewählten Transporttyp blockiert ist dargestellt.
 $$BARRIER-INFO$$
 
 @@TURNS-BUTTON@@	Zeige Abbiegebeschränkungen
@@ -271,7 +274,7 @@ $$TURNS-INFO$$
 
 @@WEIGHT-LIMIT-8@@	8 Tonnen Wegbeschränkung
 
-@@HEIGHT-BUTTON@@	Maximale Höhe anzeigen 
+@@HEIGHT-BUTTON@@	Maximale Höhe anzeigen
 
 @@HEIGHT-LIMIT-4@@	4.0 m Höhenbeschränkung
 

@@ -5,7 +5,7 @@
 
      Part of the Routino routing software.
      ============================================================
-     This file Copyright 2010-2015, 2017 Andrew M. Bishop
+     This file Copyright 2010-2015, 2017, 2018 Andrew M. Bishop
 
      This program is free software: you can redistribute it and/or modify
      it under the terms of the GNU Affero General Public License as published by
@@ -184,6 +184,10 @@
     <if v="official"    > <set v="yes"/> </if>
 
     <if v="destination" > <set v="destination"/> </if>
+    <if v="customer"    > <set v="destination"/> </if>
+    <if v="customers"   > <set v="destination"/> </if>
+    <if v="delivery"    > <set v="destination"/> </if>
+    <if v="residents"   > <set v="destination"/> </if>
     <if v="private"     > <set v="destination"/> </if>
 
     <if v="unsuitable"  > <set v="no"/> </if>
@@ -664,9 +668,11 @@
       <if v="official"    > <set v="yes"/> </if>
 
       <if v="destination" > <set v="destination"/> </if>
-      <if v="private"     > <set v="destination"/> </if>
-      <if v="customers"   > <set v="destination"/> </if>
       <if v="customer"    > <set v="destination"/> </if>
+      <if v="customers"   > <set v="destination"/> </if>
+      <if v="delivery"    > <set v="destination"/> </if>
+      <if v="residents"   > <set v="destination"/> </if>
+      <if v="private"     > <set v="destination"/> </if>
 
       <if v="unsuitable"  > <set v="no"/> </if>
       <if v="limited"     > <set v="no"/> </if>
@@ -1059,6 +1065,7 @@
 
       <if k="name"> <output/> </if>
       <if k="ref" > <output/> </if>
+      <ifnot k="ref" > <if k="prow_ref" > <output k="ref"/> </if> </ifnot>
 
       <!-- Output the area tag -->
 

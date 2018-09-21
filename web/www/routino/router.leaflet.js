@@ -3,7 +3,7 @@
 //
 // Part of the Routino routing software.
 //
-// This file Copyright 2008-2017 Andrew M. Bishop
+// This file Copyright 2008-2018 Andrew M. Bishop
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -1124,6 +1124,9 @@ function dragWaypointMapDrop(e)
 
  if(!routino.point[dragged_marker].active)
     markerToggleMap(dragged_marker);
+
+ if(routino.point[dragged_marker].search=="")
+    markerCoords(dragged_marker);
 }
 
 
@@ -1145,8 +1148,6 @@ function markerToggleMap(marker) // called from router.html
    }
 
  markerAddRemoveMap(marker,!routino.point[marker].active);
-
- updateSearchButtons();
 }
 
 
@@ -1180,6 +1181,8 @@ function markerAddMap(marker)
  markersmoved=true;
 
  updateURLs();
+
+ updateSearchButtons();
 }
 
 
@@ -1199,6 +1202,8 @@ function markerRemoveMap(marker)
  markersmoved=true;
 
  updateURLs();
+
+ updateSearchButtons();
 }
 
 
@@ -1667,7 +1672,7 @@ function markerRemoveForm(marker)
 function markerClearForm(marker)
 {
  markerRemoveMap(marker);
- markerCoords(marker);
+ markerSearch(marker);
 
  formSetCoords(marker,"","");
  formSetSearch(marker,"");
