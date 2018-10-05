@@ -1779,7 +1779,7 @@ static Results *FindFinishRoutes(Nodes *nodes,Segments *segments,Ways *ways,Rela
  while((result1=PopFromQueue(queue)))
    {
     Node *node1p=NULL;
-    Segment *segment1p,*segment2p;
+    Segment *segment1p=NULL,*segment2p;
     Way *way1p;
     index_t real_node1,node1,seg1,seg1r;
     index_t turnrelation=NO_RELATION;

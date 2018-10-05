@@ -27,10 +27,11 @@
 #define write(fd,address,length) _write(fd,address,(unsigned int)(length))
 #define open    _open
 #define close   _close
-#define unlink  _unlink
+#define unlnk  _unlink
 #define ssize_t SSIZE_T
 #else
 #include <unistd.h>
+#define unlnk  unlink
 #endif
 
 #include <stdlib.h>
@@ -896,7 +897,7 @@ int CloseFileBuffered(int fd)
 #endif
 
  if(openedfiles[fd]->delete)
-    unlink(openedfiles[fd]->filename);
+    unlnk(openedfiles[fd]->filename);
 
  free(openedfiles[fd]);
  openedfiles[fd]=NULL;
@@ -962,7 +963,7 @@ void CloseFile(int fd)
 #endif
 
  if(openedfiles[fd]->delete)
-    unlink(openedfiles[fd]->filename);
+    unlnk(openedfiles[fd]->filename);
 
  free(openedfiles[fd]);
  openedfiles[fd]=NULL;
@@ -994,7 +995,7 @@ int DeleteFile(const char *filename)
 
 #endif
 
- unlink(filename);
+ unlnk(filename);
 
  return(0);
 }

@@ -550,7 +550,7 @@ static void process_way(void)
  int64_t delta_id;
  TagList *tags=NULL,*result=NULL;
  int mode=mode_change;
- unsigned char *refs=NULL,*refs_end;
+ unsigned char *refs=NULL,*refs_end=NULL;
 
  delta_id=o5m_sint64(&buffer_ptr);
  id+=delta_id;
@@ -629,7 +629,7 @@ static void process_relation()
  int64_t delta_id;
  TagList *tags=NULL,*result=NULL;
  int mode=mode_change;
- unsigned char *refs=NULL,*refs_end;
+ unsigned char *refs=NULL,*refs_end=NULL;
 
  delta_id=o5m_sint64(&buffer_ptr);
  id+=delta_id;
