@@ -19,36 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\errorlogx.c" />
-    <ClCompile Include="..\src\files.c" />
-    <ClCompile Include="..\src\logerror.c" />
-    <ClCompile Include="..\src\logging.c" />
-    <ClCompile Include="..\src\mman-win32.c" />
-    <ClCompile Include="..\src\nodesx.c" />
-    <ClCompile Include="..\src\osmo5mparse.c" />
-    <ClCompile Include="..\src\osmparser.c" />
-    <ClCompile Include="..\src\osmpbfparse.c" />
-    <ClCompile Include="..\src\osmxmlparse.c" />
-    <ClCompile Include="..\src\planetsplitter.c" />
-    <ClCompile Include="..\src\prunex.c" />
-    <ClCompile Include="..\src\queue.c" />
-    <ClCompile Include="..\src\relationsx.c" />
-    <ClCompile Include="..\src\results.c" />
-    <ClCompile Include="..\src\segmentsx.c" />
-    <ClCompile Include="..\src\sorting.c" />
-    <ClCompile Include="..\src\superx.c" />
-    <ClCompile Include="..\src\tagging.c" />
-    <ClCompile Include="..\src\types.c" />
-    <ClCompile Include="..\src\uncompress.c" />
-    <ClCompile Include="..\src\ways.c" />
-    <ClCompile Include="..\src\waysx.c" />
-    <ClCompile Include="..\src\xmlparse.c" />
+    <ClCompile Include="..\..\src\filedumperx.c" />
+    <ClCompile Include="..\..\src\files.c" />
+    <ClCompile Include="..\..\src\logging.c" />
+    <ClCompile Include="..\..\src\mman-win32.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{FACD0DF4-6661-4BD1-BD36-0F3FAEC50F5C}</ProjectGuid>
+    <ProjectGuid>{E82AB44E-6C7F-431E-A95E-B3A50149DF51}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>PlanetSplitter</RootNamespace>
+    <RootNamespace>FileDumperX</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
