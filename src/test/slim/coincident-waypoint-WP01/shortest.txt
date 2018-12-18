@@ -1,0 +1,10 @@
+# Creator : Routino - http://www.routino.org/
+# Source : Routino test cases - (c) Andrew M. Bishop
+# License : GNU Affero General Public License v3 or later
+#
+#Latitude	Longitude	Section 	Section 	Total   	Total   	Point	Turn	Bearing	Highway
+#        	         	Distance	Duration	Distance	Duration	Type 	    	       	       
+ -0.216904	  -0.520770	 0.000 km	 0.0 min	  0.0 km	   0 min	Waypt#1		 -4	main 1
+ -0.217741	  -0.520789	 0.092 km	 0.1 min	  0.1 km	   0 min	Waypt#2	 +0	 -4	main 1
+ -0.217741	  -0.520789	 0.000 km	 0.0 min	  0.1 km	   0 min	Waypt#3	 +0	 -4	main 1
+ -0.219080	  -0.520824	 0.147 km	 0.1 min	  0.2 km	   0 min	Waypt#4			

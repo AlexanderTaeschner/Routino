@@ -1,0 +1,949 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='Routino'>
+  <node id='1' lat='-0.2219350' lon='-0.5211699' version='1' />
+  <node id='2' lat='-0.2180213' lon='-0.5210282' version='1' />
+  <node id='3' lat='-0.2221912' lon='-0.5209419' version='1' />
+  <node id='4' lat='-0.2217199' lon='-0.5209274' version='1'>
+    <tag k='routino:super' v='yes' />
+  </node>
+  <node id='5' lat='-0.2206663' lon='-0.5208933' version='1'>
+    <tag k='routino:super' v='yes' />
+  </node>
+  <node id='6' lat='-0.2182809' lon='-0.5207917' version='1'>
+    <tag k='routino:super' v='yes' />
+  </node>
+  <node id='7' lat='-0.2177883' lon='-0.5207720' version='1' />
+  <node id='8' lat='-0.2219547' lon='-0.5207003' version='1' />
+  <node id='9' lat='-0.2180418' lon='-0.5205355' version='1' />
+  <node id='10' lat='-0.2206817' lon='-0.5201411' version='1'>
+    <tag k='routino:super' v='yes' />
+  </node>
+  <node id='11' lat='-0.2190092' lon='-0.5200754' version='1'>
+    <tag k='routino:super' v='yes' />
+    <tag k='motorcar' v='no' />
+    <tag k='goods' v='no' />
+    <tag k='hgv' v='no' />
+    <tag k='psv' v='no' />
+  </node>
+  <node id='12' lat='-0.2184201' lon='-0.5200515' version='1' />
+  <node id='13' lat='-0.2206945' lon='-0.5194888' version='1'>
+    <tag k='routino:super' v='yes' />
+  </node>
+  <node id='14' lat='-0.2211231' lon='-0.5193599' version='1' />
+  <node id='15' lat='-0.2201396' lon='-0.5193420' version='1' />
+  <node id='16' lat='-0.2206937' lon='-0.5192267' version='1' />
+  <node id='17' lat='-0.2203863' lon='-0.5190764' version='1' />
+  <node id='18' lat='-0.2209609' lon='-0.5189279' version='1' />
+  <node id='19' lat='-0.2204273' lon='-0.5186222' version='1' />
+  <node id='20' lat='-0.2211564' lon='-0.5186154' version='1'>
+    <tag k='routino:super' v='yes' />
+    <tag k='motorcar' v='no' />
+    <tag k='goods' v='no' />
+    <tag k='hgv' v='no' />
+    <tag k='psv' v='no' />
+  </node>
+  <node id='21' lat='-0.2201729' lon='-0.5185975' version='1'>
+    <tag k='foot' v='no' />
+    <tag k='horse' v='no' />
+    <tag k='wheelchair' v='no' />
+    <tag k='bicycle' v='no' />
+    <tag k='moped' v='no' />
+    <tag k='motorcycle' v='no' />
+    <tag k='motorcar' v='no' />
+    <tag k='goods' v='no' />
+    <tag k='hgv' v='no' />
+    <tag k='psv' v='no' />
+  </node>
+  <node id='22' lat='-0.2209489' lon='-0.5184225' version='1' />
+  <node id='23' lat='-0.2204555' lon='-0.5182380' version='1' />
+  <node id='24' lat='-0.2207457' lon='-0.5180698' version='1' />
+  <node id='25' lat='-0.2211658' lon='-0.5179162' version='1' />
+  <node id='26' lat='-0.2202121' lon='-0.5179025' version='1' />
+  <node id='27' lat='-0.2207389' lon='-0.5178009' version='1'>
+    <tag k='routino:super' v='yes' />
+  </node>
+  <node id='28' lat='-0.2218958' lon='-0.5163051' version='1' />
+  <node id='29' lat='-0.2179821' lon='-0.5161642' version='1' />
+  <node id='30' lat='-0.2221417' lon='-0.5160771' version='1' />
+  <node id='31' lat='-0.2216712' lon='-0.5160635' version='1'>
+    <tag k='routino:super' v='yes' />
+  </node>
+  <node id='32' lat='-0.2207842' lon='-0.5160353' version='1'>
+    <tag k='routino:super' v='yes' />
+  </node>
+  <node id='33' lat='-0.2182399' lon='-0.5159269' version='1'>
+    <tag k='routino:super' v='yes' />
+  </node>
+  <node id='34' lat='-0.2177473' lon='-0.5159072' version='1' />
+  <node id='35' lat='-0.2219154' lon='-0.5158347' version='1' />
+  <node id='36' lat='-0.2180026' lon='-0.5156716' version='1' />
+  <way id='1' version='1'>
+    <nd ref='1' />
+    <nd ref='3' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.038' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='2' version='1'>
+    <nd ref='1' />
+    <nd ref='4' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.036' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='3' version='1'>
+    <nd ref='2' />
+    <nd ref='6' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.039' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='4' version='1'>
+    <nd ref='2' />
+    <nd ref='7' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.038' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='5' version='1'>
+    <nd ref='3' />
+    <nd ref='8' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.037' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='6' version='1'>
+    <nd ref='4' />
+    <nd ref='4' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:distance' v='0.147' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='7' version='1'>
+    <nd ref='4' />
+    <nd ref='5' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.117' />
+    <tag k='highway' v='primary' />
+    <tag k='name' v='main 1' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='8' version='1'>
+    <nd ref='4' />
+    <nd ref='8' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.036' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='9' version='1'>
+    <nd ref='5' />
+    <nd ref='6' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.265' />
+    <tag k='highway' v='primary' />
+    <tag k='name' v='main 1' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='10' version='1'>
+    <nd ref='5' />
+    <nd ref='10' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.083' />
+    <tag k='highway' v='unclassified' />
+    <tag k='name' v='high street' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='11' version='1'>
+    <nd ref='6' />
+    <nd ref='6' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:distance' v='0.154' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='12' version='1'>
+    <nd ref='6' />
+    <nd ref='9' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.039' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='13' version='1'>
+    <nd ref='7' />
+    <nd ref='9' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.038' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='14' version='1'>
+    <nd ref='10' />
+    <nd ref='11' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.186' />
+    <tag k='highway' v='unclassified' />
+    <tag k='name' v='dead end road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='15' version='1'>
+    <nd ref='10' />
+    <nd ref='13' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.072' />
+    <tag k='highway' v='unclassified' />
+    <tag k='name' v='high street' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='16' version='1'>
+    <nd ref='11' />
+    <nd ref='12' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.065' />
+    <tag k='highway' v='unclassified' />
+    <tag k='name' v='private road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='17' version='1'>
+    <nd ref='13' />
+    <nd ref='14' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.049' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='somepass road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='18' version='1'>
+    <nd ref='13' />
+    <nd ref='15' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.063' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='nopass road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='19' version='1'>
+    <nd ref='13' />
+    <nd ref='16' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.029' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='long road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='20' version='1'>
+    <nd ref='13' />
+    <nd ref='20' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:distance' v='0.131' />
+    <tag k='highway' v='residential' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='21' version='1'>
+    <nd ref='13' />
+    <nd ref='27' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:distance' v='0.387' />
+    <tag k='highway' v='residential' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='22' version='1'>
+    <nd ref='14' />
+    <nd ref='20' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.082' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='somepass road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='23' version='1'>
+    <nd ref='15' />
+    <nd ref='21' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.082' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='nopass road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='24' version='1'>
+    <nd ref='16' />
+    <nd ref='17' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.038' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='long road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='25' version='1'>
+    <nd ref='17' />
+    <nd ref='18' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.066' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='long road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='26' version='1'>
+    <nd ref='18' />
+    <nd ref='19' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.068' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='long road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='27' version='1'>
+    <nd ref='19' />
+    <nd ref='22' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.062' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='long road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='28' version='1'>
+    <nd ref='20' />
+    <nd ref='25' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.077' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='somepass road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='29' version='1'>
+    <nd ref='20' />
+    <nd ref='27' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:distance' v='0.126' />
+    <tag k='highway' v='residential' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='30' version='1'>
+    <nd ref='21' />
+    <nd ref='26' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.077' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='nopass road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='31' version='1'>
+    <nd ref='22' />
+    <nd ref='23' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.058' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='long road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='32' version='1'>
+    <nd ref='23' />
+    <nd ref='24' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.037' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='long road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='33' version='1'>
+    <nd ref='24' />
+    <nd ref='27' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.029' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='long road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='34' version='1'>
+    <nd ref='25' />
+    <nd ref='27' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.049' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='somepass road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='35' version='1'>
+    <nd ref='26' />
+    <nd ref='27' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.059' />
+    <tag k='highway' v='residential' />
+    <tag k='name' v='nopass road' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='36' version='1'>
+    <nd ref='27' />
+    <nd ref='32' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.196' />
+    <tag k='highway' v='unclassified' />
+    <tag k='name' v='high street' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='wheelchair' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='37' version='1'>
+    <nd ref='28' />
+    <nd ref='30' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.037' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='38' version='1'>
+    <nd ref='28' />
+    <nd ref='31' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.036' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='39' version='1'>
+    <nd ref='29' />
+    <nd ref='33' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.039' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='40' version='1'>
+    <nd ref='29' />
+    <nd ref='34' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.038' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='41' version='1'>
+    <nd ref='30' />
+    <nd ref='35' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.036' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='42' version='1'>
+    <nd ref='31' />
+    <nd ref='31' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:distance' v='0.146' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='43' version='1'>
+    <nd ref='31' />
+    <nd ref='32' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.098' />
+    <tag k='highway' v='primary' />
+    <tag k='name' v='main 2' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='44' version='1'>
+    <nd ref='31' />
+    <nd ref='35' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.037' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='45' version='1'>
+    <nd ref='32' />
+    <nd ref='33' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.283' />
+    <tag k='highway' v='primary' />
+    <tag k='name' v='main 2' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='46' version='1'>
+    <nd ref='33' />
+    <nd ref='33' />
+    <tag k='routino:super' v='yes' />
+    <tag k='routino:distance' v='0.153' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='47' version='1'>
+    <nd ref='33' />
+    <nd ref='36' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.038' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+  <way id='48' version='1'>
+    <nd ref='34' />
+    <nd ref='36' />
+    <tag k='routino:normal' v='yes' />
+    <tag k='routino:distance' v='0.038' />
+    <tag k='highway' v='primary' />
+    <tag k='foot' v='yes' />
+    <tag k='horse' v='yes' />
+    <tag k='bicycle' v='yes' />
+    <tag k='moped' v='yes' />
+    <tag k='motorcycle' v='yes' />
+    <tag k='motorcar' v='yes' />
+    <tag k='goods' v='yes' />
+    <tag k='hgv' v='yes' />
+    <tag k='psv' v='yes' />
+    <tag k='paved' v='yes' />
+  </way>
+</osm>

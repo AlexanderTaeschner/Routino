@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Routino" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<metadata>
+<desc>Creator : Routino - http://www.routino.org/</desc>
+<copyright author="Routino test cases - (c) Andrew M. Bishop">
+<license>GNU Affero General Public License v3 or later</license>
+</copyright>
+</metadata>
+<rte>
+<name>Shortest route</name>
+<desc>Shortest route between 'start' and 'finish' waypoints</desc>
+<rtept lat="-0.218453" lon="-0.520799"><name>WAYPT01</name>
+<desc>South on 'main 1' for 0.072 km, 0.0 min</desc></rtept>
+<rtept lat="-0.219107" lon="-0.520828"><name>TRIP001</name>
+<desc>East on 'top road' for 0.396 km, 0.5 min</desc></rtept>
+<rtept lat="-0.219144" lon="-0.517257"><name>TRIP002</name>
+<desc>South-East on 'roundabout' for 0.069 km, 0.1 min</desc></rtept>
+<rtept lat="-0.219153" lon="-0.516826"><name>TRIP003</name>
+<desc>East on 'top road' for 0.095 km, 0.1 min</desc></rtept>
+<rtept lat="-0.219184" lon="-0.515968"><name>TRIP004</name>
+<desc>South on 'main 2' for 0.178 km, 0.1 min</desc></rtept>
+<rtept lat="-0.220784" lon="-0.516035"><name>TRIP005</name>
+<desc>West on 'high street' for 0.068 km, 0.1 min</desc></rtept>
+<rtept lat="-0.220760" lon="-0.516647"><name>TRIP006</name>
+<desc>North on 'loop 3' for 0.149 km, 0.2 min</desc></rtept>
+<rtept lat="-0.220089" lon="-0.517279"><name>WAYPT02</name>
+<desc>South on 'loop 3' for 0.074 km, 0.1 min</desc></rtept>
+<rtept lat="-0.220739" lon="-0.517425"><name>TRIP008</name>
+<desc>West on 'high street' for 0.071 km, 0.1 min</desc></rtept>
+<rtept lat="-0.220724" lon="-0.518071"><name>TRIP009</name>
+<desc>West on 'high street' for 0.085 km, 0.1 min</desc></rtept>
+<rtept lat="-0.220708" lon="-0.518842"><name>TRIP010</name>
+<desc>West on 'high street' for 0.069 km, 0.1 min</desc></rtept>
+<rtept lat="-0.220691" lon="-0.519461"><name>TRIP011</name>
+<desc>West on 'high street' for 0.084 km, 0.1 min</desc></rtept>
+<rtept lat="-0.220671" lon="-0.520223"><name>TRIP012</name>
+<desc>West on 'high street' for 0.074 km, 0.1 min</desc></rtept>
+<rtept lat="-0.220666" lon="-0.520893"><name>TRIP013</name>
+<desc>South on 'main 1' for 0.098 km, 0.1 min</desc></rtept>
+<rtept lat="-0.221561" lon="-0.520922"><name>WAYPT03</name>
+<desc>Total Journey 1.6 km, 2 minutes</desc></rtept>
+</rte>
+</gpx>

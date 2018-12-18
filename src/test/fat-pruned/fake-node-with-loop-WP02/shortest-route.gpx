@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Routino" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<metadata>
+<desc>Creator : Routino - http://www.routino.org/</desc>
+<copyright author="Routino test cases - (c) Andrew M. Bishop">
+<license>GNU Affero General Public License v3 or later</license>
+</copyright>
+</metadata>
+<rte>
+<name>Shortest route</name>
+<desc>Shortest route between 'start' and 'finish' waypoints</desc>
+<rtept lat="-0.216959" lon="-0.520771"><name>WAYPT01</name>
+<desc>South on 'main 1' for 0.244 km, 0.2 min</desc></rtept>
+<rtept lat="-0.219171" lon="-0.520827"><name>WAYPT02</name>
+<desc>South on 'main 1' for 0.034 km, 0.0 min</desc></rtept>
+<rtept lat="-0.219482" lon="-0.520837"><name>TRIP002</name>
+<desc>South-East on 'roundabout' for 0.261 km, 0.2 min</desc></rtept>
+<rtept lat="-0.219482" lon="-0.520837"><name>TRIP003</name>
+<desc>North on 'main 1' for 0.070 km, 0.0 min</desc></rtept>
+<rtept lat="-0.218842" lon="-0.520816"><name>WAYPT03</name>
+<desc>Total Journey 0.6 km, 0 minutes</desc></rtept>
+</rte>
+</gpx>

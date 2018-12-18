@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<!-- Creator : Routino - http://www.routino.org/ -->
+<!-- Source : Routino test cases - (c) Andrew M. Bishop -->
+<!-- License : GNU Affero General Public License v3 or later -->
+<head>
+<title>Shortest Route</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+<!--
+   table   {table-layout: fixed; border: none; border-collapse: collapse;}
+   table.c {color: grey; font-size: x-small;} /* copyright */
+   tr      {border: 0px;}
+   tr.c    {display: none;} /* coords */
+   tr.n    {} /* node */
+   tr.s    {} /* segment */
+   tr.t    {font-weight: bold;} /* total */
+   td.l    {font-weight: bold;}
+   td.r    {}
+   span.w  {font-weight: bold;} /* waypoint */
+   span.h  {text-decoration: underline;} /* highway */
+   span.d  {} /* segment distance */
+   span.j  {font-style: italic;} /* total journey distance */
+   span.t  {font-variant: small-caps;} /* turn */
+   span.b  {font-variant: small-caps;} /* bearing */
+-->
+</style>
+</head>
+<body>
+<h1>Shortest Route</h1>
+<table>
+<tr class='c'><td>1: -0.218453 -0.520799
+<tr class='n'><td>Start at <span class='w'>Waypoint#1</span>, head <span class='b'>South</span>
+<tr class='s'><td>Follow <span class='h'>main 1</span> for <span class='d'>0.072 km, 0.0 min</span><span class='j'>0.1 km, 0 minutes</span>
+<tr class='c'><td>2: -0.219107 -0.520828
+<tr class='n'><td>At Junction, go <span class='t'>Left</span> heading <span class='b'>East</span>
+<tr class='s'><td>Follow <span class='h'>top road</span> for <span class='d'>0.396 km, 0.5 min</span><span class='j'>0.5 km, 1 minutes</span>
+<tr class='c'><td>3: -0.219144 -0.517257
+<tr class='n'><td>At Junction, go <span class='t'>Slight right</span> heading <span class='b'>South-East</span>
+<tr class='s'><td>Follow <span class='h'>Roundabout</span> for <span class='d'>0.069 km, 0.1 min</span><span class='j'>0.5 km, 1 minutes</span>
+<tr class='c'><td>4: -0.219153 -0.516826
+<tr class='n'><td>Leave Roundabout, take the <span class='b'>Second</span> exit heading <span class='b'>East</span>
+<tr class='s'><td>Follow <span class='h'>top road</span> for <span class='d'>0.095 km, 0.1 min</span><span class='j'>0.6 km, 1 minutes</span>
+<tr class='c'><td>5: -0.219184 -0.515968
+<tr class='n'><td>At Junction, go <span class='t'>Right</span> heading <span class='b'>South</span>
+<tr class='s'><td>Follow <span class='h'>main 2</span> for <span class='d'>0.178 km, 0.1 min</span><span class='j'>0.8 km, 1 minutes</span>
+<tr class='c'><td>6: -0.220784 -0.516035
+<tr class='n'><td>At Junction, go <span class='t'>Right</span> heading <span class='b'>West</span>
+<tr class='s'><td>Follow <span class='h'>high street</span> for <span class='d'>0.068 km, 0.1 min</span><span class='j'>0.9 km, 1 minutes</span>
+<tr class='c'><td>7: -0.220760 -0.516647
+<tr class='n'><td>At Junction, go <span class='t'>Straight on</span> heading <span class='b'>West</span>
+<tr class='s'><td>Follow <span class='h'>high street</span> for <span class='d'>0.086 km, 0.1 min</span><span class='j'>1.0 km, 1 minutes</span>
+<tr class='c'><td>8: -0.220739 -0.517425
+<tr class='n'><td>At Junction, go <span class='t'>Right</span> heading <span class='b'>North</span>
+<tr class='s'><td>Follow <span class='h'>loop 3</span> for <span class='d'>0.057 km, 0.1 min</span><span class='j'>1.0 km, 1 minutes</span>
+<tr class='c'><td>9: -0.220238 -0.517313
+<tr class='n'><td>At <span class='w'>Waypoint#2</span>, go <span class='t'>Straight on</span> heading <span class='b'>North</span>
+<tr class='s'><td>Follow <span class='h'>loop 3</span> for <span class='d'>0.166 km, 0.2 min</span><span class='j'>1.2 km, 1 minutes</span>
+<tr class='c'><td>10: -0.220760 -0.516647
+<tr class='n'><td>At Junction, go <span class='t'>Right</span> heading <span class='b'>West</span>
+<tr class='s'><td>Follow <span class='h'>high street</span> for <span class='d'>0.086 km, 0.1 min</span><span class='j'>1.3 km, 1 minutes</span>
+<tr class='c'><td>11: -0.220739 -0.517425
+<tr class='n'><td>At Junction, go <span class='t'>Straight on</span> heading <span class='b'>West</span>
+<tr class='s'><td>Follow <span class='h'>high street</span> for <span class='d'>0.071 km, 0.1 min</span><span class='j'>1.3 km, 2 minutes</span>
+<tr class='c'><td>12: -0.220724 -0.518071
+<tr class='n'><td>At Junction, go <span class='t'>Straight on</span> heading <span class='b'>West</span>
+<tr class='s'><td>Follow <span class='h'>high street</span> for <span class='d'>0.085 km, 0.1 min</span><span class='j'>1.4 km, 2 minutes</span>
+<tr class='c'><td>13: -0.220708 -0.518842
+<tr class='n'><td>At Junction, go <span class='t'>Straight on</span> heading <span class='b'>West</span>
+<tr class='s'><td>Follow <span class='h'>high street</span> for <span class='d'>0.069 km, 0.1 min</span><span class='j'>1.5 km, 2 minutes</span>
+<tr class='c'><td>14: -0.220691 -0.519461
+<tr class='n'><td>At Junction, go <span class='t'>Straight on</span> heading <span class='b'>West</span>
+<tr class='s'><td>Follow <span class='h'>high street</span> for <span class='d'>0.084 km, 0.1 min</span><span class='j'>1.6 km, 2 minutes</span>
+<tr class='c'><td>15: -0.220671 -0.520223
+<tr class='n'><td>At Junction, go <span class='t'>Straight on</span> heading <span class='b'>West</span>
+<tr class='s'><td>Follow <span class='h'>high street</span> for <span class='d'>0.074 km, 0.1 min</span><span class='j'>1.7 km, 2 minutes</span>
+<tr class='c'><td>16: -0.220666 -0.520893
+<tr class='n'><td>At Junction, go <span class='t'>Left</span> heading <span class='b'>South</span>
+<tr class='s'><td>Follow <span class='h'>main 1</span> for <span class='d'>0.098 km, 0.1 min</span><span class='j'>1.8 km, 2 minutes</span>
+<tr class='c'><td>17: -0.221561 -0.520922
+<tr class='n'><td>Stop at <span class='w'>Waypoint#3</span>
+<tr class='t'><td><span class='j'>Total 1.8 km, 2 minutes</span>
+</table>
+<p>
+<table class='c'>
+<tr><td class='l'>Creator:<td class='r'>Routino - http://www.routino.org/
+<tr><td class='l'>Source:<td class='r'>Routino test cases - (c) Andrew M. Bishop
+<tr><td class='l'>License:<td class='r'>GNU Affero General Public License v3 or later
+</table>
+</body>
+</html>

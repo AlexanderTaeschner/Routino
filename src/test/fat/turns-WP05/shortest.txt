@@ -1,0 +1,18 @@
+# Creator : Routino - http://www.routino.org/
+# Source : Routino test cases - (c) Andrew M. Bishop
+# License : GNU Affero General Public License v3 or later
+#
+#Latitude	Longitude	Section 	Section 	Total   	Total   	Point	Turn	Bearing	Highway
+#        	         	Distance	Duration	Distance	Duration	Type 	    	       	       
+ -0.218453	  -0.520799	 0.000 km	 0.0 min	  0.0 km	   0 min	Waypt#1		 -4	main 1
+ -0.220666	  -0.520893	 0.245 km	 0.2 min	  0.2 km	   0 min	Junct	 -1	 +2	high street
+ -0.220691	  -0.519461	 0.158 km	 0.2 min	  0.4 km	   0 min	Junct	 +0	 +2	high street
+ -0.220724	  -0.518071	 0.154 km	 0.2 min	  0.6 km	   1 min	Junct	 -1	 +0	loop 2
+ -0.220100	  -0.518718	 0.151 km	 0.2 min	  0.7 km	   1 min	Waypt#2	 +0	 -4	loop 2
+ -0.220724	  -0.518071	 0.154 km	 0.2 min	  0.9 km	   1 min	Junct	 +0	 +2	high street
+ -0.220784	  -0.516035	 0.225 km	 0.3 min	  1.1 km	   1 min	Junct	 +2	 -4	main 2
+ -0.221431	  -0.516056	 0.072 km	 0.0 min	  1.2 km	   1 min	Junct	 +2	 -2	bottom road
+ -0.221376	  -0.518235	 0.242 km	 0.3 min	  1.4 km	   2 min	Junct	 +0	 -2	bottom road
+ -0.221360	  -0.518860	 0.069 km	 0.1 min	  1.5 km	   2 min	Junct	 +0	 -2	bottom road
+ -0.221308	  -0.520914	 0.228 km	 0.3 min	  1.7 km	   2 min	Junct	 -1	 -4	main 1
+ -0.221561	  -0.520922	 0.027 km	 0.0 min	  1.7 km	   2 min	Waypt#3			

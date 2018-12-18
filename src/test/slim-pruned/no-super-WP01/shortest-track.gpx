@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Routino" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<metadata>
+<desc>Creator : Routino - http://www.routino.org/</desc>
+<copyright author="Routino test cases - (c) Andrew M. Bishop">
+<license>GNU Affero General Public License v3 or later</license>
+</copyright>
+</metadata>
+<trk>
+<name>Shortest route</name>
+<desc>Shortest route between 'start' and 'finish' waypoints</desc>
+<trkseg>
+<trkpt lat="-0.215814" lon="-0.519419"/>
+<trkpt lat="-0.215737" lon="-0.519035"/>
+<trkpt lat="-0.215935" lon="-0.518253"/>
+<trkpt lat="-0.215772" lon="-0.517713"/>
+<trkpt lat="-0.215952" lon="-0.516838"/>
+<trkpt lat="-0.215755" lon="-0.515945"/>
+<trkpt lat="-0.215897" lon="-0.515462"/>
+</trkseg>
+<trkseg>
+<trkpt lat="-0.215897" lon="-0.515462"/>
+<trkpt lat="-0.215755" lon="-0.515945"/>
+<trkpt lat="-0.215952" lon="-0.516838"/>
+<trkpt lat="-0.215868" lon="-0.517244"/>
+</trkseg>
+</trk>
+</gpx>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Routino" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<metadata>
+<desc>Creator : Routino - http://www.routino.org/</desc>
+<copyright author="Routino test cases - (c) Andrew M. Bishop">
+<license>GNU Affero General Public License v3 or later</license>
+</copyright>
+</metadata>
+<rte>
+<name>Shortest route</name>
+<desc>Shortest route between 'start' and 'finish' waypoints</desc>
+<rtept lat="-0.218453" lon="-0.520799"><name>WAYPT01</name>
+<desc>South on 'main 1' for 0.245 km, 0.2 min</desc></rtept>
+<rtept lat="-0.220666" lon="-0.520893"><name>TRIP001</name>
+<desc>East on 'high street' for 0.158 km, 0.2 min</desc></rtept>
+<rtept lat="-0.220691" lon="-0.519461"><name>TRIP002</name>
+<desc>East on 'high street' for 0.154 km, 0.2 min</desc></rtept>
+<rtept lat="-0.220724" lon="-0.518071"><name>TRIP003</name>
+<desc>North on 'loop 2' for 0.151 km, 0.2 min</desc></rtept>
+<rtept lat="-0.220100" lon="-0.518718"><name>WAYPT02</name>
+<desc>South on 'loop 2' for 0.154 km, 0.2 min</desc></rtept>
+<rtept lat="-0.220724" lon="-0.518071"><name>TRIP005</name>
+<desc>East on 'high street' for 0.225 km, 0.3 min</desc></rtept>
+<rtept lat="-0.220784" lon="-0.516035"><name>TRIP006</name>
+<desc>South on 'main 2' for 0.072 km, 0.0 min</desc></rtept>
+<rtept lat="-0.221431" lon="-0.516056"><name>TRIP007</name>
+<desc>West on 'bottom road' for 0.242 km, 0.3 min</desc></rtept>
+<rtept lat="-0.221376" lon="-0.518235"><name>TRIP008</name>
+<desc>West on 'bottom road' for 0.069 km, 0.1 min</desc></rtept>
+<rtept lat="-0.221360" lon="-0.518860"><name>TRIP009</name>
+<desc>West on 'bottom road' for 0.228 km, 0.3 min</desc></rtept>
+<rtept lat="-0.221308" lon="-0.520914"><name>TRIP010</name>
+<desc>South on 'main 1' for 0.027 km, 0.0 min</desc></rtept>
+<rtept lat="-0.221561" lon="-0.520922"><name>WAYPT03</name>
+<desc>Total Journey 1.7 km, 2 minutes</desc></rtept>
+</rte>
+</gpx>
